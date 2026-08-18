@@ -1,0 +1,93 @@
+/* Stylesheet khusus halaman cetak Laporan Keuangan (admin/laporan_pdf.php).
+   Terpisah dari tailwind.css karena halaman ini berdiri sendiri (dibuka lewat
+   window.print(), tidak memakai layout admin) dan tidak memakai kelas Tailwind. */
+
+body {
+  font-family: Arial, Helvetica, sans-serif;
+  font-size: 12px;
+  color: #333;
+  margin: 0;
+  padding: 20px;
+}
+
+.header {
+  text-align: center;
+  border-bottom: 2px solid #0f172a;
+  padding-bottom: 12px;
+  margin-bottom: 20px;
+}
+.header h2 { margin: 0 0 4px; font-size: 16px; color: #0f172a; text-transform: uppercase; }
+.header h3 { margin: 0 0 4px; font-size: 14px; font-weight: normal; }
+.header p { margin: 0; font-size: 11px; color: #64748b; }
+.header .periode-note { color: #b45309; font-style: italic; }
+
+.kpi-table {
+  width: 100%;
+  border-collapse: collapse;
+  margin-bottom: 20px;
+}
+.kpi-table td {
+  border: 1px solid #cbd5e1;
+  padding: 10px;
+  background: #f8fafc;
+  text-align: center;
+  width: 25%;
+}
+.kpi-title { font-size: 10px; color: #64748b; text-transform: uppercase; }
+.kpi-val { font-size: 14px; font-weight: bold; color: #0f172a; margin-top: 4px; }
+
+.rasio-note { margin: -12px 0 20px; font-size: 11px; color: #64748b; }
+
+.section-head {
+  font-size: 13px; font-weight: bold;
+  color: #0f172a;
+  margin: 20px 0 8px;
+  border-bottom: 1px solid #cbd5e1;
+  padding-bottom: 4px;
+}
+
+table.data-table {
+  width: 100%;
+  border-collapse: collapse;
+  margin-bottom: 20px;
+  font-size: 11px;
+}
+table.data-table th, table.data-table td {
+  border: 1px solid #cbd5e1;
+  padding: 6px 8px;
+  text-align: left;
+}
+table.data-table th { background: #e2e8f0; font-weight: bold; }
+table.data-table-gabungan { font-size: 10px; }
+
+.text-right   { text-align: right; }
+.text-center  { text-align: center; }
+.text-success { color: #059669; }
+.text-danger  { color: #dc2626; }
+.font-bold    { font-weight: bold; }
+
+.col-w5  { width: 5%; }
+.col-w12 { width: 12%; }
+.col-w15 { width: 15%; }
+.col-w20 { width: 20%; }
+.col-w25 { width: 25%; }
+.col-w30 { width: 30%; }
+
+table.data-table-split { font-size: 9.5px; }
+table.data-table-split th, table.data-table-split td { padding: 4px 6px; }
+.col-header-success { background: #059669 !important; color: #fff; text-align: center; }
+.col-header-danger  { background: #dc2626 !important; color: #fff; text-align: center; }
+.col-spacer { border: none !important; width: 2%; background: transparent !important; }
+
+.footer-sign {
+  margin-top: 40px;
+  display: table;
+  width: 100%;
+}
+.sign-box {
+  display: table-cell;
+  width: 50%;
+  text-align: center;
+  font-size: 11px;
+}
+.sign-space { height: 60px; }

@@ -1,0 +1,23 @@
+# Defense-in-depth: this directory holds admin-uploaded files (bukti transaksi).
+# Upload validation (ext_in/mime_in) already blocks non-image/PDF files, but a future
+# regression there shouldn't turn into remote code execution — so scripts are never
+# executed here even if one somehow lands on disk.
+<IfModule mod_php.c>
+    php_flag engine off
+</IfModule>
+<IfModule mod_php7.c>
+    php_flag engine off
+</IfModule>
+<IfModule mod_php8.c>
+    php_flag engine off
+</IfModule>
+
+<FilesMatch "\.(php|phtml|php\d|phar|pl|py|cgi|asp|aspx|sh|exe)$">
+    <IfModule mod_authz_core.c>
+        Require all denied
+    </IfModule>
+    <IfModule !mod_authz_core.c>
+        Order allow,deny
+        Deny from all
+    </IfModule>
+</FilesMatch>
