@@ -111,6 +111,17 @@ $namaBulan = [1=>'Januari',2=>'Februari',3=>'Maret',4=>'April',5=>'Mei',6=>'Juni
   </div>
   <?php endif; ?>
 
+  <!-- Tab: Transaksi Keuangan / Perjalanan Dinas & Dana Taktis -->
+  <div class="segment">
+    <button type="button" id="tab-btn-transaksi" class="segment-btn active flex items-center gap-1.5" onclick="aktifkanTab('transaksi')">
+      <i data-lucide="list" class="w-3.5 h-3.5"></i> Transaksi Keuangan
+    </button>
+    <button type="button" id="tab-btn-perjadin" class="segment-btn flex items-center gap-1.5" onclick="aktifkanTab('perjadin')">
+      <i data-lucide="plane" class="w-3.5 h-3.5"></i> Perjalanan Dinas &amp; Dana Taktis
+    </button>
+  </div>
+
+  <div id="panel-transaksi">
   <!-- Daftar Transaksi -->
   <div class="card">
     <div class="card-header">
@@ -195,6 +206,111 @@ $namaBulan = [1=>'Januari',2=>'Februari',3=>'Maret',4=>'April',5=>'Mei',6=>'Juni
     <!-- Pagination -->
     <div id="pagination-wrap" class="flex items-center justify-between gap-3 p-3 border-t border-slate-200 dark:border-slate-700 flex-wrap"></div>
   </div>
+  </div><!-- /panel-transaksi -->
+
+  <div id="panel-perjadin" class="hidden space-y-6">
+    <?php $namaBulanPerjadin = ['', 'Januari', 'Februari', 'Maret', 'April', 'Mei', 'Juni', 'Juli', 'Agustus', 'September', 'Oktober', 'November', 'Desember']; ?>
+
+    <form id="form-filter-perjadin" class="card" onsubmit="return false">
+      <div class="card-body flex flex-wrap items-end gap-3 py-3">
+        <div>
+          <label class="form-label">Tahun</label>
+          <select name="tahun" id="filter-tahun-perjadin" class="form-control form-control-sm" onchange="muatDaftarTripPerjadin()">
+            <option value="">Semua Tahun</option>
+            <?php $tahunSaatIni = (int)date('Y'); $daftarTahunPerjadin = $tahunListPerjadin; if (!in_array($tahunSaatIni, $daftarTahunPerjadin)) $daftarTahunPerjadin[] = $tahunSaatIni; rsort($daftarTahunPerjadin); ?>
+            <?php foreach ($daftarTahunPerjadin as $th): ?>
+            <option value="<?= $th ?>" <?= (string)($filtersPerjadin['tahun'] ?? '') === (string)$th ? 'selected' : '' ?>><?= $th ?></option>
+            <?php endforeach; ?>
+          </select>
+        </div>
+        <div>
+          <label class="form-label">Bulan</label>
+          <select name="bulan" id="filter-bulan-perjadin" class="form-control form-control-sm" onchange="muatDaftarTripPerjadin()">
+            <option value="">Semua Bulan</option>
+            <?php for ($b = 1; $b <= 12; $b++): ?>
+            <option value="<?= $b ?>" <?= (int)($filtersPerjadin['bulan'] ?? 0) === $b ? 'selected' : '' ?>><?= $namaBulanPerjadin[$b] ?></option>
+            <?php endfor; ?>
+          </select>
+        </div>
+        <div class="flex-1 min-w-[180px]">
+          <label class="form-label">Cari</label>
+          <input type="text" name="search" id="filter-search-perjadin" value="<?= esc($filtersPerjadin['search'] ?? '') ?>" class="form-control form-control-sm" placeholder="Maksud, no surat tugas, kode MAK..." oninput="jadwalkanMuatDaftarPerjadin()">
+        </div>
+        <button type="button" class="btn btn-primary btn-sm" onclick="muatDaftarTripPerjadin()"><i data-lucide="search"></i> Filter</button>
+      </div>
+    </form>
+
+    <div id="daftar-trip-perjadin">
+<?= view('public/perjalanan_dinas_list', ['trips' => $tripsPerjadin]) ?>
+    </div>
+
+    <div id="dana-taktis" class="pt-6 border-t border-slate-200 dark:border-slate-700 scroll-mt-20">
+      <div class="mb-4">
+        <h2 class="text-lg font-bold text-slate-800 dark:text-slate-100">Cek Dana Taktis Saya</h2>
+        <p class="text-sm text-slate-500 dark:text-slate-400 mt-1">Rekap setoran Dana Taktis (10% Uang Harian) atas nama Anda</p>
+      </div>
+
+      <div class="card mb-4">
+        <div class="card-body py-4">
+          <label class="form-label">Pilih Nama Pegawai</label>
+          <select id="pegawai-select" class="form-control max-w-md" onchange="muatRekapDanaTaktis()">
+            <option value="">Pilih pegawai...</option>
+            <?php foreach ($pegawaiList as $pg): ?>
+            <option value="<?= $pg['id'] ?>"><?= esc($pg['nama']) ?><?= $pg['nip'] ? ' — ' . esc($pg['nip']) : '' ?></option>
+            <?php endforeach; ?>
+          </select>
+        </div>
+      </div>
+
+      <div id="rekap-wrap" class="hidden">
+        <div class="grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-4 gap-4 mb-4">
+          <div class="card"><div class="card-body">
+            <p class="text-xs text-slate-500 dark:text-slate-400">Total Uang Harian</p>
+            <p class="text-lg font-bold text-slate-800 dark:text-slate-100 mt-1" id="rekap-uang-harian">Rp 0</p>
+          </div></div>
+          <div class="card"><div class="card-body">
+            <p class="text-xs text-slate-500 dark:text-slate-400">Total SPJ</p>
+            <p class="text-lg font-bold text-slate-800 dark:text-slate-100 mt-1" id="rekap-total-spj">Rp 0</p>
+          </div></div>
+          <div class="card"><div class="card-body">
+            <p class="text-xs text-slate-500 dark:text-slate-400">Total Dana Taktis</p>
+            <p class="text-lg font-bold text-emerald-600 mt-1" id="rekap-dana-taktis">Rp 0</p>
+          </div></div>
+          <div class="card"><div class="card-body">
+            <p class="text-xs text-slate-500 dark:text-slate-400">Dana Taktis Belum Dibayar</p>
+            <p class="text-lg font-bold text-amber-600 mt-1" id="rekap-belum-dibayar">Rp 0</p>
+          </div></div>
+        </div>
+
+        <div class="card">
+          <div class="card-header">
+            <h3 class="text-sm font-semibold text-slate-700 dark:text-slate-200">Rincian per Perjalanan Dinas</h3>
+          </div>
+          <div class="overflow-x-auto">
+            <table class="table">
+              <thead>
+                <tr>
+                  <th>Maksud Perjalanan Dinas</th>
+                  <th>No. Surat Tugas / Tgl</th>
+                  <th>Kode MAK</th>
+                  <th class="text-right">Uang Harian</th>
+                  <th class="text-right">Total SPJ</th>
+                  <th class="text-right">Dana Taktis</th>
+                  <th>Status</th>
+                </tr>
+              </thead>
+              <tbody id="rekap-tbody"></tbody>
+            </table>
+          </div>
+        </div>
+      </div>
+
+      <div id="rekap-empty" class="card"><div class="card-body text-center py-12 text-slate-500">
+        <i data-lucide="piggy-bank" class="w-10 h-10 mx-auto mb-3 opacity-30"></i>
+        Pilih nama pegawai di atas untuk melihat rekap Dana Taktis-nya.
+      </div></div>
+    </div>
+  </div><!-- /panel-perjadin -->
 
 </div>
 
@@ -526,11 +642,89 @@ window.showDetailPub = showDetailPub;
 function closeDetailModal() { document.getElementById('modal-detail-txn').classList.add('hidden'); }
 window.closeDetailModal = closeDetailModal;
 
+/* ── Tab: Transaksi Keuangan / Perjalanan Dinas & Dana Taktis ── */
+function aktifkanTab(nama) {
+  document.getElementById('panel-transaksi').classList.toggle('hidden', nama !== 'transaksi');
+  document.getElementById('panel-perjadin').classList.toggle('hidden', nama !== 'perjadin');
+  document.getElementById('tab-btn-transaksi').classList.toggle('active', nama === 'transaksi');
+  document.getElementById('tab-btn-perjadin').classList.toggle('active', nama === 'perjadin');
+  lucide.createIcons();
+}
+
+/* ── Perjalanan Dinas (filter & search, tanpa reload halaman) ── */
+let filterDebouncePerjadin = null;
+function jadwalkanMuatDaftarPerjadin() {
+  clearTimeout(filterDebouncePerjadin);
+  filterDebouncePerjadin = setTimeout(muatDaftarTripPerjadin, 400);
+}
+async function muatDaftarTripPerjadin() {
+  const params = new URLSearchParams();
+  const tahun = document.getElementById('filter-tahun-perjadin').value;
+  const bulan = document.getElementById('filter-bulan-perjadin').value;
+  const search = document.getElementById('filter-search-perjadin').value;
+  if (tahun) params.set('tahun', tahun);
+  if (bulan) params.set('bulan', bulan);
+  if (search) params.set('search', search);
+
+  const wrap = document.getElementById('daftar-trip-perjadin');
+  wrap.style.opacity = '0.5';
+  try {
+    const res = await fetch(BASE_URL + 'perjalanan-dinas/ajax?' + params.toString());
+    wrap.innerHTML = await res.text();
+    lucide.createIcons();
+  } finally {
+    wrap.style.opacity = '1';
+  }
+}
+
+/* ── Dana Taktis Saya ── */
+async function muatRekapDanaTaktis() {
+  const id = document.getElementById('pegawai-select').value;
+  if (!id) {
+    document.getElementById('rekap-wrap').classList.add('hidden');
+    document.getElementById('rekap-empty').classList.remove('hidden');
+    return;
+  }
+  const res = await fetch(BASE_URL + 'perjalanan-dinas/dana-taktis/data/' + id);
+  const json = await res.json();
+  if (!json.success) { alert(json.message || 'Gagal memuat rekap'); return; }
+
+  document.getElementById('rekap-empty').classList.add('hidden');
+  document.getElementById('rekap-wrap').classList.remove('hidden');
+  document.getElementById('rekap-uang-harian').textContent = fmtRp(json.total_uang_harian);
+  document.getElementById('rekap-total-spj').textContent = fmtRp(json.total_spj);
+  document.getElementById('rekap-dana-taktis').textContent = fmtRp(json.total_dana_taktis);
+  document.getElementById('rekap-belum-dibayar').textContent = fmtRp(json.belum_dibayar);
+
+  const tbody = document.getElementById('rekap-tbody');
+  tbody.innerHTML = '';
+  if (!json.rows || json.rows.length === 0) {
+    tbody.innerHTML = '<tr><td colspan="7" class="text-center py-8 text-slate-500">Belum pernah ikut perjalanan dinas.</td></tr>';
+    return;
+  }
+  json.rows.forEach(r => {
+    const tgl = r.tanggal_surat_tugas ? new Date(r.tanggal_surat_tugas).toLocaleDateString('id-ID', { day: 'numeric', month: 'short', year: 'numeric' }) : '-';
+    const statusBadge = r.status_lunas === 'lunas'
+      ? '<span class="badge badge-success">Lunas</span>'
+      : '<span class="badge badge-warning">Belum Lunas</span>';
+    const tr = document.createElement('tr');
+    tr.innerHTML = `<td class="max-w-[280px] truncate" title="${escapeHtml(r.maksud || '')}">${escapeHtml(r.maksud || '-')}</td>` +
+      `<td class="whitespace-nowrap text-xs">${escapeHtml(r.no_surat_tugas || '-')}<br>${tgl}</td>` +
+      `<td>${escapeHtml(r.kode_mak || '-')}</td>` +
+      `<td class="text-right text-currency">${fmtRp(r.uang_harian)}</td>` +
+      `<td class="text-right text-currency">${fmtRp(r.total_spj)}</td>` +
+      `<td class="text-right text-currency font-semibold text-emerald-600">${fmtRp(r.dana_taktis)}</td>` +
+      `<td>${statusBadge}</td>`;
+    tbody.appendChild(tr);
+  });
+}
+
 /* ── Init ── */
 document.addEventListener('DOMContentLoaded', () => {
   buildKat();
   loadTren(<?= $tahunSekarang ?>);
   refreshTxn();
+  if (location.hash === '#perjadin') aktifkanTab('perjadin');
 });
 </script>
 <?= $this->endSection() ?>

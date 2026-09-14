@@ -58,6 +58,10 @@ class Home extends BaseController
         // Catatan: daftar transaksi sepenuhnya dimuat lewat AJAX (getTransaksiAjax), jadi
         // tidak perlu dihitung lagi di sini.
 
+        // Perjalanan Dinas & Dana Taktis — ditampilkan sebagai tab di halaman yang sama
+        // (lihat #panel-perjadin di public/dashboard.php), bukan halaman terpisah.
+        $filtersPerjadin = $this->ambilFilterPerjalananDinasGet();
+
         return view('public/dashboard', [
             'saldoAkhir'          => $saldoAkhir,
             'totalPemasukan'      => $totalPemasukan,
@@ -72,6 +76,10 @@ class Home extends BaseController
             'pieData'             => json_encode($pieData),
             'tahunTren'           => $tahunTren,
             'tahunTersedia'       => $tahunTersedia,
+            'tripsPerjadin'       => $this->ambilTripPerjalananDinasTerfilter($filtersPerjadin),
+            'tahunListPerjadin'   => (new PerjalananDinasModel())->getAvailableYears(),
+            'filtersPerjadin'     => $filtersPerjadin,
+            'pegawaiList'         => (new PegawaiModel())->getAktifList(),
         ]);
     }
 
@@ -295,16 +303,12 @@ class Home extends BaseController
         return $trips;
     }
 
-    public function perjalananDinas(): string
+    /** Halaman terpisah lama — sekarang jadi tab "Perjalanan Dinas & Dana Taktis" di
+     *  halaman utama (lihat Home::index() & #panel-perjadin di public/dashboard.php).
+     *  Redirect dipertahankan supaya tautan lama tidak mati. */
+    public function perjalananDinas()
     {
-        $filters = $this->ambilFilterPerjalananDinasGet();
-
-        return view('public/perjalanan_dinas', [
-            'trips'       => $this->ambilTripPerjalananDinasTerfilter($filters),
-            'tahunList'   => (new PerjalananDinasModel())->getAvailableYears(),
-            'filters'     => $filters,
-            'pegawaiList' => (new PegawaiModel())->getAktifList(),
-        ]);
+        return redirect()->to(base_url('#perjadin'));
     }
 
     /** Fragment HTML untuk fetch() dari filter/search publik — lihat catatan yang sama
@@ -315,11 +319,11 @@ class Home extends BaseController
         return view('public/perjalanan_dinas_list', ['trips' => $this->ambilTripPerjalananDinasTerfilter($filters)]);
     }
 
-    /** Halaman terpisah lama — sekarang digabung jadi satu halaman di perjalananDinas().
-     *  Redirect dipertahankan supaya tautan lama tidak mati. */
+    /** Halaman terpisah lama — sekarang jadi bagian dari tab "Perjalanan Dinas & Dana
+     *  Taktis" di halaman utama. Redirect dipertahankan supaya tautan lama tidak mati. */
     public function danaTaktis()
     {
-        return redirect()->to(base_url('perjalanan-dinas') . '#dana-taktis');
+        return redirect()->to(base_url('#perjadin'));
     }
 
     public function danaTaktisData($pegawaiId)
