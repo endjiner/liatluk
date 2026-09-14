@@ -18,6 +18,13 @@ class Auth extends BaseController
         ]);
     }
 
+    /** Cache key CI4 menolak karakter {}()/\@: — IPv6 loopback (::1) mengandung ':',
+     *  jadi harus disaring dulu sebelum dipakai sebagai bagian key throttler. */
+    private function sanitizeCacheKeyPart(string $part): string
+    {
+        return preg_replace('/[{}()\/\\\\@:]/', '_', $part);
+    }
+
     public function doLogin()
     {
         $username = trim($this->request->getPost('username') ?? '');
@@ -28,16 +35,17 @@ class Auth extends BaseController
         }
 
         $throttler = service('throttler');
-        $ip = $this->request->getIPAddress();
+        $ip = $this->sanitizeCacheKeyPart($this->request->getIPAddress());
+        $userKey = $this->sanitizeCacheKeyPart(strtolower($username));
         if ($throttler->check('login_ip_' . $ip, 10, 300) === false
-            || $throttler->check('login_user_' . strtolower($username), 5, 300) === false) {
+            || $throttler->check('login_user_' . $userKey, 5, 300) === false) {
             return redirect()->back()->with('error', 'Terlalu banyak percobaan login. Coba lagi dalam beberapa menit.')->withInput();
         }
 
         $pengaturanModel = new PengaturanModel();
 
         if ($pengaturanModel->verifyAdmin($username, $password)) {
-            $throttler->remove('login_ip_' . $ip)->remove('login_user_' . strtolower($username));
+            $throttler->remove('login_ip_' . $ip)->remove('login_user_' . $userKey);
             session()->regenerate(true);
             session()->set([
                 'is_admin'       => true,
