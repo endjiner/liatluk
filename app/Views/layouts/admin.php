@@ -20,85 +20,48 @@
 </head>
 <body class="min-h-screen">
 
-<div class="flex min-h-screen">
+<div class="min-h-screen flex flex-col">
 
-  <!-- ═══════════ SIDEBAR ═══════════ -->
-  <aside id="sidebar" class="fixed lg:sticky top-0 left-0 z-30 h-screen w-64 bg-primary-900 text-slate-100 flex flex-col shadow-lift transition-all duration-300 -translate-x-full lg:translate-x-0 data-[collapsed=true]:lg:w-16">
-    <!-- Logo + collapse toggle -->
-    <div class="flex items-center gap-3 px-4 py-4 border-b border-primary-800">
-      <img src="<?= base_url('assets/images/logo_bpom.png') ?>" alt="BBPOM di Pangkal Pinang"
-           class="w-10 h-10 shrink-0 rounded-lg bg-white p-1 sidebar-brand-text">
-      <div class="flex-1 min-w-0 sidebar-brand-text">
-        <div class="text-sm font-semibold leading-tight">Keuangan Internal</div>
-        <div class="text-[11px] text-slate-300 leading-tight truncate">BBPOM di Pangkal Pinang</div>
-      </div>
-      <button onclick="toggleSidebar()" title="Ciutkan/Perluas"
-              class="p-1.5 rounded-md text-slate-300 hover:bg-primary-800 hover:text-white transition sidebar-toggle-btn hidden lg:flex items-center justify-center">
-        <i data-lucide="panel-left-close" id="sidebar-toggle-icon" class="w-4 h-4"></i>
-      </button>
-    </div>
+  <?php
+    $navLinks = [
+      ['url' => 'admin',           'label' => 'Dashboard',        'icon' => 'layout-dashboard', 'match' => ['admin', 'admin/dashboard']],
+      ['url' => 'admin/keuangan',  'label' => 'Data Keuangan',    'icon' => 'circle-dollar-sign', 'match' => ['keuangan']],
+      ['url' => 'admin/rencana',   'label' => 'Rencana Keuangan', 'icon' => 'calendar-check', 'match' => ['rencana']],
+      ['url' => 'admin/perjalanan-dinas', 'label' => 'Perjalanan Dinas', 'icon' => 'plane', 'match' => ['perjalanan-dinas']],
+      ['url' => 'admin/laporan',   'label' => 'Laporan',          'icon' => 'file-text', 'match' => ['laporan']],
+    ];
+    $isNavActive = function ($nl) {
+      foreach ($nl['match'] as $m) { if (str_contains(current_url(), $m)) return true; }
+      return false;
+    };
+  ?>
 
-    <!-- Nav -->
-    <nav class="flex-1 overflow-y-auto p-3 space-y-1">
-      <p class="text-[10px] font-semibold text-slate-400 uppercase tracking-wider px-3 pt-2 pb-1 sidebar-brand-text">Menu Utama</p>
-      <?php
-        $navLinks = [
-          ['url' => 'admin',           'label' => 'Dashboard',        'icon' => 'layout-dashboard', 'match' => ['admin', 'admin/dashboard']],
-          ['url' => 'admin/keuangan',  'label' => 'Data Keuangan',    'icon' => 'circle-dollar-sign', 'match' => ['keuangan']],
-          ['url' => 'admin/rencana',   'label' => 'Rencana Keuangan', 'icon' => 'calendar-check', 'match' => ['rencana']],
-          ['url' => 'admin/perjalanan-dinas', 'label' => 'Perjalanan Dinas', 'icon' => 'plane', 'match' => ['perjalanan-dinas']],
-          ['url' => 'admin/laporan',   'label' => 'Laporan',          'icon' => 'file-text', 'match' => ['laporan']],
-        ];
-        foreach ($navLinks as $nl):
-          $isActive = false;
-          foreach ($nl['match'] as $m) { if (str_contains(current_url(), $m)) { $isActive = true; break; } }
-      ?>
-      <a href="<?= base_url($nl['url']) ?>"
-         class="sidebar-link <?= $isActive ? 'active' : '' ?>"
-         title="<?= $nl['label'] ?>">
-        <i data-lucide="<?= $nl['icon'] ?>"></i>
-        <span class="sidebar-brand-text"><?= $nl['label'] ?></span>
-      </a>
-      <?php endforeach; ?>
+  <!-- ═══════════ TOP NAVBAR ═══════════ -->
+  <div class="sticky top-0 z-30 px-3 pt-3 lg:px-6 lg:pt-4">
+    <header class="max-w-7xl mx-auto bg-white dark:bg-slate-800 rounded-2xl shadow-lift border border-slate-200/60 dark:border-slate-700/60">
+      <div class="flex items-center justify-between h-16 px-3 lg:px-5 gap-2">
+        <!-- Brand -->
+        <a href="<?= base_url('admin') ?>" class="flex items-center gap-2.5 shrink-0 min-w-0">
+          <img src="<?= base_url('assets/images/logo_bpom.png') ?>" alt="BBPOM di Pangkal Pinang"
+               class="w-9 h-9 shrink-0 rounded-lg bg-white p-1 ring-1 ring-slate-200 dark:ring-slate-600">
+          <div class="hidden sm:block min-w-0">
+            <div class="text-sm font-bold leading-tight text-slate-800 dark:text-slate-100 truncate">Keuangan Internal</div>
+            <div class="text-[10px] text-slate-500 dark:text-slate-400 leading-tight truncate">BBPOM Pangkal Pinang</div>
+          </div>
+        </a>
 
-      <p class="text-[10px] font-semibold text-slate-400 uppercase tracking-wider px-3 pt-4 pb-1 sidebar-brand-text">Sistem</p>
-      <a href="<?= base_url('admin/pengaturan') ?>"
-         class="sidebar-link <?= str_contains(current_url(), 'pengaturan') ? 'active' : '' ?>" title="Pengaturan">
-        <i data-lucide="settings"></i>
-        <span class="sidebar-brand-text">Pengaturan</span>
-      </a>
-      <a href="<?= base_url('/') ?>" target="_blank" class="sidebar-link" title="Lihat Publik">
-        <i data-lucide="globe"></i>
-        <span class="sidebar-brand-text">Lihat Publik</span>
-      </a>
-    </nav>
+        <!-- Center nav (desktop) -->
+        <nav class="hidden lg:flex items-center gap-1">
+          <?php foreach ($navLinks as $nl): $isActive = $isNavActive($nl); ?>
+          <a href="<?= base_url($nl['url']) ?>"
+             class="flex items-center gap-1.5 px-3.5 py-2 rounded-full text-sm font-medium whitespace-nowrap transition <?= $isActive ? 'bg-primary-600 text-white shadow-sm' : 'text-slate-600 dark:text-slate-300 hover:bg-slate-100 dark:hover:bg-slate-700' ?>">
+            <i data-lucide="<?= $nl['icon'] ?>" class="w-4 h-4 shrink-0"></i> <?= $nl['label'] ?>
+          </a>
+          <?php endforeach; ?>
+        </nav>
 
-    <div class="p-3 border-t border-primary-800">
-      <button type="button" onclick="confirmLogout(event)"
-              class="sidebar-link w-full text-left text-red-300 hover:bg-red-500/20 hover:text-red-200">
-        <i data-lucide="log-out"></i>
-        <span class="sidebar-brand-text">Keluar</span>
-      </button>
-    </div>
-  </aside>
-
-  <!-- Backdrop for mobile sidebar -->
-  <div id="sidebar-backdrop" class="hidden lg:hidden fixed inset-0 bg-slate-900/50 z-20" onclick="toggleSidebar()"></div>
-
-  <!-- ═══════════ MAIN ═══════════ -->
-  <main class="flex-1 flex flex-col min-w-0">
-
-    <!-- Topbar -->
-    <header class="sticky top-0 z-20 bg-white dark:bg-slate-800 border-b border-slate-200 dark:border-slate-700 shadow-soft">
-      <div class="flex items-center justify-between h-14 px-4 lg:px-6">
-        <div class="flex items-center gap-3 min-w-0">
-          <button onclick="toggleSidebar()"
-                  class="lg:hidden p-2 rounded-md text-slate-500 hover:bg-slate-100 dark:hover:bg-slate-700">
-            <i data-lucide="menu" class="w-5 h-5"></i>
-          </button>
-        </div>
-
-        <div class="flex items-center gap-1">
+        <!-- Right actions -->
+        <div class="flex items-center gap-1 shrink-0">
           <!-- Theme -->
           <button onclick="toggleTheme()" title="Ganti Tema"
                   class="p-2 rounded-lg text-slate-500 dark:text-slate-300 hover:bg-slate-100 dark:hover:bg-slate-700 transition">
@@ -135,8 +98,12 @@
           <!-- User Menu -->
           <div class="relative" id="user-menu-wrapper">
             <button onclick="toggleUserMenu()" title="Menu Pengguna"
-                    class="p-2 rounded-lg text-slate-500 dark:text-slate-300 hover:bg-slate-100 dark:hover:bg-slate-700 transition">
-              <i data-lucide="user" class="w-5 h-5"></i>
+                    class="flex items-center gap-2 pl-1.5 pr-1.5 sm:pr-3 py-1.5 rounded-full hover:bg-slate-100 dark:hover:bg-slate-700 transition">
+              <div class="w-8 h-8 shrink-0 rounded-full bg-primary-600 text-white flex items-center justify-center text-sm font-semibold">
+                <?= strtoupper(substr(session()->get('admin_username') ?? 'A', 0, 1)) ?>
+              </div>
+              <span class="hidden sm:inline text-sm font-medium text-slate-700 dark:text-slate-200 max-w-[120px] truncate"><?= esc(session()->get('admin_username') ?? 'Administrator') ?></span>
+              <i data-lucide="chevron-down" class="hidden sm:inline w-3.5 h-3.5 text-slate-400"></i>
             </button>
             <div id="user-menu-dropdown" class="hidden absolute right-0 top-full mt-2 w-64 bg-white dark:bg-slate-800 rounded-xl shadow-lift border border-slate-200 dark:border-slate-700 overflow-hidden">
               <div class="flex items-center gap-3 px-4 py-3 border-b border-slate-200 dark:border-slate-700 bg-slate-50 dark:bg-slate-900/40">
@@ -159,33 +126,50 @@
               </button>
             </div>
           </div>
+
+          <!-- Mobile nav toggle -->
+          <button onclick="toggleMobileNav()" title="Menu"
+                  class="lg:hidden p-2 rounded-lg text-slate-500 dark:text-slate-300 hover:bg-slate-100 dark:hover:bg-slate-700 transition">
+            <i data-lucide="menu" id="mobile-nav-icon" class="w-5 h-5"></i>
+          </button>
         </div>
       </div>
+
+      <!-- Mobile nav panel -->
+      <nav id="mobile-nav" class="hidden lg:hidden border-t border-slate-200 dark:border-slate-700 p-2 space-y-1">
+        <?php foreach ($navLinks as $nl): $isActive = $isNavActive($nl); ?>
+        <a href="<?= base_url($nl['url']) ?>"
+           class="flex items-center gap-2.5 px-3 py-2.5 rounded-lg text-sm font-medium transition <?= $isActive ? 'bg-primary-50 text-primary-700 dark:bg-primary-900/30 dark:text-primary-300' : 'text-slate-600 dark:text-slate-300 hover:bg-slate-100 dark:hover:bg-slate-700' ?>">
+          <i data-lucide="<?= $nl['icon'] ?>" class="w-4 h-4"></i> <?= $nl['label'] ?>
+        </a>
+        <?php endforeach; ?>
+      </nav>
     </header>
+  </div>
 
-    <!-- Flash Messages -->
-    <?php if (session()->getFlashdata('success')): ?>
-    <div class="px-4 lg:px-6 pt-4">
-      <div class="flex items-center gap-3 px-4 py-3 rounded-lg bg-emerald-50 border border-emerald-200 text-emerald-800 dark:bg-emerald-900/30 dark:border-emerald-800 dark:text-emerald-200">
-        <i data-lucide="check-circle" class="w-5 h-5 shrink-0"></i>
-        <span class="text-sm"><?= session()->getFlashdata('success') ?></span>
-      </div>
+  <!-- Flash Messages -->
+  <?php if (session()->getFlashdata('success')): ?>
+  <div class="max-w-7xl w-full mx-auto px-4 lg:px-6 pt-4">
+    <div class="flex items-center gap-3 px-4 py-3 rounded-lg bg-emerald-50 border border-emerald-200 text-emerald-800 dark:bg-emerald-900/30 dark:border-emerald-800 dark:text-emerald-200">
+      <i data-lucide="check-circle" class="w-5 h-5 shrink-0"></i>
+      <span class="text-sm"><?= session()->getFlashdata('success') ?></span>
     </div>
-    <?php endif; ?>
-    <?php if (session()->getFlashdata('error')): ?>
-    <div class="px-4 lg:px-6 pt-4">
-      <div class="flex items-center gap-3 px-4 py-3 rounded-lg bg-red-50 border border-red-200 text-red-800 dark:bg-red-900/30 dark:border-red-800 dark:text-red-200">
-        <i data-lucide="alert-circle" class="w-5 h-5 shrink-0"></i>
-        <span class="text-sm"><?= session()->getFlashdata('error') ?></span>
-      </div>
+  </div>
+  <?php endif; ?>
+  <?php if (session()->getFlashdata('error')): ?>
+  <div class="max-w-7xl w-full mx-auto px-4 lg:px-6 pt-4">
+    <div class="flex items-center gap-3 px-4 py-3 rounded-lg bg-red-50 border border-red-200 text-red-800 dark:bg-red-900/30 dark:border-red-800 dark:text-red-200">
+      <i data-lucide="alert-circle" class="w-5 h-5 shrink-0"></i>
+      <span class="text-sm"><?= session()->getFlashdata('error') ?></span>
     </div>
-    <?php endif; ?>
+  </div>
+  <?php endif; ?>
 
-    <!-- Page Content -->
-    <div class="flex-1 p-5 lg:p-8">
+  <!-- ═══════════ PAGE CONTENT ═══════════ -->
+  <main class="flex-1">
+    <div class="max-w-7xl mx-auto px-4 lg:px-6 py-5 lg:py-8">
       <?= $this->renderSection('content') ?>
     </div>
-
   </main>
 </div>
 
@@ -362,24 +346,14 @@ function toggleTheme() {
   if (typeof updateChartColors === 'function') updateChartColors(dark ? 'dark' : 'light');
 }
 
-/* ── Sidebar ── */
-function toggleSidebar() {
-  const sidebar = document.getElementById('sidebar');
-  const backdrop = document.getElementById('sidebar-backdrop');
-  if (window.innerWidth >= 1024) {
-    const collapsed = sidebar.dataset.collapsed === 'true';
-    sidebar.dataset.collapsed = !collapsed;
-    document.querySelectorAll('.sidebar-brand-text').forEach(el => el.classList.toggle('hidden', !collapsed ? true : false));
-    const icon = document.getElementById('sidebar-toggle-icon');
-    if (icon) {
-      icon.setAttribute('data-lucide', !collapsed ? 'panel-left-open' : 'panel-left-close');
-      lucide.createIcons({ props: { search: icon.parentElement } });
-    }
-    localStorage.setItem('sidebarCollapsed', !collapsed ? '1' : '0');
-  } else {
-    sidebar.classList.toggle('-translate-x-full');
-    backdrop.classList.toggle('hidden');
-  }
+/* ── Mobile nav ── */
+function toggleMobileNav() {
+  const nav = document.getElementById('mobile-nav');
+  const icon = document.getElementById('mobile-nav-icon');
+  const isOpen = !nav.classList.contains('hidden');
+  nav.classList.toggle('hidden');
+  icon.setAttribute('data-lucide', isOpen ? 'menu' : 'x');
+  lucide.createIcons({ props: { search: icon.parentElement } });
 }
 
 /* ── Notif ── */
@@ -672,15 +646,6 @@ window.togglePasswordVisibility = function(inputId, btn) {
 
 /* ── Init ── */
 document.addEventListener('DOMContentLoaded', () => {
-  if (window.innerWidth >= 1024 && localStorage.getItem('sidebarCollapsed') === '1') {
-    const sidebar = document.getElementById('sidebar');
-    if (sidebar) {
-      sidebar.dataset.collapsed = 'true';
-      document.querySelectorAll('.sidebar-brand-text').forEach(el => el.classList.add('hidden'));
-      const icon = document.getElementById('sidebar-toggle-icon');
-      if (icon) icon.setAttribute('data-lucide', 'panel-left-open');
-    }
-  }
   lucide.createIcons();
   selectJenisData('pemasukan');
 });

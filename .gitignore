@@ -146,3 +146,5 @@ backup_*.sql
 
 # Berkas lokal alat bantu, bukan bagian aplikasi
 .claude/
+# Node / Tailwind build
+node_modules/
