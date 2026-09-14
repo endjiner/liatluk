@@ -132,4 +132,15 @@ class PerjalananDinasPesertaModel extends Model
             'belum_dibayar'     => $belumDibayar,
         ];
     }
+
+    /** Semua setoran Dana Taktis yang belum lunas, lintas pegawai — untuk overview di halaman Dana Taktis. */
+    public function getAllBelumDibayar(): array
+    {
+        return $this->select('perjalanan_dinas_peserta.*, perjalanan_dinas.maksud, perjalanan_dinas.no_surat_tugas, perjalanan_dinas.tanggal_surat_tugas')
+            ->join('perjalanan_dinas', 'perjalanan_dinas.id = perjalanan_dinas_peserta.perjalanan_dinas_id')
+            ->where('perjalanan_dinas_peserta.status_lunas', 'belum')
+            ->where('perjalanan_dinas_peserta.dana_taktis >', 0)
+            ->orderBy('perjalanan_dinas.tanggal_surat_tugas', 'ASC')
+            ->findAll();
+    }
 }

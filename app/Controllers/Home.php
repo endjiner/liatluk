@@ -262,18 +262,23 @@ class Home extends BaseController
 
     // ── Rekap Perjalanan Dinas & Dana Taktis (publik, read-only, tanpa login) ────────
 
-    public function perjalananDinas(): string
+    /** 'tahun' sengaja tidak default ke tahun berjalan — lihat catatan yang sama di
+     *  Admin\PerjalananDinas::ambilFilterGet(). */
+    private function ambilFilterPerjalananDinasGet(): array
+    {
+        return [
+            'bulan'  => $this->request->getGet('bulan'),
+            'tahun'  => $this->request->getGet('tahun'),
+            'search' => $this->request->getGet('search'),
+        ];
+    }
+
+    private function ambilTripPerjalananDinasTerfilter(array $filters): array
     {
         $tripModel    = new PerjalananDinasModel();
         $pesertaModel = new PerjalananDinasPesertaModel();
         $tiketModel   = new PerjalananDinasTiketModel();
         $hotelModel   = new PerjalananDinasHotelModel();
-
-        $filters = [
-            'bulan'  => $this->request->getGet('bulan'),
-            'tahun'  => $this->request->getGet('tahun') ?: date('Y'),
-            'search' => $this->request->getGet('search'),
-        ];
 
         $trips = array_reverse($tripModel->getFiltered($filters, 300, 0));
         foreach ($trips as &$trip) {
@@ -287,11 +292,26 @@ class Home extends BaseController
         }
         unset($trip);
 
+        return $trips;
+    }
+
+    public function perjalananDinas(): string
+    {
+        $filters = $this->ambilFilterPerjalananDinasGet();
+
         return view('public/perjalanan_dinas', [
-            'trips'     => $trips,
-            'tahunList' => $tripModel->getAvailableYears(),
+            'trips'     => $this->ambilTripPerjalananDinasTerfilter($filters),
+            'tahunList' => (new PerjalananDinasModel())->getAvailableYears(),
             'filters'   => $filters,
         ]);
+    }
+
+    /** Fragment HTML untuk fetch() dari filter/search publik — lihat catatan yang sama
+     *  di Admin\PerjalananDinas::ajaxList(). */
+    public function perjalananDinasAjax(): string
+    {
+        $filters = $this->ambilFilterPerjalananDinasGet();
+        return view('public/perjalanan_dinas_list', ['trips' => $this->ambilTripPerjalananDinasTerfilter($filters)]);
     }
 
     public function danaTaktis(): string

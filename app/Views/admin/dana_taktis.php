@@ -12,6 +12,49 @@
 </div>
 
 <div class="card mb-4">
+  <div class="card-header flex items-center justify-between">
+    <h3 class="text-sm font-semibold text-slate-700 dark:text-slate-200">
+      Rekap Belum Dibayar <span class="text-slate-400 font-normal">(semua pegawai)</span>
+    </h3>
+    <span class="badge badge-warning">Total: <?= 'Rp ' . number_format($totalBelumDibayar, 0, ',', '.') ?></span>
+  </div>
+  <?php if (empty($belumDibayar)): ?>
+  <div class="card-body text-center py-8 text-slate-500">
+    <i data-lucide="check-circle-2" class="w-8 h-8 mx-auto mb-2 text-emerald-500 opacity-70"></i>
+    Semua setoran Dana Taktis sudah lunas.
+  </div>
+  <?php else: ?>
+  <div class="overflow-x-auto">
+    <table class="table">
+      <thead>
+        <tr>
+          <th>Nama Pegawai</th>
+          <th>Perjalanan Dinas</th>
+          <th>No. Surat Tugas / Tgl</th>
+          <th class="text-right">Dana Taktis</th>
+        </tr>
+      </thead>
+      <tbody>
+        <?php foreach ($belumDibayar as $r): ?>
+        <tr>
+          <td class="font-medium text-slate-700 dark:text-slate-200"><?= esc($r['nama_peserta']) ?></td>
+          <td class="max-w-[280px] truncate" title="<?= esc($r['maksud']) ?>"><?= esc($r['maksud']) ?></td>
+          <td class="whitespace-nowrap text-xs"><?= esc($r['no_surat_tugas'] ?: '-') ?><br><?= date('d M Y', strtotime($r['tanggal_surat_tugas'])) ?></td>
+          <td class="text-right text-currency font-semibold text-amber-600">Rp <?= number_format($r['dana_taktis'], 0, ',', '.') ?></td>
+        </tr>
+        <?php endforeach; ?>
+      </tbody>
+    </table>
+  </div>
+  <div class="card-body py-3">
+    <a href="<?= base_url('admin/perjalanan-dinas') ?>" class="text-sm text-primary-600 hover:underline">
+      <i data-lucide="arrow-right" class="w-3.5 h-3.5 inline"></i> Buka halaman Perjalanan Dinas untuk menandai lunas
+    </a>
+  </div>
+  <?php endif; ?>
+</div>
+
+<div class="card mb-4">
   <div class="card-body py-4">
     <label class="form-label">Pilih Nama Pegawai</label>
     <select id="pegawai-select" class="form-control max-w-md" onchange="muatRekap()">

@@ -10,6 +10,7 @@ $routes->get('/transaksi/ajax', 'Home::getTransaksiAjax');
 $routes->get('/kpi-periode', 'Home::kpiPeriode');
 $routes->get('/chart-tren', 'Home::chartTren');
 $routes->get('/perjalanan-dinas', 'Home::perjalananDinas');
+$routes->get('/perjalanan-dinas/ajax', 'Home::perjalananDinasAjax');
 $routes->get('/perjalanan-dinas/dana-taktis', 'Home::danaTaktis');
 $routes->get('/perjalanan-dinas/dana-taktis/data/(:num)', 'Home::danaTaktisData/$1');
 
@@ -45,6 +46,7 @@ $routes->group('admin', ['filter' => 'auth'], function ($routes) {
 
     // Perjalanan Dinas (rekap SPJ & Dana Taktis)
     $routes->get('perjalanan-dinas', 'Admin\PerjalananDinas::index');
+    $routes->get('perjalanan-dinas/ajax', 'Admin\PerjalananDinas::ajaxList');
     $routes->post('perjalanan-dinas', 'Admin\PerjalananDinas::store');
     $routes->post('perjalanan-dinas/update/(:num)', 'Admin\PerjalananDinas::update/$1');
     $routes->post('perjalanan-dinas/delete/(:num)', 'Admin\PerjalananDinas::delete/$1');

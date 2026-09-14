@@ -45,16 +45,20 @@ class PerjalananDinas extends BaseController
         return (float)str_replace(['.', ','], ['', ''], $s);
     }
 
-    public function index(): string
+    /** Filter dari query string. 'tahun' sengaja TIDAK default ke tahun berjalan — kalau
+     *  dipaksa default, data di tahun lain jadi hilang tanpa keterangan jelas ("tidak ada
+     *  data" padahal cuma tersaring). Kosong berarti semua tahun. */
+    private function ambilFilterGet(): array
     {
-        $notifCount = $this->notifikasiModel->countUnread();
-
-        $filters = [
+        return [
             'bulan'  => $this->request->getGet('bulan'),
-            'tahun'  => $this->request->getGet('tahun') ?: date('Y'),
+            'tahun'  => $this->request->getGet('tahun'),
             'search' => $this->request->getGet('search'),
         ];
+    }
 
+    private function ambilTripTerfilter(array $filters): array
+    {
         $trips = $this->tripModel->getFiltered($filters, 300, 0);
         // Urutkan naik (lama -> baru) supaya penomoran "No" & pengelompokan bulan mengikuti
         // urutan yang sama seperti sheet sumbernya.
@@ -71,13 +75,30 @@ class PerjalananDinas extends BaseController
         }
         unset($trip);
 
+        return $trips;
+    }
+
+    public function index(): string
+    {
+        $notifCount = $this->notifikasiModel->countUnread();
+        $filters    = $this->ambilFilterGet();
+
         return view('admin/perjalanan_dinas', [
             'notifCount'  => $notifCount,
-            'trips'       => $trips,
+            'trips'       => $this->ambilTripTerfilter($filters),
             'pegawaiList' => $this->pegawaiModel->getAktifList(),
             'tahunList'   => $this->tripModel->getAvailableYears(),
             'filters'     => $filters,
         ]);
+    }
+
+    /** Dipanggil via fetch() dari filter/search di halaman index — kembalikan HTML daftar
+     *  trip saja (bukan JSON) supaya markup kartu bertingkat (trip->peserta->tiket/hotel)
+     *  tidak perlu dituliskan ulang di JS. */
+    public function ajaxList(): string
+    {
+        $filters = $this->ambilFilterGet();
+        return view('admin/perjalanan_dinas_list', ['trips' => $this->ambilTripTerfilter($filters)]);
     }
 
     // ── CRUD Header Perjalanan Dinas ──────────────────────────────────────────────
@@ -281,10 +302,13 @@ class PerjalananDinas extends BaseController
 
     public function danaTaktis(): string
     {
-        $notifCount = $this->notifikasiModel->countUnread();
+        $notifCount   = $this->notifikasiModel->countUnread();
+        $belumDibayar = $this->pesertaModel->getAllBelumDibayar();
         return view('admin/dana_taktis', [
-            'notifCount'  => $notifCount,
-            'pegawaiList' => $this->pegawaiModel->getAktifList(),
+            'notifCount'        => $notifCount,
+            'pegawaiList'       => $this->pegawaiModel->getAktifList(),
+            'belumDibayar'      => $belumDibayar,
+            'totalBelumDibayar' => array_sum(array_column($belumDibayar, 'dana_taktis')),
         ]);
     }
 
