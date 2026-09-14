@@ -5,6 +5,11 @@ namespace App\Controllers;
 use App\Models\PemasukanModel;
 use App\Models\PengeluaranModel;
 use App\Models\PengaturanModel;
+use App\Models\PerjalananDinasModel;
+use App\Models\PerjalananDinasPesertaModel;
+use App\Models\PerjalananDinasTiketModel;
+use App\Models\PerjalananDinasHotelModel;
+use App\Models\PegawaiModel;
 
 class Home extends BaseController
 {
@@ -253,5 +258,57 @@ class Home extends BaseController
         unset($row);
 
         return ['data' => $slice, 'total' => $total, 'page' => $page, 'total_pages' => $totalPages];
+    }
+
+    // ── Rekap Perjalanan Dinas & Dana Taktis (publik, read-only, tanpa login) ────────
+
+    public function perjalananDinas(): string
+    {
+        $tripModel    = new PerjalananDinasModel();
+        $pesertaModel = new PerjalananDinasPesertaModel();
+        $tiketModel   = new PerjalananDinasTiketModel();
+        $hotelModel   = new PerjalananDinasHotelModel();
+
+        $filters = [
+            'bulan'  => $this->request->getGet('bulan'),
+            'tahun'  => $this->request->getGet('tahun') ?: date('Y'),
+            'search' => $this->request->getGet('search'),
+        ];
+
+        $trips = array_reverse($tripModel->getFiltered($filters, 300, 0));
+        foreach ($trips as &$trip) {
+            $peserta = $pesertaModel->getByPerjalanan($trip['id']);
+            foreach ($peserta as &$p) {
+                $p['tiket'] = $tiketModel->getByPeserta($p['id']);
+                $p['hotel'] = $hotelModel->getByPeserta($p['id']);
+            }
+            unset($p);
+            $trip['peserta'] = $peserta;
+        }
+        unset($trip);
+
+        return view('public/perjalanan_dinas', [
+            'trips'     => $trips,
+            'tahunList' => $tripModel->getAvailableYears(),
+            'filters'   => $filters,
+        ]);
+    }
+
+    public function danaTaktis(): string
+    {
+        return view('public/dana_taktis', [
+            'pegawaiList' => (new PegawaiModel())->getAktifList(),
+        ]);
+    }
+
+    public function danaTaktisData($pegawaiId)
+    {
+        $pegawaiModel = new PegawaiModel();
+        $pegawai = $pegawaiModel->find((int)$pegawaiId);
+        if (!$pegawai) {
+            return $this->response->setJSON(['success' => false, 'message' => 'Pegawai tidak ditemukan']);
+        }
+        $rekap = (new PerjalananDinasPesertaModel())->getRekapDanaTaktisByPegawai((int)$pegawaiId);
+        return $this->response->setJSON(['success' => true, 'pegawai' => $pegawai] + $rekap);
     }
 }

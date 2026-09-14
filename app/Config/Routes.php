@@ -9,6 +9,9 @@ $routes->get('/', 'Home::index');
 $routes->get('/transaksi/ajax', 'Home::getTransaksiAjax');
 $routes->get('/kpi-periode', 'Home::kpiPeriode');
 $routes->get('/chart-tren', 'Home::chartTren');
+$routes->get('/perjalanan-dinas', 'Home::perjalananDinas');
+$routes->get('/perjalanan-dinas/dana-taktis', 'Home::danaTaktis');
+$routes->get('/perjalanan-dinas/dana-taktis/data/(:num)', 'Home::danaTaktisData/$1');
 
 // Auth
 $routes->get('/login', 'Auth::login');
@@ -39,6 +42,22 @@ $routes->group('admin', ['filter' => 'auth'], function ($routes) {
     $routes->post('keuangan/import-csv', 'Admin\DataKeuangan::importCsv'); // alias lama
     $routes->get('keuangan/template-universal-csv', 'Admin\DataKeuangan::downloadTemplateUniversalCsv');
     $routes->get('keuangan/template-universal-excel', 'Admin\DataKeuangan::downloadTemplateUniversalExcel');
+
+    // Perjalanan Dinas (rekap SPJ & Dana Taktis)
+    $routes->get('perjalanan-dinas', 'Admin\PerjalananDinas::index');
+    $routes->post('perjalanan-dinas', 'Admin\PerjalananDinas::store');
+    $routes->post('perjalanan-dinas/update/(:num)', 'Admin\PerjalananDinas::update/$1');
+    $routes->post('perjalanan-dinas/delete/(:num)', 'Admin\PerjalananDinas::delete/$1');
+    $routes->post('perjalanan-dinas/peserta', 'Admin\PerjalananDinas::storePeserta');
+    $routes->post('perjalanan-dinas/peserta/update/(:num)', 'Admin\PerjalananDinas::updatePeserta/$1');
+    $routes->post('perjalanan-dinas/peserta/delete/(:num)', 'Admin\PerjalananDinas::deletePeserta/$1');
+    $routes->post('perjalanan-dinas/lunas/(:num)', 'Admin\PerjalananDinas::toggleLunas/$1');
+    $routes->get('perjalanan-dinas/dana-taktis', 'Admin\PerjalananDinas::danaTaktis');
+    $routes->get('perjalanan-dinas/dana-taktis/data/(:num)', 'Admin\PerjalananDinas::danaTaktisData/$1');
+    $routes->get('perjalanan-dinas/pegawai', 'Admin\PerjalananDinas::pegawaiList');
+    $routes->post('perjalanan-dinas/pegawai', 'Admin\PerjalananDinas::pegawaiStore');
+    $routes->post('perjalanan-dinas/pegawai/update/(:num)', 'Admin\PerjalananDinas::pegawaiUpdate/$1');
+    $routes->post('perjalanan-dinas/pegawai/delete/(:num)', 'Admin\PerjalananDinas::pegawaiDelete/$1');
 
     // Rencana Keuangan
     $routes->get('rencana', 'Admin\RencanaKeuangan::index');

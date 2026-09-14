@@ -46,6 +46,7 @@
           ['url' => 'admin',           'label' => 'Dashboard',        'icon' => 'layout-dashboard', 'match' => ['admin', 'admin/dashboard']],
           ['url' => 'admin/keuangan',  'label' => 'Data Keuangan',    'icon' => 'circle-dollar-sign', 'match' => ['keuangan']],
           ['url' => 'admin/rencana',   'label' => 'Rencana Keuangan', 'icon' => 'calendar-check', 'match' => ['rencana']],
+          ['url' => 'admin/perjalanan-dinas', 'label' => 'Perjalanan Dinas', 'icon' => 'plane', 'match' => ['perjalanan-dinas']],
           ['url' => 'admin/laporan',   'label' => 'Laporan',          'icon' => 'file-text', 'match' => ['laporan']],
         ];
         foreach ($navLinks as $nl):

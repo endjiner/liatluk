@@ -37,10 +37,13 @@ class RenameTablesToSingular extends Migration
         }
 
         if ($this->db->tableExists('notifikasi')) {
-            // Perluas enum tipe agar menampung notifikasi pengingat rencana
-            $this->db->query(
-                "ALTER TABLE notifikasi MODIFY tipe ENUM('saldo_rendah','transaksi_besar','rencana','pengingat','info') DEFAULT 'info'"
-            );
+            // Sintaks "MODIFY" khusus MySQL — tidak berlaku (dan tidak diperlukan) di driver lain.
+            if ($this->db->DBDriver === 'MySQLi') {
+                // Perluas enum tipe agar menampung notifikasi pengingat rencana
+                $this->db->query(
+                    "ALTER TABLE notifikasi MODIFY tipe ENUM('saldo_rendah','transaksi_besar','rencana','pengingat','info') DEFAULT 'info'"
+                );
+            }
 
             // Backfill data lama berdasarkan tipe yang sudah ada
             $this->db->query("UPDATE notifikasi SET kategori = 'rencana' WHERE tipe = 'rencana' AND kategori = 'sistem'");
