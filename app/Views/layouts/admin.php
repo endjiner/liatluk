@@ -5,6 +5,7 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title><?= $title ?? 'Admin — BBPOM di Pangkal Pinang' ?></title>
   <meta name="description" content="Panel Admin Sistem Pengelolaan Keuangan Internal BBPOM di Pangkal Pinang">
+  <?= csrf_meta() ?>
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
@@ -338,6 +339,53 @@
 <script>
 const GLOBAL_BASE = '<?= base_url() ?>';
 let currentJenisData = 'pemasukan';
+
+/* ── CSRF ──────────────────────────────────────────────────────────────
+   Semua form di halaman ini kirim datanya lewat fetch(), bukan submit form
+   biasa, jadi token CSRF (yang cuma hidden-input di form) tidak pernah ikut
+   terkirim. Daripada mengubah puluhan pemanggilan fetch() satu per satu,
+   window.fetch di-patch SEKALI di sini supaya tiap request POST/PUT/DELETE/
+   PATCH otomatis dilampiri tokennya.
+   Token dibaca dari <meta> (lihat csrf_meta() di <head>), BUKAN dari
+   document.cookie — cookie CSRF CI4 di-set HttpOnly (mengikuti default
+   Config\Cookie), jadi memang tidak bisa dibaca lewat JS sama sekali.
+   Ini juga sebabnya Security::$regenerate sengaja di-set false: nilai di
+   <meta> itu statis untuk seumur hidup halaman, jadi token tidak boleh
+   berubah di tengah jalan atau fetch kedua dst akan ditolak.
+
+   PENTING: kalau body-nya FormData, token WAJIB ikut sebagai field FormData
+   (bukan cuma header). CI4 selalu mencoba "membersihkan" token dari body
+   setelah verifikasi (Security::removeTokenInRequest) — kalau tidak
+   ketemu sebagai field di $_POST, CI4 mem-parse ULANG raw body pakai
+   parse_str() seolah-olah itu application/x-www-form-urlencoded, yang
+   MERUSAK body multipart asli (termasuk field lain & file upload apa pun
+   yang ikut di form itu). Body kosong (aksi tanpa form, mis. hapus/toggle)
+   aman pakai header saja karena CI4 langsung berhenti kalau body-nya "". */
+const CSRF_FIELD_NAME  = '<?= esc(csrf_token(), 'js') ?>';
+const CSRF_HEADER_NAME = '<?= esc(csrf_header(), 'js') ?>';
+
+function getCsrfToken() {
+  return document.querySelector('meta[name="' + CSS.escape(CSRF_HEADER_NAME) + '"]')?.content || '';
+}
+
+(function() {
+  const originalFetch = window.fetch.bind(window);
+  window.fetch = function(input, init) {
+    init = init || {};
+    const method = (init.method || 'GET').toUpperCase();
+    if (['POST', 'PUT', 'DELETE', 'PATCH'].includes(method)) {
+      const token = getCsrfToken();
+      if (init.body instanceof FormData) {
+        if (!init.body.has(CSRF_FIELD_NAME)) init.body.append(CSRF_FIELD_NAME, token);
+      } else {
+        const headers = new Headers(init.headers || {});
+        if (!headers.has(CSRF_HEADER_NAME)) headers.set(CSRF_HEADER_NAME, token);
+        init.headers = headers;
+      }
+    }
+    return originalFetch(input, init);
+  };
+})();
 
 /* ── Theme ── */
 function toggleTheme() {
