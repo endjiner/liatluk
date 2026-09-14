@@ -20,7 +20,7 @@ $tahunOpsi = range($tahunSekarang, $tahunSekarang - 5);
 </div>
 
 <!-- KPI Cards -->
-<div class="grid grid-cols-2 md:grid-cols-2 lg:grid-cols-4 gap-3 mb-6">
+<div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-3 mb-6">
 
   <!-- Saldo Akhir -->
   <div class="kpi">
@@ -91,7 +91,7 @@ $tahunOpsi = range($tahunSekarang, $tahunSekarang - 5);
   }
 ?>
 <?php if (!empty($extraCards)): ?>
-<div class="grid grid-cols-2 md:grid-cols-2 lg:grid-cols-3 gap-3 mb-6">
+<div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3 mb-6">
   <?php foreach ($extraCards as $c): ?>
   <div class="kpi">
     <div class="kpi-label">

@@ -303,9 +303,9 @@ class Home extends BaseController
         return $trips;
     }
 
-    /** Halaman terpisah lama — sekarang jadi tab "Perjalanan Dinas & Dana Taktis" di
-     *  halaman utama (lihat Home::index() & #panel-perjadin di public/dashboard.php).
-     *  Redirect dipertahankan supaya tautan lama tidak mati. */
+    /** Halaman terpisah lama — sekarang jadi tab "Perjalanan Dinas" di halaman utama
+     *  (lihat Home::index() & #panel-perjadin di public/dashboard.php). Redirect
+     *  dipertahankan supaya tautan lama tidak mati. */
     public function perjalananDinas()
     {
         return redirect()->to(base_url('#perjadin'));
@@ -319,11 +319,11 @@ class Home extends BaseController
         return view('public/perjalanan_dinas_list', ['trips' => $this->ambilTripPerjalananDinasTerfilter($filters)]);
     }
 
-    /** Halaman terpisah lama — sekarang jadi bagian dari tab "Perjalanan Dinas & Dana
-     *  Taktis" di halaman utama. Redirect dipertahankan supaya tautan lama tidak mati. */
+    /** Halaman terpisah lama — sekarang jadi tab "Dana Taktis" tersendiri di halaman
+     *  utama. Redirect dipertahankan supaya tautan lama tidak mati. */
     public function danaTaktis()
     {
-        return redirect()->to(base_url('#perjadin'));
+        return redirect()->to(base_url('#dana-taktis'));
     }
 
     public function danaTaktisData($pegawaiId)

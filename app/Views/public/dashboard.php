@@ -22,7 +22,7 @@ $namaBulan = [1=>'Januari',2=>'Februari',3=>'Maret',4=>'April',5=>'Mei',6=>'Juni
 <div class="max-w-7xl mx-auto px-4 lg:px-6 py-6 space-y-6">
 
   <!-- KPI Cards -->
-  <div class="grid grid-cols-2 md:grid-cols-3 gap-3">
+  <div class="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-3">
     <!-- Saldo -->
     <div class="kpi">
       <div class="kpi-label"><i data-lucide="wallet" class="w-4 h-4"></i> Saldo Kas</div>
@@ -111,13 +111,16 @@ $namaBulan = [1=>'Januari',2=>'Februari',3=>'Maret',4=>'April',5=>'Mei',6=>'Juni
   </div>
   <?php endif; ?>
 
-  <!-- Tab: Transaksi Keuangan / Perjalanan Dinas & Dana Taktis -->
-  <div class="segment">
+  <!-- Tab: Transaksi Keuangan / Perjalanan Dinas / Dana Taktis -->
+  <div class="segment flex-wrap">
     <button type="button" id="tab-btn-transaksi" class="segment-btn active flex items-center gap-1.5" onclick="aktifkanTab('transaksi')">
-      <i data-lucide="list" class="w-3.5 h-3.5"></i> Transaksi Keuangan
+      <i data-lucide="list" class="w-3.5 h-3.5"></i> <span class="hidden xs:inline">Daftar </span>Transaksi
     </button>
     <button type="button" id="tab-btn-perjadin" class="segment-btn flex items-center gap-1.5" onclick="aktifkanTab('perjadin')">
-      <i data-lucide="plane" class="w-3.5 h-3.5"></i> Perjalanan Dinas &amp; Dana Taktis
+      <i data-lucide="plane" class="w-3.5 h-3.5"></i> Perjalanan Dinas
+    </button>
+    <button type="button" id="tab-btn-dana-taktis" class="segment-btn flex items-center gap-1.5" onclick="aktifkanTab('dana-taktis')">
+      <i data-lucide="piggy-bank" class="w-3.5 h-3.5"></i> Dana Taktis
     </button>
   </div>
 
@@ -243,74 +246,74 @@ $namaBulan = [1=>'Januari',2=>'Februari',3=>'Maret',4=>'April',5=>'Mei',6=>'Juni
     <div id="daftar-trip-perjadin">
 <?= view('public/perjalanan_dinas_list', ['trips' => $tripsPerjadin]) ?>
     </div>
-
-    <div id="dana-taktis" class="pt-6 border-t border-slate-200 dark:border-slate-700 scroll-mt-20">
-      <div class="mb-4">
-        <h2 class="text-lg font-bold text-slate-800 dark:text-slate-100">Cek Dana Taktis Saya</h2>
-        <p class="text-sm text-slate-500 dark:text-slate-400 mt-1">Rekap setoran Dana Taktis (10% Uang Harian) atas nama Anda</p>
-      </div>
-
-      <div class="card mb-4">
-        <div class="card-body py-4">
-          <label class="form-label">Pilih Nama Pegawai</label>
-          <select id="pegawai-select" class="form-control max-w-md" onchange="muatRekapDanaTaktis()">
-            <option value="">Pilih pegawai...</option>
-            <?php foreach ($pegawaiList as $pg): ?>
-            <option value="<?= $pg['id'] ?>"><?= esc($pg['nama']) ?><?= $pg['nip'] ? ' — ' . esc($pg['nip']) : '' ?></option>
-            <?php endforeach; ?>
-          </select>
-        </div>
-      </div>
-
-      <div id="rekap-wrap" class="hidden">
-        <div class="grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-4 gap-4 mb-4">
-          <div class="card"><div class="card-body">
-            <p class="text-xs text-slate-500 dark:text-slate-400">Total Uang Harian</p>
-            <p class="text-lg font-bold text-slate-800 dark:text-slate-100 mt-1" id="rekap-uang-harian">Rp 0</p>
-          </div></div>
-          <div class="card"><div class="card-body">
-            <p class="text-xs text-slate-500 dark:text-slate-400">Total SPJ</p>
-            <p class="text-lg font-bold text-slate-800 dark:text-slate-100 mt-1" id="rekap-total-spj">Rp 0</p>
-          </div></div>
-          <div class="card"><div class="card-body">
-            <p class="text-xs text-slate-500 dark:text-slate-400">Total Dana Taktis</p>
-            <p class="text-lg font-bold text-emerald-600 mt-1" id="rekap-dana-taktis">Rp 0</p>
-          </div></div>
-          <div class="card"><div class="card-body">
-            <p class="text-xs text-slate-500 dark:text-slate-400">Dana Taktis Belum Dibayar</p>
-            <p class="text-lg font-bold text-amber-600 mt-1" id="rekap-belum-dibayar">Rp 0</p>
-          </div></div>
-        </div>
-
-        <div class="card">
-          <div class="card-header">
-            <h3 class="text-sm font-semibold text-slate-700 dark:text-slate-200">Rincian per Perjalanan Dinas</h3>
-          </div>
-          <div class="overflow-x-auto">
-            <table class="table">
-              <thead>
-                <tr>
-                  <th>Maksud Perjalanan Dinas</th>
-                  <th>No. Surat Tugas / Tgl</th>
-                  <th>Kode MAK</th>
-                  <th class="text-right">Uang Harian</th>
-                  <th class="text-right">Total SPJ</th>
-                  <th class="text-right">Dana Taktis</th>
-                  <th>Status</th>
-                </tr>
-              </thead>
-              <tbody id="rekap-tbody"></tbody>
-            </table>
-          </div>
-        </div>
-      </div>
-
-      <div id="rekap-empty" class="card"><div class="card-body text-center py-12 text-slate-500">
-        <i data-lucide="piggy-bank" class="w-10 h-10 mx-auto mb-3 opacity-30"></i>
-        Pilih nama pegawai di atas untuk melihat rekap Dana Taktis-nya.
-      </div></div>
-    </div>
   </div><!-- /panel-perjadin -->
+
+  <div id="panel-dana-taktis" class="hidden">
+    <div class="mb-4">
+      <h2 class="text-lg font-bold text-slate-800 dark:text-slate-100">Dana Taktis Belum Dibayar per Pegawai</h2>
+      <p class="text-sm text-slate-500 dark:text-slate-400 mt-1">Pilih nama Anda untuk cek rekap setoran Dana Taktis (10% Uang Harian)</p>
+    </div>
+
+    <div class="card mb-4">
+      <div class="card-body py-4">
+        <label class="form-label">Pilih Nama Pegawai</label>
+        <select id="pegawai-select" class="form-control max-w-md" onchange="muatRekapDanaTaktis()">
+          <option value="">Pilih pegawai...</option>
+          <?php foreach ($pegawaiList as $pg): ?>
+          <option value="<?= $pg['id'] ?>"><?= esc($pg['nama']) ?><?= $pg['nip'] ? ' — ' . esc($pg['nip']) : '' ?></option>
+          <?php endforeach; ?>
+        </select>
+      </div>
+    </div>
+
+    <div id="rekap-wrap" class="hidden">
+      <div class="grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-4 gap-4 mb-4">
+        <div class="card"><div class="card-body">
+          <p class="text-xs text-slate-500 dark:text-slate-400">Total Uang Harian</p>
+          <p class="text-lg font-bold text-slate-800 dark:text-slate-100 mt-1" id="rekap-uang-harian">Rp 0</p>
+        </div></div>
+        <div class="card"><div class="card-body">
+          <p class="text-xs text-slate-500 dark:text-slate-400">Total SPJ</p>
+          <p class="text-lg font-bold text-slate-800 dark:text-slate-100 mt-1" id="rekap-total-spj">Rp 0</p>
+        </div></div>
+        <div class="card"><div class="card-body">
+          <p class="text-xs text-slate-500 dark:text-slate-400">Total Dana Taktis</p>
+          <p class="text-lg font-bold text-emerald-600 mt-1" id="rekap-dana-taktis">Rp 0</p>
+        </div></div>
+        <div class="card"><div class="card-body">
+          <p class="text-xs text-slate-500 dark:text-slate-400">Dana Taktis Belum Dibayar</p>
+          <p class="text-lg font-bold text-amber-600 mt-1" id="rekap-belum-dibayar">Rp 0</p>
+        </div></div>
+      </div>
+
+      <div class="card">
+        <div class="card-header">
+          <h3 class="text-sm font-semibold text-slate-700 dark:text-slate-200">Rincian per Perjalanan Dinas</h3>
+        </div>
+        <div class="overflow-x-auto">
+          <table class="table">
+            <thead>
+              <tr>
+                <th>Maksud Perjalanan Dinas</th>
+                <th>No. Surat Tugas / Tgl</th>
+                <th>Kode MAK</th>
+                <th class="text-right">Uang Harian</th>
+                <th class="text-right">Total SPJ</th>
+                <th class="text-right">Dana Taktis</th>
+                <th>Status</th>
+              </tr>
+            </thead>
+            <tbody id="rekap-tbody"></tbody>
+          </table>
+        </div>
+      </div>
+    </div>
+
+    <div id="rekap-empty" class="card"><div class="card-body text-center py-12 text-slate-500">
+      <i data-lucide="piggy-bank" class="w-10 h-10 mx-auto mb-3 opacity-30"></i>
+      Pilih nama pegawai di atas untuk melihat rekap Dana Taktis-nya.
+    </div></div>
+  </div><!-- /panel-dana-taktis -->
 
 </div>
 
@@ -642,12 +645,12 @@ window.showDetailPub = showDetailPub;
 function closeDetailModal() { document.getElementById('modal-detail-txn').classList.add('hidden'); }
 window.closeDetailModal = closeDetailModal;
 
-/* ── Tab: Transaksi Keuangan / Perjalanan Dinas & Dana Taktis ── */
+/* ── Tab: Transaksi Keuangan / Perjalanan Dinas / Dana Taktis ── */
 function aktifkanTab(nama) {
-  document.getElementById('panel-transaksi').classList.toggle('hidden', nama !== 'transaksi');
-  document.getElementById('panel-perjadin').classList.toggle('hidden', nama !== 'perjadin');
-  document.getElementById('tab-btn-transaksi').classList.toggle('active', nama === 'transaksi');
-  document.getElementById('tab-btn-perjadin').classList.toggle('active', nama === 'perjadin');
+  ['transaksi', 'perjadin', 'dana-taktis'].forEach(n => {
+    document.getElementById('panel-' + n).classList.toggle('hidden', n !== nama);
+    document.getElementById('tab-btn-' + n).classList.toggle('active', n === nama);
+  });
   lucide.createIcons();
 }
 
@@ -725,6 +728,7 @@ document.addEventListener('DOMContentLoaded', () => {
   loadTren(<?= $tahunSekarang ?>);
   refreshTxn();
   if (location.hash === '#perjadin') aktifkanTab('perjadin');
+  else if (location.hash === '#dana-taktis') aktifkanTab('dana-taktis');
 });
 </script>
 <?= $this->endSection() ?>
