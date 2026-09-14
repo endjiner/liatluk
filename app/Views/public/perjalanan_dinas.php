@@ -2,9 +2,9 @@
 <?= $this->section('content') ?>
 <?php $namaBulan = ['', 'Januari', 'Februari', 'Maret', 'April', 'Mei', 'Juni', 'Juli', 'Agustus', 'September', 'Oktober', 'November', 'Desember']; ?>
 
-<div class="max-w-7xl mx-auto px-4 lg:px-6 py-6">
+<div class="max-w-7xl mx-auto px-4 lg:px-6 py-8 lg:py-10">
 
-  <div class="mb-6 flex flex-wrap items-center justify-between gap-3">
+  <div class="mb-8 flex flex-wrap items-center justify-between gap-4">
     <div>
       <h1 class="text-xl lg:text-2xl font-bold text-slate-800 dark:text-slate-100">Rekap Perjalanan Dinas</h1>
       <p class="text-sm text-slate-500 dark:text-slate-400 mt-1">Rincian SPJ &amp; setoran Dana Taktis (10% Uang Harian) per perjalanan dinas</p>

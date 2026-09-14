@@ -182,7 +182,7 @@
     <?php endif; ?>
 
     <!-- Page Content -->
-    <div class="flex-1 p-4 lg:p-6">
+    <div class="flex-1 p-5 lg:p-8">
       <?= $this->renderSection('content') ?>
     </div>
 

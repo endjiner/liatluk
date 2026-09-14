@@ -8,7 +8,7 @@ $tahunOpsi = range($tahunSekarang, $tahunSekarang - 5);
 ?>
 
 <!-- Header -->
-<div class="mb-6 flex flex-wrap items-center justify-between gap-3">
+<div class="mb-8 flex flex-wrap items-center justify-between gap-4">
   <div>
     <h1 class="text-xl lg:text-2xl font-bold text-slate-800 dark:text-slate-100">Data Keuangan</h1>
     <p class="text-sm text-slate-500 dark:text-slate-400 mt-1">Kelola pemasukan & pengeluaran</p>

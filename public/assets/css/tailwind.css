@@ -25,3 +25,20 @@ input[type=checkbox].form-checkbox.text-red-600:checked{background-color:#dc2626
 
 /* Chart.js canvas cap — dipakai dashboard admin & publik supaya chart tidak melar tinggi */
 .chart-canvas{max-height:280px}
+
+/* ── Refinement pass: lebih lega & modern, palet biru BBPOM tetap sama ── */
+.card{border-radius:1rem;--tw-shadow:0 12px 32px -8px rgba(15,46,95,.10),0 4px 12px -4px rgba(15,46,95,.05);--tw-shadow-colored:0 12px 32px -8px var(--tw-shadow-color),0 4px 12px -4px var(--tw-shadow-color);box-shadow:var(--tw-ring-offset-shadow,0 0 #0000),var(--tw-ring-shadow,0 0 #0000),var(--tw-shadow)}
+.card-body{padding:1.5rem}
+.card-header{padding:1.125rem 1.5rem}
+.kpi{border-radius:1rem}
+.btn{border-radius:.625rem;padding:.625rem 1.25rem}
+.btn-sm{padding:.5rem 1rem}
+.btn-icon{padding:.625rem}
+.form-control{border-radius:.625rem;padding:.625rem .875rem}
+.form-control-sm{padding:.5rem .75rem}
+.table th,.table td{padding:.75rem 1rem}
+.badge{padding:.1875rem .625rem}
+.sidebar-link{border-radius:.625rem}
+.modal-box{border-radius:1.25rem}
+.modal-footer{border-bottom-right-radius:1.25rem;border-bottom-left-radius:1.25rem}
+h1{letter-spacing:-.02em}
