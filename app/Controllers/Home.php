@@ -300,9 +300,10 @@ class Home extends BaseController
         $filters = $this->ambilFilterPerjalananDinasGet();
 
         return view('public/perjalanan_dinas', [
-            'trips'     => $this->ambilTripPerjalananDinasTerfilter($filters),
-            'tahunList' => (new PerjalananDinasModel())->getAvailableYears(),
-            'filters'   => $filters,
+            'trips'       => $this->ambilTripPerjalananDinasTerfilter($filters),
+            'tahunList'   => (new PerjalananDinasModel())->getAvailableYears(),
+            'filters'     => $filters,
+            'pegawaiList' => (new PegawaiModel())->getAktifList(),
         ]);
     }
 
@@ -314,11 +315,11 @@ class Home extends BaseController
         return view('public/perjalanan_dinas_list', ['trips' => $this->ambilTripPerjalananDinasTerfilter($filters)]);
     }
 
-    public function danaTaktis(): string
+    /** Halaman terpisah lama — sekarang digabung jadi satu halaman di perjalananDinas().
+     *  Redirect dipertahankan supaya tautan lama tidak mati. */
+    public function danaTaktis()
     {
-        return view('public/dana_taktis', [
-            'pegawaiList' => (new PegawaiModel())->getAktifList(),
-        ]);
+        return redirect()->to(base_url('perjalanan-dinas') . '#dana-taktis');
     }
 
     public function danaTaktisData($pegawaiId)
