@@ -86,14 +86,20 @@ class PerjalananDinasPesertaModel extends Model
         ]);
     }
 
-    /** Batalkan status lunas & hapus balik pemasukan otomatis yang tadi dibuat. */
+    /** Batalkan status lunas & hapus balik pemasukan otomatis yang tadi dibuat — kecuali
+     *  pemasukan itu juga masih dipakai peserta lain (setoran gabungan satu pegawai untuk
+     *  beberapa trip sekaligus, lihat ReconcileSetoranTaktis), supaya baris lain tidak ikut
+     *  kehilangan pemasukan-nya. */
     public function batalkanLunas(int $id): bool
     {
         $peserta = $this->find($id);
         if (!$peserta || $peserta['status_lunas'] !== 'lunas') return false;
 
         if (!empty($peserta['pemasukan_id'])) {
-            (new PemasukanModel())->delete($peserta['pemasukan_id']);
+            $masihDipakai = $this->where('pemasukan_id', $peserta['pemasukan_id'])->where('id !=', $id)->countAllResults();
+            if ($masihDipakai === 0) {
+                (new PemasukanModel())->delete($peserta['pemasukan_id']);
+            }
         }
 
         return $this->update($id, [

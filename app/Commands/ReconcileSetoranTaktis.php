@@ -6,6 +6,7 @@ use CodeIgniter\CLI\BaseCommand;
 use CodeIgniter\CLI\CLI;
 use App\Models\PemasukanModel;
 use App\Models\PerjalananDinasPesertaModel;
+use App\Models\PegawaiModel;
 
 /**
  * Cocokkan Pemasukan "Setoran Taktis Pegawai" yang diinput manual (dari spreadsheet, sebelum
@@ -58,6 +59,46 @@ class ReconcileSetoranTaktis extends BaseCommand
         return trim($n);
     }
 
+    /** Sama seperti normalisasiNama(), tapi untuk nama di tabel pegawai (tidak pernah
+     *  berawalan "Pegawai"/sapaan, jadi tidak perlu buang PANGGILAN). */
+    private function normalisasiPegawai(string $nama): string
+    {
+        $n = strtolower($nama);
+        $n = str_replace(['.', ',', '-', '(', ')', '/'], ' ', $n);
+        foreach (self::GELAR as $g) {
+            $n = preg_replace('/\b' . preg_quote($g, '/') . '\b/', ' ', $n);
+        }
+        $n = preg_replace('/\s+/', ' ', $n);
+        return trim($n);
+    }
+
+    /**
+     * Cari SATU pegawai yang namanya mengandung semua kata dari nama sumber yang sudah
+     * dinormalisasi (mis. "agus" cocok ke pegawai "Agus Riyanto"). Kalau lebih dari satu
+     * pegawai memenuhi ini, dianggap tidak yakin (null) — jangan menebak siapa yang dimaksud,
+     * biar konsisten dengan alasan user sendiri: "kalau namanya hanya 1 berarti itu orang
+     * yang sama" — sebaliknya kalau lebih dari 1, memang bukan lagi hal yang pasti.
+     */
+    private function resolvePegawaiUnik(string $sumberNormal, array $semuaPegawai): ?array
+    {
+        $kataSumber = array_values(array_filter(explode(' ', $sumberNormal)));
+        if (empty($kataSumber)) return null;
+
+        $cocok = [];
+        foreach ($semuaPegawai as $pg) {
+            $kataPegawai = explode(' ', $pg['_nama_normal']);
+            $semuaAda = true;
+            foreach ($kataSumber as $kata) {
+                if (!in_array($kata, $kataPegawai, true)) {
+                    $semuaAda = false;
+                    break;
+                }
+            }
+            if ($semuaAda) $cocok[] = $pg;
+        }
+        return count($cocok) === 1 ? $cocok[0] : null;
+    }
+
     /**
      * Sebagian sumber di data nyata jelas BUKAN nama satu orang tertentu — kalau dipaksa
      * dicocokkan lewat nama+nominal, berisiko salah tautkan (mis. nominal gabungan banyak
@@ -101,12 +142,24 @@ class ReconcileSetoranTaktis extends BaseCommand
         // Index kandidat per (nama_ternormalisasi, nominal) supaya pencarian cepat & jelas
         // ambigu-tidaknya (lebih dari satu peserta dengan nama+nominal identik).
         $kandidat = [];
+        $belumByPegawai = [];
         foreach ($pesertaBelum as $p) {
             $key = $this->normalisasiNama($p['nama_peserta']) . '|' . (int) round((float) $p['dana_taktis']);
             $kandidat[$key][] = $p;
+            if (!empty($p['pegawai_id'])) {
+                $belumByPegawai[$p['pegawai_id']][] = $p;
+            }
         }
 
+        $semuaPegawai = (new PegawaiModel())->findAll();
+        foreach ($semuaPegawai as &$pg) {
+            $pg['_nama_normal'] = $this->normalisasiPegawai($pg['nama']);
+        }
+        unset($pg);
+
         $pasti = [];
+        $multiTrip = [];
+        $identitasSajaCocok = [];
         $ambigu = [];
         $tidakCocok = [];
         $khususPerKategori = [];
@@ -123,15 +176,37 @@ class ReconcileSetoranTaktis extends BaseCommand
                 continue;
             }
 
-            $key    = $this->normalisasiNama($pm['sumber']) . '|' . (int) round((float) $pm['jumlah']);
+            $namaSumberNormal = $this->normalisasiNama($pm['sumber']);
+            $key    = $namaSumberNormal . '|' . (int) round((float) $pm['jumlah']);
             $daftar = $kandidat[$key] ?? [];
             if (count($daftar) === 1) {
                 $pasti[] = ['pemasukan' => $pm, 'peserta' => $daftar[0]];
-            } elseif (count($daftar) > 1) {
-                $ambigu[] = ['pemasukan' => $pm, 'kandidat' => $daftar];
-            } else {
-                $tidakCocok[] = $pm;
+                continue;
             }
+            if (count($daftar) > 1) {
+                $ambigu[] = ['pemasukan' => $pm, 'kandidat' => $daftar];
+                continue;
+            }
+
+            // Tidak ada trip TUNGGAL yang nominalnya persis sama — coba kenali orangnya lewat
+            // tabel pegawai (nama pendek/panggilan tetap unik ke satu orang, per konfirmasi
+            // user), lalu cek apakah setoran ini sebenarnya gabungan beberapa trip sekaligus.
+            $pgCocok = $this->resolvePegawaiUnik($namaSumberNormal, $semuaPegawai);
+            $tripBelumOrangIni = $pgCocok ? ($belumByPegawai[$pgCocok['id']] ?? []) : [];
+
+            if ($pgCocok !== null && !empty($tripBelumOrangIni)) {
+                $totalBelum = array_sum(array_map(static fn($p) => (float) $p['dana_taktis'], $tripBelumOrangIni));
+                if ((int) round($totalBelum) === (int) round((float) $pm['jumlah'])) {
+                    $multiTrip[] = ['pemasukan' => $pm, 'pegawai' => $pgCocok, 'trips' => $tripBelumOrangIni];
+                } else {
+                    $identitasSajaCocok[] = [
+                        'pemasukan' => $pm, 'pegawai' => $pgCocok, 'trips' => $tripBelumOrangIni, 'total_belum' => $totalBelum,
+                    ];
+                }
+                continue;
+            }
+
+            $tidakCocok[] = $pm;
         }
 
         CLI::write('=== Rekonsiliasi Setoran Taktis Pegawai ===', 'yellow');
@@ -159,7 +234,7 @@ class ReconcileSetoranTaktis extends BaseCommand
             CLI::newLine();
         }
 
-        CLI::write('--- COCOK PASTI (nama + nominal unik): ' . count($pasti) . ' ---', 'green');
+        CLI::write('--- COCOK PASTI (nama + nominal unik, 1 trip): ' . count($pasti) . ' ---', 'green');
         foreach ($pasti as $m) {
             CLI::write(sprintf(
                 '  Pemasukan #%d [%s, Rp%s, %s] -> Peserta #%d (trip #%d)',
@@ -169,6 +244,44 @@ class ReconcileSetoranTaktis extends BaseCommand
                 $m['pemasukan']['tanggal'],
                 $m['peserta']['id'],
                 $m['peserta']['perjalanan_dinas_id']
+            ));
+        }
+        CLI::newLine();
+
+        CLI::write('--- COCOK MULTI-TRIP (nama teridentifikasi unik ke 1 pegawai, jumlah setoran = total semua trip belum lunas orang itu): ' . count($multiTrip) . ' ---', 'green');
+        foreach ($multiTrip as $m) {
+            $daftarTrip = implode(', ', array_map(
+                static fn($p) => '#' . $p['id'] . ' (trip #' . $p['perjalanan_dinas_id'] . ', Rp' . number_format((float) $p['dana_taktis'], 0, ',', '.') . ')',
+                $m['trips']
+            ));
+            CLI::write(sprintf(
+                '  Pemasukan #%d [%s, Rp%s, %s] -> %s, %d trip: %s',
+                $m['pemasukan']['id'],
+                $m['pemasukan']['sumber'],
+                number_format((float) $m['pemasukan']['jumlah'], 0, ',', '.'),
+                $m['pemasukan']['tanggal'],
+                $m['pegawai']['nama'],
+                count($m['trips']),
+                $daftarTrip
+            ));
+        }
+        CLI::newLine();
+
+        CLI::write('--- IDENTITAS DITEMUKAN, TOTAL TIDAK PAS (tinjau manual — mungkin cuma sebagian trip yang disetor): ' . count($identitasSajaCocok) . ' ---', 'yellow');
+        foreach ($identitasSajaCocok as $m) {
+            $daftarTrip = implode(', ', array_map(
+                static fn($p) => '#' . $p['id'] . ' (trip #' . $p['perjalanan_dinas_id'] . ', Rp' . number_format((float) $p['dana_taktis'], 0, ',', '.') . ')',
+                $m['trips']
+            ));
+            CLI::write(sprintf(
+                '  Pemasukan #%d [%s, Rp%s, %s] -> %s, trip belum lunas (total Rp%s): %s',
+                $m['pemasukan']['id'],
+                $m['pemasukan']['sumber'],
+                number_format((float) $m['pemasukan']['jumlah'], 0, ',', '.'),
+                $m['pemasukan']['tanggal'],
+                $m['pegawai']['nama'],
+                number_format($m['total_belum'], 0, ',', '.'),
+                $daftarTrip
             ));
         }
         CLI::newLine();
@@ -206,16 +319,16 @@ class ReconcileSetoranTaktis extends BaseCommand
 
         if (!$apply) {
             CLI::write('Mode DRY-RUN — belum ada perubahan yang disimpan.', 'cyan');
-            CLI::write('Jalankan lagi dengan --apply untuk menautkan baris "COCOK PASTI" di atas.', 'cyan');
+            CLI::write('Jalankan lagi dengan --apply untuk menautkan baris "COCOK PASTI" dan "COCOK MULTI-TRIP" di atas.', 'cyan');
             return;
         }
 
-        if (empty($pasti)) {
+        if (empty($pasti) && empty($multiTrip)) {
             CLI::write('Tidak ada kecocokan pasti untuk diterapkan.', 'cyan');
             return;
         }
 
-        CLI::write('Menerapkan ' . count($pasti) . ' penautan...', 'green');
+        CLI::write('Menerapkan ' . count($pasti) . ' penautan 1-trip...', 'green');
         foreach ($pasti as $m) {
             $pesertaModel->update($m['peserta']['id'], [
                 'status_lunas'  => 'lunas',
@@ -223,6 +336,18 @@ class ReconcileSetoranTaktis extends BaseCommand
                 'pemasukan_id'  => $m['pemasukan']['id'],
             ]);
             CLI::write("  Peserta #{$m['peserta']['id']} ditandai lunas, ditautkan ke Pemasukan #{$m['pemasukan']['id']}.");
+        }
+
+        CLI::write('Menerapkan ' . count($multiTrip) . ' penautan multi-trip...', 'green');
+        foreach ($multiTrip as $m) {
+            foreach ($m['trips'] as $trip) {
+                $pesertaModel->update($trip['id'], [
+                    'status_lunas'  => 'lunas',
+                    'tanggal_lunas' => $m['pemasukan']['tanggal'],
+                    'pemasukan_id'  => $m['pemasukan']['id'],
+                ]);
+            }
+            CLI::write("  {$m['pegawai']['nama']}: " . count($m['trips']) . " trip ditandai lunas, ditautkan ke Pemasukan #{$m['pemasukan']['id']}.");
         }
         CLI::write('Selesai.', 'green');
     }
