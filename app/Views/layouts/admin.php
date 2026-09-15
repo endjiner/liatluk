@@ -19,7 +19,7 @@
     })();
   </script>
 </head>
-<body class="min-h-screen bg-gradient-to-b from-primary-50/60 via-slate-50 to-slate-50 dark:from-slate-900 dark:via-slate-900 dark:to-slate-900">
+<body class="min-h-screen bg-slate-50 dark:bg-slate-900">
 
 <div class="min-h-screen flex flex-col">
 

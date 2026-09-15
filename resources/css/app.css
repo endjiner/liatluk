@@ -42,7 +42,7 @@
 .card { position: relative; border-radius: 1rem; border: 1px solid rgba(226,232,240,.6); background-color: #fff; box-shadow: 0 12px 32px -8px rgba(15,46,95,.10), 0 4px 12px -4px rgba(15,46,95,.05); overflow: hidden; }
 .card:is(.dark *) { border-color: rgba(51,65,85,.6); background-color: #1e293b; }
 /* Aksen tipis di atas kartu — sentuhan warna kecil supaya tidak terasa kartu putih polos semua */
-.card::before { content: ''; position: absolute; top: 0; left: 0; right: 0; height: 3px; background: linear-gradient(90deg, #1E5FBE, #FBBF24); }
+.card::before { content: ''; position: absolute; top: 0; left: 0; right: 0; height: 3px; background-color: #1E5FBE; }
 .card-body { padding: 1rem; }
 .card-header { display: flex; align-items: center; justify-content: space-between; gap: .75rem; border-bottom: 1px solid rgba(226,232,240,.6); background-color: rgba(248,250,252,.6); padding: .875rem 1rem; }
 .card-header:is(.dark *) { border-color: rgba(51,65,85,.6); background-color: rgba(15,23,42,.3); }

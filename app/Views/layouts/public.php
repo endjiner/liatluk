@@ -17,7 +17,7 @@
     })();
   </script>
 </head>
-<body class="min-h-screen flex flex-col bg-gradient-to-b from-primary-50/60 via-slate-50 to-slate-50 dark:from-slate-900 dark:via-slate-900 dark:to-slate-900">
+<body class="min-h-screen flex flex-col bg-slate-50 dark:bg-slate-900">
 
 <!-- Navbar -->
 <header class="sticky top-0 z-30 bg-white/95 dark:bg-slate-900/95 backdrop-blur border-b border-slate-200 dark:border-slate-800 shadow-soft">

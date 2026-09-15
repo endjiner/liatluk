@@ -8,7 +8,7 @@ $namaBulan = [1=>'Januari',2=>'Februari',3=>'Maret',4=>'April',5=>'Mei',6=>'Juni
 ?>
 
 <!-- Hero -->
-<section class="bg-gradient-to-r from-primary-900 via-primary-800 to-primary-700 text-white">
+<section class="bg-primary-900 text-white">
   <div class="max-w-7xl mx-auto px-4 lg:px-6 py-8 lg:py-10">
     <div class="max-w-3xl">
       <h1 class="text-2xl lg:text-3xl font-bold leading-tight">Pengelolaan Keuangan Internal</h1>

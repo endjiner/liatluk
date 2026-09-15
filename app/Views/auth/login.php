@@ -16,7 +16,7 @@
     })();
   </script>
 </head>
-<body class="min-h-screen bg-gradient-to-br from-primary-900 via-primary-800 to-primary-950 flex items-center justify-center p-4">
+<body class="min-h-screen bg-primary-900 flex items-center justify-center p-4">
 
   <div class="w-full max-w-md">
     <!-- Card -->
