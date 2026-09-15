@@ -340,7 +340,10 @@ async function muatDaftarTrip(page) {
     const json = await res.json();
     if (!json.success) { tbody.innerHTML = '<tr><td colspan="11" class="text-center py-8 text-red-500">Gagal memuat data.</td></tr>'; return; }
     renderTripTable(json.data);
-    renderPaginasiTrip(json.total, json.per_page, json.page);
+    renderPaginasiHalaman(document.getElementById('pd-pagination-wrap'), {
+      total: json.total, perPage: json.per_page, page: json.page,
+      itemLabel: 'peserta', onPageChange: muatDaftarTrip,
+    });
     document.getElementById('pd-total').textContent = new Intl.NumberFormat('id-ID').format(json.total);
     history.replaceState(null, '', BASE + 'admin/perjalanan-dinas' + (params.toString() ? '?' + params.toString() : ''));
   } catch (e) {
@@ -409,7 +412,10 @@ function renderTripTable(rows) {
       <td class="text-right text-currency">${r.hotel ? (escapeHtml(r.hotel.nama_hotel || 'Hotel') + '<br><span class="text-xs">' + rupiah(totalHotel) + '</span>') : '-'}</td>
     </tr>`;
   }).join('');
-  lucide.createIcons({ props: { search: tbody } });
+  // Dijaga dengan window.lucide: kalau ikon gagal dimuat (mis. CDN diblokir), baris data yang
+  // sudah berhasil di-fetch tetap tampil, tidak ikut ditelan oleh catch() pemanggilnya sebagai
+  // "gagal memuat data".
+  if (window.lucide) lucide.createIcons({ props: { search: tbody } });
 }
 
 function editTripByIdx(idx) {
@@ -417,21 +423,6 @@ function editTripByIdx(idx) {
   editTrip({ id: r.perjalanan_dinas_id, maksud: r.maksud, tanggal_surat_tugas: r.tanggal_surat_tugas, no_surat_tugas: r.no_surat_tugas, kode_mak: r.kode_mak, no_spm: r.no_spm });
 }
 function editPesertaByIdx(idx) { editPeserta(currentRows[idx]); }
-
-function renderPaginasiTrip(total, perPage, page) {
-  const wrap = document.getElementById('pd-pagination-wrap');
-  const totalPages = Math.max(1, Math.ceil(total / perPage));
-  if (total === 0) { wrap.innerHTML = ''; return; }
-  const from = (page - 1) * perPage + 1;
-  const to = Math.min(total, page * perPage);
-  wrap.innerHTML = `
-    <div class="text-xs text-slate-600 dark:text-slate-400">Menampilkan ${from}–${to} dari ${new Intl.NumberFormat('id-ID').format(total)} peserta</div>
-    <div class="flex items-center gap-1">
-      <button ${page <= 1 ? 'disabled' : ''} onclick="muatDaftarTrip(${page - 1})" class="px-3 py-1.5 text-xs rounded-md ${page <= 1 ? 'text-slate-400 cursor-not-allowed' : 'text-slate-600 dark:text-slate-300 hover:bg-slate-100 dark:hover:bg-slate-700'}">Sebelumnya</button>
-      <span class="px-2 text-xs text-slate-500 dark:text-slate-400">Hal. ${page} / ${totalPages}</span>
-      <button ${page >= totalPages ? 'disabled' : ''} onclick="muatDaftarTrip(${page + 1})" class="px-3 py-1.5 text-xs rounded-md ${page >= totalPages ? 'text-slate-400 cursor-not-allowed' : 'text-slate-600 dark:text-slate-300 hover:bg-slate-100 dark:hover:bg-slate-700'}">Berikutnya</button>
-    </div>`;
-}
 
 document.addEventListener('DOMContentLoaded', () => { muatDaftarTrip(1); });
 

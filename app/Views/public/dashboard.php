@@ -751,7 +751,10 @@ async function muatDaftarTripPerjadin(page) {
     const json = await res.json();
     if (!json.success) { tbody.innerHTML = '<tr><td colspan="10" class="text-center py-8 text-red-500">Gagal memuat data.</td></tr>'; return; }
     renderTripTablePerjadin(json.data);
-    renderPaginasiTripPerjadin(json.total, json.per_page, json.page);
+    renderPaginasiHalaman(document.getElementById('pd-pagination-wrap-perjadin'), {
+      total: json.total, perPage: json.per_page, page: json.page,
+      itemLabel: 'peserta', onPageChange: muatDaftarTripPerjadin,
+    });
     document.getElementById('pd-total-perjadin').textContent = new Intl.NumberFormat('id-ID').format(json.total);
   } catch (e) {
     tbody.innerHTML = '<tr><td colspan="10" class="text-center py-8 text-red-500">Gagal memuat data.</td></tr>';
@@ -799,20 +802,6 @@ function renderTripTablePerjadin(rows) {
   }).join('');
 }
 
-function renderPaginasiTripPerjadin(total, perPage, page) {
-  const wrap = document.getElementById('pd-pagination-wrap-perjadin');
-  const totalPages = Math.max(1, Math.ceil(total / perPage));
-  if (total === 0) { wrap.innerHTML = ''; return; }
-  const from = (page - 1) * perPage + 1;
-  const to = Math.min(total, page * perPage);
-  wrap.innerHTML = `
-    <div class="text-xs text-slate-600 dark:text-slate-400">Menampilkan ${from}–${to} dari ${new Intl.NumberFormat('id-ID').format(total)} peserta</div>
-    <div class="flex items-center gap-1">
-      <button ${page <= 1 ? 'disabled' : ''} onclick="muatDaftarTripPerjadin(${page - 1})" class="px-3 py-1.5 text-xs rounded-md ${page <= 1 ? 'text-slate-400 cursor-not-allowed' : 'text-slate-600 dark:text-slate-300 hover:bg-slate-100 dark:hover:bg-slate-700'}">Sebelumnya</button>
-      <span class="px-2 text-xs text-slate-500 dark:text-slate-400">Hal. ${page} / ${totalPages}</span>
-      <button ${page >= totalPages ? 'disabled' : ''} onclick="muatDaftarTripPerjadin(${page + 1})" class="px-3 py-1.5 text-xs rounded-md ${page >= totalPages ? 'text-slate-400 cursor-not-allowed' : 'text-slate-600 dark:text-slate-300 hover:bg-slate-100 dark:hover:bg-slate-700'}">Berikutnya</button>
-    </div>`;
-}
 
 /* ── Dana Taktis Saya ── */
 async function muatRekapDanaTaktis() {

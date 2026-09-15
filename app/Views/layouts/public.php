@@ -75,6 +75,7 @@
 </button>
 
 <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+<script src="<?= base_url('assets/js/pagination.js') ?>"></script>
 <script>
 function toggleTheme() {
   const dark = document.documentElement.classList.toggle('dark');

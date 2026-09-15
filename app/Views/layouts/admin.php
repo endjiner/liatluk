@@ -336,6 +336,7 @@
 </button>
 
 <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+<script src="<?= base_url('assets/js/pagination.js') ?>"></script>
 <script>
 const GLOBAL_BASE = '<?= base_url() ?>';
 let currentJenisData = 'pemasukan';
