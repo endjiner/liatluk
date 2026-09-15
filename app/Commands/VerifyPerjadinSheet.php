@@ -52,6 +52,21 @@ class VerifyPerjadinSheet extends BaseCommand
         return preg_replace('/\s+/', '', strtolower(trim((string) $s)));
     }
 
+    /** True kalau semua kata di nama yang lebih pendek ada di nama yang lebih panjang
+     *  (mis. "alvindra" vs "alvindra pratama") — dipakai HANYA sebagai fallback terakhir,
+     *  dan HANYA kalau tepat satu kandidat begitu di sisa peserta trip (lihat pemanggilnya). */
+    private function namaSubset(string $a, string $b): bool
+    {
+        if ($a === '' || $b === '') return false;
+        $kataA = array_filter(explode(' ', $a));
+        $kataB = array_filter(explode(' ', $b));
+        [$pendek, $panjang] = count($kataA) <= count($kataB) ? [$kataA, $kataB] : [$kataB, $kataA];
+        foreach ($pendek as $kata) {
+            if (!in_array($kata, $panjang, true)) return false;
+        }
+        return true;
+    }
+
     private function normTeks(?string $s): string
     {
         $s = strtolower((string) $s);
@@ -155,12 +170,36 @@ class VerifyPerjadinSheet extends BaseCommand
                     if ($dbPesertaDipakai[$i]) continue;
                     if ($this->normNama($dp['nama_peserta']) === $namaNorm) { $idxMatch = $i; break; }
                 }
+
+                // Nama singkat vs nama lengkap (mis. "Alvindra" di sheet vs "Alvindra
+                // Pratama" di DB setelah data pegawai duplikat digabung) — cocokkan kalau
+                // kata-kata satu nama semuanya ada di nama lainnya, TAPI HANYA kalau cuma
+                // ada SATU kandidat begitu di sisa peserta trip ini (tidak pernah menebak
+                // kalau ada 2+ kemungkinan).
+                $namaBeda = null;
+                if ($idxMatch === null) {
+                    $kandidatSubset = [];
+                    foreach ($dbPesertaTrip as $i => $dp) {
+                        if ($dbPesertaDipakai[$i]) continue;
+                        if ($this->namaSubset($namaNorm, $this->normNama($dp['nama_peserta']))) {
+                            $kandidatSubset[] = $i;
+                        }
+                    }
+                    if (count($kandidatSubset) === 1) {
+                        $idxMatch = $kandidatSubset[0];
+                        $namaBeda = $dbPesertaTrip[$idxMatch]['nama_peserta'];
+                    }
+                }
+
                 if ($idxMatch === null) {
                     $masalah[] = "peserta HILANG dari DB: {$sp['nama_peserta']} (uang harian Rp" . number_format($sp['uang_harian'], 0, ',', '.') . ")";
                     continue;
                 }
                 $dbPesertaDipakai[$idxMatch] = true;
                 $dp = $dbPesertaTrip[$idxMatch];
+                if ($namaBeda !== null) {
+                    $masalah[] = "nama peserta beda (kemungkinan nama disingkat/pegawai digabung): sheet=\"{$sp['nama_peserta']}\" db=\"{$namaBeda}\"";
+                }
 
                 foreach ([
                     'uang_harian' => 'Uang Harian', 'meeting_fullboard' => 'Meeting Fullboard', 'meeting_fullday' => 'Meeting Fullday',
