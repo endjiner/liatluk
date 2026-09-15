@@ -59,7 +59,7 @@
         </thead>
         <tbody>
         <?php if (empty($rencanaPemasukan)): ?>
-          <tr><td colspan="5" class="text-center py-8 text-slate-500">Belum ada rencana pemasukan.</td></tr>
+          <tr><td colspan="5" class="text-center py-8 text-slate-500"><img src="<?= icons8('empty-box', '3d-fluency', 64) ?>" alt="" class="w-10 h-10 mx-auto mb-2 opacity-80"><br>Belum ada rencana pemasukan.</td></tr>
         <?php else: foreach ($rencanaPemasukan as $row): $sisaP = (float)$row['jumlah_rencana'] - (float)($row['jumlah_terealisasi'] ?? 0); ?>
           <tr>
             <td class="whitespace-nowrap"><?= date('d M Y', strtotime($row['tanggal_rencana'])) ?></td>
@@ -124,7 +124,7 @@
         </thead>
         <tbody>
         <?php if (empty($rencanaPengeluaran)): ?>
-          <tr><td colspan="5" class="text-center py-8 text-slate-500">Belum ada rencana pengeluaran.</td></tr>
+          <tr><td colspan="5" class="text-center py-8 text-slate-500"><img src="<?= icons8('empty-box', '3d-fluency', 64) ?>" alt="" class="w-10 h-10 mx-auto mb-2 opacity-80"><br>Belum ada rencana pengeluaran.</td></tr>
         <?php else: foreach ($rencanaPengeluaran as $row): $sisaE = (float)$row['jumlah_rencana'] - (float)($row['jumlah_terealisasi'] ?? 0); ?>
           <tr>
             <td class="whitespace-nowrap"><?= date('d M Y', strtotime($row['tanggal_rencana'])) ?></td>

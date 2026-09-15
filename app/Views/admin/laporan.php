@@ -91,7 +91,7 @@
         <thead><tr><th>Kategori</th><th class="text-right">Total</th></tr></thead>
         <tbody>
         <?php if (empty($kategoriPemasukan)): ?>
-          <tr><td colspan="2" class="text-center py-8 text-slate-500">Tidak ada data</td></tr>
+          <tr><td colspan="2" class="text-center py-8 text-slate-500"><img src="<?= icons8('empty-box', '3d-fluency', 64) ?>" alt="" class="w-10 h-10 mx-auto mb-2 opacity-80"><br>Tidak ada data</td></tr>
         <?php else: foreach ($kategoriPemasukan as $kat => $tot): ?>
           <tr>
             <td class="truncate max-w-[200px]"><?= esc($kat) ?></td>
@@ -114,7 +114,7 @@
         <thead><tr><th>Kategori</th><th class="text-right">Total</th></tr></thead>
         <tbody>
         <?php if (empty($kategoriPengeluaran)): ?>
-          <tr><td colspan="2" class="text-center py-8 text-slate-500">Tidak ada data</td></tr>
+          <tr><td colspan="2" class="text-center py-8 text-slate-500"><img src="<?= icons8('empty-box', '3d-fluency', 64) ?>" alt="" class="w-10 h-10 mx-auto mb-2 opacity-80"><br>Tidak ada data</td></tr>
         <?php else: foreach ($kategoriPengeluaran as $kat => $tot): ?>
           <tr>
             <td class="truncate max-w-[200px]"><?= esc($kat) ?></td>
@@ -139,7 +139,7 @@
       <thead><tr><th>Tanggal</th><th>No. Surat Tugas</th><th>Maksud</th><th class="text-right">Jml Peserta</th><th class="text-right">Total SPJ</th></tr></thead>
       <tbody>
       <?php if (empty($perjadinTrips)): ?>
-        <tr><td colspan="5" class="text-center py-8 text-slate-500">Tidak ada data pada periode ini</td></tr>
+        <tr><td colspan="5" class="text-center py-8 text-slate-500"><img src="<?= icons8('empty-box', '3d-fluency', 64) ?>" alt="" class="w-10 h-10 mx-auto mb-2 opacity-80"><br>Tidak ada data pada periode ini</td></tr>
       <?php else: foreach ($perjadinTrips as $t): ?>
         <tr>
           <td class="whitespace-nowrap"><?= date('d/m/Y', strtotime($t['tanggal_surat_tugas'])) ?></td>
@@ -175,7 +175,7 @@
       <thead><tr><th>Tanggal</th><th>Nama Peserta</th><th>Maksud Perjalanan</th><th class="text-right">Dana Taktis</th><th>Status</th></tr></thead>
       <tbody>
       <?php if (empty($danaTaktisRows)): ?>
-        <tr><td colspan="5" class="text-center py-8 text-slate-500">Tidak ada data pada periode ini</td></tr>
+        <tr><td colspan="5" class="text-center py-8 text-slate-500"><img src="<?= icons8('empty-box', '3d-fluency', 64) ?>" alt="" class="w-10 h-10 mx-auto mb-2 opacity-80"><br>Tidak ada data pada periode ini</td></tr>
       <?php else: foreach ($danaTaktisRows as $row): ?>
         <tr>
           <td class="whitespace-nowrap"><?= date('d/m/Y', strtotime($row['tanggal_surat_tugas'])) ?></td>

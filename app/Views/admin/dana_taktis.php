@@ -164,7 +164,7 @@
 </div>
 
 <div id="rekap-empty" class="card"><div class="card-body text-center py-12 text-slate-500">
-  <i data-lucide="piggy-bank" class="w-10 h-10 mx-auto mb-3 opacity-30"></i>
+  <img src="<?= icons8('wallet', '3d-fluency', 96) ?>" alt="" class="w-14 h-14 mx-auto mb-3 opacity-80">
   Pilih nama pegawai di atas untuk melihat rekap Dana Taktis-nya.
 </div></div>
 
@@ -217,7 +217,7 @@ async function muatDaftarDanaTaktis(page) {
 function renderDanaTaktisTable(rows) {
   const tbody = document.getElementById('dt-tbody');
   if (!rows.length) {
-    tbody.innerHTML = '<tr><td colspan="6" class="text-center py-8 text-slate-500">Tidak ada data yang cocok.</td></tr>';
+    tbody.innerHTML = '<tr><td colspan="6" class="text-center py-8 text-slate-500"><img src="https://img.icons8.com/3d-fluency/64/empty-box.png" alt="" class="w-10 h-10 mx-auto mb-2 opacity-80"><br>Tidak ada data yang cocok.</td></tr>';
     return;
   }
   tbody.innerHTML = rows.map(r => {
@@ -291,7 +291,7 @@ async function muatRekap() {
   const tbody = document.getElementById('rekap-tbody');
   tbody.innerHTML = '';
   if (!json.rows || json.rows.length === 0) {
-    tbody.innerHTML = '<tr><td colspan="7" class="text-center py-8 text-slate-500">Belum pernah ikut perjalanan dinas.</td></tr>';
+    tbody.innerHTML = '<tr><td colspan="7" class="text-center py-8 text-slate-500"><img src="https://img.icons8.com/3d-fluency/64/empty-box.png" alt="" class="w-10 h-10 mx-auto mb-2 opacity-80"><br>Belum pernah ikut perjalanan dinas.</td></tr>';
     return;
   }
   json.rows.forEach(r => {

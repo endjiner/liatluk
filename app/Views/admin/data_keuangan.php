@@ -517,7 +517,7 @@ function refreshTxn() {
 function renderTxn(rows) {
   const tbody = document.getElementById('txn-tbody');
   if (!rows.length) {
-    tbody.innerHTML = '<tr><td colspan="8" class="text-center py-8 text-slate-500">Tidak ada data yang cocok.</td></tr>';
+    tbody.innerHTML = '<tr><td colspan="8" class="text-center py-8 text-slate-500"><img src="https://img.icons8.com/3d-fluency/64/empty-box.png" alt="" class="w-10 h-10 mx-auto mb-2 opacity-80"><br>Tidak ada data yang cocok.</td></tr>';
     return;
   }
   tbody.innerHTML = rows.map(r => {

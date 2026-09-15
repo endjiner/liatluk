@@ -53,7 +53,7 @@
   <div>
     <?php if (empty($notifikasi)): ?>
     <div class="text-center py-12 text-slate-500">
-      <i data-lucide="bell-off" class="w-10 h-10 mx-auto mb-2 opacity-40"></i>
+      <img src="<?= icons8('bell', '3d-fluency', 96) ?>" alt="" class="w-14 h-14 mx-auto mb-2 opacity-80">
       Tidak ada notifikasi pada periode &amp; jenis yang dipilih
     </div>
     <?php else:

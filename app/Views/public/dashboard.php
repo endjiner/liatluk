@@ -8,13 +8,16 @@ $namaBulan = [1=>'Januari',2=>'Februari',3=>'Maret',4=>'April',5=>'Mei',6=>'Juni
 ?>
 
 <!-- Hero -->
-<section class="bg-primary-900 text-white">
+<section class="bg-primary-900 text-white overflow-hidden">
   <div class="max-w-7xl mx-auto px-4 lg:px-6 py-8 lg:py-10">
-    <div class="max-w-3xl">
-      <h1 class="text-2xl lg:text-3xl font-bold leading-tight">Pengelolaan Keuangan Internal</h1>
-      <p class="text-primary-100 mt-2 text-sm lg:text-base">
-        Publikasi arus kas dan rencana anggaran Balai Besar POM di Pangkal Pinang secara terbuka.
-      </p>
+    <div class="flex items-center justify-between gap-6">
+      <div class="max-w-3xl">
+        <h1 class="text-2xl lg:text-3xl font-bold leading-tight">Pengelolaan Keuangan Internal</h1>
+        <p class="text-primary-100 mt-2 text-sm lg:text-base">
+          Publikasi arus kas dan rencana anggaran Balai Besar POM di Pangkal Pinang secara terbuka.
+        </p>
+      </div>
+      <img src="https://img.icons8.com/clouds/500/wallet.png" alt="" class="hidden md:block w-28 lg:w-36 shrink-0">
     </div>
   </div>
 </section>
@@ -25,7 +28,7 @@ $namaBulan = [1=>'Januari',2=>'Februari',3=>'Maret',4=>'April',5=>'Mei',6=>'Juni
   <div class="grid grid-cols-2 md:grid-cols-3 gap-2.5 sm:gap-3">
     <!-- Saldo: featured/hero stat, tinted to stand out from the two secondary figures -->
     <div class="kpi p-3 sm:p-5 col-span-2 md:col-span-1 bg-primary-50/70 dark:bg-primary-900/20 border-primary-100 dark:border-primary-800/60">
-      <div class="kpi-label"><i data-lucide="wallet" class="w-4 h-4"></i> Saldo Kas</div>
+      <div class="kpi-label"><img src="<?= icons8('wallet') ?>" alt="" class="w-5 h-5"> Saldo Kas</div>
       <div class="kpi-value text-lg sm:text-2xl text-primary-700 dark:text-primary-300 text-currency">
         Rp <?= number_format($saldoAkhir, 0, ',', '.') ?>
       </div>
@@ -34,7 +37,7 @@ $namaBulan = [1=>'Januari',2=>'Februari',3=>'Maret',4=>'April',5=>'Mei',6=>'Juni
 
     <!-- Pemasukan with period picker -->
     <div class="kpi p-3 sm:p-5" data-kpi="pemasukan">
-      <div class="kpi-label"><i data-lucide="trending-up" class="w-4 h-4 text-emerald-600"></i> <span class="truncate">Total Pemasukan</span></div>
+      <div class="kpi-label"><img src="<?= icons8('bullish') ?>" alt="" class="w-5 h-5"> <span class="truncate">Total Pemasukan</span></div>
       <div class="kpi-value text-lg sm:text-2xl text-emerald-700 dark:text-emerald-400 text-currency" id="kpi-pemasukan-value">
         Rp <?= number_format($totalPemasukan, 0, ',', '.') ?>
       </div>
@@ -43,7 +46,7 @@ $namaBulan = [1=>'Januari',2=>'Februari',3=>'Maret',4=>'April',5=>'Mei',6=>'Juni
 
     <!-- Pengeluaran with period picker -->
     <div class="kpi p-3 sm:p-5" data-kpi="pengeluaran">
-      <div class="kpi-label"><i data-lucide="trending-down" class="w-4 h-4 text-red-600"></i> <span class="truncate">Total Pengeluaran</span></div>
+      <div class="kpi-label"><img src="<?= icons8('bearish') ?>" alt="" class="w-5 h-5"> <span class="truncate">Total Pengeluaran</span></div>
       <div class="kpi-value text-lg sm:text-2xl text-red-700 dark:text-red-400 text-currency" id="kpi-pengeluaran-value">
         Rp <?= number_format($totalPengeluaran, 0, ',', '.') ?>
       </div>
@@ -74,7 +77,7 @@ $namaBulan = [1=>'Januari',2=>'Februari',3=>'Maret',4=>'April',5=>'Mei',6=>'Juni
       <div class="card-body flex items-center justify-center">
         <canvas id="chart-kategori" class="chart-canvas chart-canvas-compact"></canvas>
         <div id="chart-kategori-empty" class="hidden flex-col items-center justify-center text-center text-slate-400 dark:text-slate-500 py-10">
-          <i data-lucide="pie-chart" class="w-8 h-8 mb-2 opacity-40"></i>
+          <img src="<?= icons8('pie-chart', '3d-fluency', 96) ?>" alt="" class="w-12 h-12 mb-2 opacity-80">
           <p class="text-sm">Belum ada data pengeluaran.</p>
         </div>
       </div>
@@ -118,13 +121,13 @@ $namaBulan = [1=>'Januari',2=>'Februari',3=>'Maret',4=>'April',5=>'Mei',6=>'Juni
   <!-- Tab: Transaksi Keuangan / Perjalanan Dinas / Dana Taktis -->
   <div class="segment w-full">
     <button type="button" id="tab-btn-transaksi" class="segment-btn active flex-1 flex items-center justify-center gap-1.5" onclick="aktifkanTab('transaksi')">
-      <i data-lucide="list" class="w-3.5 h-3.5 shrink-0"></i> <span class="truncate">Transaksi</span>
+      <?= iconsax('receipt-item', 'w-3.5 h-3.5 shrink-0') ?> <span class="truncate">Transaksi</span>
     </button>
     <button type="button" id="tab-btn-perjadin" class="segment-btn flex-1 flex items-center justify-center gap-1.5" onclick="aktifkanTab('perjadin')">
-      <i data-lucide="plane" class="w-3.5 h-3.5 shrink-0"></i> <span class="truncate">Perjalanan Dinas</span>
+      <?= iconsax('airplane', 'w-3.5 h-3.5 shrink-0') ?> <span class="truncate">Perjalanan Dinas</span>
     </button>
     <button type="button" id="tab-btn-dana-taktis" class="segment-btn flex-1 flex items-center justify-center gap-1.5" onclick="aktifkanTab('dana-taktis')">
-      <i data-lucide="piggy-bank" class="w-3.5 h-3.5 shrink-0"></i> <span class="truncate">Dana Taktis</span>
+      <?= iconsax('moneys', 'w-3.5 h-3.5 shrink-0') ?> <span class="truncate">Dana Taktis</span>
     </button>
   </div>
 
@@ -549,7 +552,7 @@ function refreshTxn() {
 function renderTxn(rows) {
   const tbody = document.getElementById('txn-tbody');
   if (!rows.length) {
-    tbody.innerHTML = '<tr><td colspan="7" class="text-center py-8 text-slate-500">Tidak ada data yang cocok.</td></tr>';
+    tbody.innerHTML = '<tr><td colspan="7" class="text-center py-8 text-slate-500"><img src="https://img.icons8.com/3d-fluency/64/empty-box.png" alt="" class="w-10 h-10 mx-auto mb-2 opacity-80"><br>Tidak ada data yang cocok.</td></tr>';
     return;
   }
   tbody.innerHTML = rows.map(r => {
@@ -770,7 +773,7 @@ async function muatDaftarTripPerjadin(page) {
 function renderTripTablePerjadin(rows) {
   const tbody = document.getElementById('pd-tbody-perjadin');
   if (!rows.length) {
-    tbody.innerHTML = '<tr><td colspan="10" class="text-center py-8 text-slate-500">Tidak ada data yang cocok.</td></tr>';
+    tbody.innerHTML = '<tr><td colspan="10" class="text-center py-8 text-slate-500"><img src="https://img.icons8.com/3d-fluency/64/empty-box.png" alt="" class="w-10 h-10 mx-auto mb-2 opacity-80"><br>Tidak ada data yang cocok.</td></tr>';
     return;
   }
   let lastTripId = null;
@@ -848,7 +851,7 @@ async function muatDaftarDanaTaktisPub(page) {
 function renderDanaTaktisTablePub(rows) {
   const tbody = document.getElementById('dt-tbody-pub');
   if (!rows.length) {
-    tbody.innerHTML = '<tr><td colspan="5" class="text-center py-8 text-slate-500">Tidak ada data yang cocok.</td></tr>';
+    tbody.innerHTML = '<tr><td colspan="5" class="text-center py-8 text-slate-500"><img src="https://img.icons8.com/3d-fluency/64/empty-box.png" alt="" class="w-10 h-10 mx-auto mb-2 opacity-80"><br>Tidak ada data yang cocok.</td></tr>';
     return;
   }
   tbody.innerHTML = rows.map(r => {

@@ -25,7 +25,7 @@ $tahunOpsi = range($tahunSekarang, $tahunSekarang - 5);
   <!-- Saldo Akhir -->
   <div class="kpi p-3 sm:p-5">
     <div class="kpi-label">
-      <i data-lucide="wallet" class="w-4 h-4"></i> <span class="truncate">Saldo Akhir</span>
+      <img src="<?= icons8('wallet') ?>" alt="" class="w-5 h-5"> <span class="truncate">Saldo Akhir</span>
     </div>
     <div class="kpi-value text-lg sm:text-2xl text-primary-700 dark:text-primary-300 text-currency">
       Rp <?= number_format($saldoAkhir, 0, ',', '.') ?>
@@ -39,7 +39,7 @@ $tahunOpsi = range($tahunSekarang, $tahunSekarang - 5);
   <div class="kpi p-3 sm:p-5" data-kpi="pemasukan">
     <div class="flex items-start justify-between gap-2">
       <div class="kpi-label">
-        <i data-lucide="trending-up" class="w-4 h-4 text-emerald-600"></i> <span class="truncate">Total Pemasukan</span>
+        <img src="<?= icons8('bullish') ?>" alt="" class="w-5 h-5"> <span class="truncate">Total Pemasukan</span>
       </div>
     </div>
     <div class="kpi-value text-lg sm:text-2xl text-emerald-700 dark:text-emerald-400 text-currency" id="kpi-pemasukan-value">
@@ -52,7 +52,7 @@ $tahunOpsi = range($tahunSekarang, $tahunSekarang - 5);
   <div class="kpi p-3 sm:p-5" data-kpi="pengeluaran">
     <div class="flex items-start justify-between gap-2">
       <div class="kpi-label">
-        <i data-lucide="trending-down" class="w-4 h-4 text-red-600"></i> <span class="truncate">Total Pengeluaran</span>
+        <img src="<?= icons8('bearish') ?>" alt="" class="w-5 h-5"> <span class="truncate">Total Pengeluaran</span>
       </div>
     </div>
     <div class="kpi-value text-lg sm:text-2xl text-red-700 dark:text-red-400 text-currency" id="kpi-pengeluaran-value">
@@ -65,7 +65,7 @@ $tahunOpsi = range($tahunSekarang, $tahunSekarang - 5);
   <?php $selisihBulanIni = $pemasukanBulanIni - $pengeluaranBulanIni; ?>
   <div class="kpi p-3 sm:p-5">
     <div class="kpi-label">
-      <i data-lucide="calendar-clock" class="w-4 h-4"></i> <span class="truncate">Saldo Bulan Ini</span>
+      <img src="<?= icons8('calendar') ?>" alt="" class="w-5 h-5"> <span class="truncate">Saldo Bulan Ini</span>
     </div>
     <div class="kpi-value text-lg sm:text-2xl <?= $selisihBulanIni >= 0 ? 'text-emerald-700 dark:text-emerald-400' : 'text-red-700 dark:text-red-400' ?> text-currency">
       Rp <?= number_format(abs($selisihBulanIni), 0, ',', '.') ?>
@@ -81,13 +81,13 @@ $tahunOpsi = range($tahunSekarang, $tahunSekarang - 5);
 <?php
   $extraCards = [];
   if ($danaBelumDiterima > 0) {
-    $extraCards[] = ['icon' => 'alert-triangle', 'color' => 'amber', 'label' => 'Dana Belum Diterima', 'value' => $danaBelumDiterima, 'caption' => 'Total pemasukan yang belum masuk ke kas'];
+    $extraCards[] = ['icon' => 'high-priority', 'color' => 'amber', 'label' => 'Dana Belum Diterima', 'value' => $danaBelumDiterima, 'caption' => 'Total pemasukan yang belum masuk ke kas'];
   }
   if ($totalRencanaPemasukan > 0) {
-    $extraCards[] = ['icon' => 'calendar-clock', 'color' => 'emerald', 'label' => 'Rencana Pemasukan', 'value' => $totalRencanaPemasukan, 'caption' => 'Total rencana pemasukan aktif'];
+    $extraCards[] = ['icon' => 'budget', 'color' => 'emerald', 'label' => 'Rencana Pemasukan', 'value' => $totalRencanaPemasukan, 'caption' => 'Total rencana pemasukan aktif'];
   }
   if ($totalRencanaPengeluaran > 0) {
-    $extraCards[] = ['icon' => 'calendar-clock', 'color' => 'primary', 'label' => 'Rencana Pengeluaran', 'value' => $totalRencanaPengeluaran, 'caption' => 'Total rencana pengeluaran aktif'];
+    $extraCards[] = ['icon' => 'budget', 'color' => 'primary', 'label' => 'Rencana Pengeluaran', 'value' => $totalRencanaPengeluaran, 'caption' => 'Total rencana pengeluaran aktif'];
   }
 ?>
 <?php if (!empty($extraCards)): ?>
@@ -95,7 +95,7 @@ $tahunOpsi = range($tahunSekarang, $tahunSekarang - 5);
   <?php foreach ($extraCards as $c): ?>
   <div class="kpi p-3 sm:p-5">
     <div class="kpi-label">
-      <i data-lucide="<?= $c['icon'] ?>" class="w-4 h-4 text-<?= $c['color'] ?>-600"></i> <span class="truncate"><?= $c['label'] ?></span>
+      <img src="<?= icons8($c['icon']) ?>" alt="" class="w-5 h-5"> <span class="truncate"><?= $c['label'] ?></span>
     </div>
     <div class="kpi-value text-lg sm:text-2xl text-<?= $c['color'] ?>-700 dark:text-<?= $c['color'] ?>-400 text-currency">
       Rp <?= number_format($c['value'], 0, ',', '.') ?>
@@ -131,7 +131,7 @@ $tahunOpsi = range($tahunSekarang, $tahunSekarang - 5);
     <div class="card-body flex items-center justify-center">
       <canvas id="chart-kategori" class="chart-canvas chart-canvas-compact"></canvas>
       <div id="chart-kategori-empty" class="hidden flex-col items-center justify-center text-center text-slate-400 dark:text-slate-500 py-10">
-        <i data-lucide="pie-chart" class="w-8 h-8 mb-2 opacity-40"></i>
+        <img src="<?= icons8('pie-chart', '3d-fluency', 96) ?>" alt="" class="w-12 h-12 mb-2 opacity-80">
         <p class="text-sm">Belum ada data pengeluaran.</p>
       </div>
     </div>

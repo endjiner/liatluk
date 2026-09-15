@@ -25,11 +25,11 @@
 
   <?php
     $navLinks = [
-      ['url' => 'admin',           'label' => 'Dashboard',        'icon' => 'layout-dashboard', 'match' => ['admin', 'admin/dashboard']],
-      ['url' => 'admin/keuangan',  'label' => 'Data Keuangan',    'icon' => 'circle-dollar-sign', 'match' => ['keuangan']],
-      ['url' => 'admin/rencana',   'label' => 'Rencana Keuangan', 'icon' => 'calendar-check', 'match' => ['rencana']],
-      ['url' => 'admin/perjalanan-dinas', 'label' => 'Perjalanan Dinas', 'icon' => 'plane', 'match' => ['perjalanan-dinas']],
-      ['url' => 'admin/laporan',   'label' => 'Laporan',          'icon' => 'file-text', 'match' => ['laporan']],
+      ['url' => 'admin',           'label' => 'Dashboard',        'icon' => 'category2', 'match' => ['admin', 'admin/dashboard']],
+      ['url' => 'admin/keuangan',  'label' => 'Data Keuangan',    'icon' => 'dollar-circle', 'match' => ['keuangan']],
+      ['url' => 'admin/rencana',   'label' => 'Rencana Keuangan', 'icon' => 'calendar-tick', 'match' => ['rencana']],
+      ['url' => 'admin/perjalanan-dinas', 'label' => 'Perjalanan Dinas', 'icon' => 'airplane', 'match' => ['perjalanan-dinas']],
+      ['url' => 'admin/laporan',   'label' => 'Laporan',          'icon' => 'document-text', 'match' => ['laporan']],
     ];
     $isNavActive = function ($nl) {
       foreach ($nl['match'] as $m) { if (str_contains(current_url(), $m)) return true; }
@@ -56,7 +56,7 @@
           <?php foreach ($navLinks as $nl): $isActive = $isNavActive($nl); ?>
           <a href="<?= base_url($nl['url']) ?>"
              class="flex items-center gap-1.5 px-3.5 py-2 rounded-full text-sm font-medium whitespace-nowrap transition <?= $isActive ? 'bg-primary-600 text-white shadow-sm' : 'text-slate-600 dark:text-slate-300 hover:bg-slate-100 dark:hover:bg-slate-700' ?>">
-            <i data-lucide="<?= $nl['icon'] ?>" class="w-4 h-4 shrink-0"></i> <?= $nl['label'] ?>
+            <?= iconsax($nl['icon'], 'w-4 h-4 shrink-0') ?> <?= $nl['label'] ?>
           </a>
           <?php endforeach; ?>
         </nav>
@@ -86,7 +86,7 @@
               </div>
               <div id="notif-list" class="max-h-72 overflow-y-auto">
                 <div class="px-4 py-8 text-center text-slate-500 dark:text-slate-400 text-sm">
-                  <i data-lucide="bell-off" class="w-8 h-8 mx-auto mb-2 opacity-40"></i>
+                  <img src="<?= icons8('bell', '3d-fluency', 64) ?>" alt="" class="w-10 h-10 mx-auto mb-2 opacity-80">
                   Tidak ada notifikasi
                 </div>
               </div>
@@ -141,7 +141,7 @@
         <?php foreach ($navLinks as $nl): $isActive = $isNavActive($nl); ?>
         <a href="<?= base_url($nl['url']) ?>"
            class="flex items-center gap-2.5 px-3 py-2.5 rounded-lg text-sm font-medium transition <?= $isActive ? 'bg-primary-50 text-primary-700 dark:bg-primary-900/30 dark:text-primary-300' : 'text-slate-600 dark:text-slate-300 hover:bg-slate-100 dark:hover:bg-slate-700' ?>">
-          <i data-lucide="<?= $nl['icon'] ?>" class="w-4 h-4"></i> <?= $nl['label'] ?>
+          <?= iconsax($nl['icon'], 'w-4 h-4') ?> <?= $nl['label'] ?>
         </a>
         <?php endforeach; ?>
       </nav>
@@ -418,7 +418,7 @@ async function loadNotif() {
     const data = await res.json();
     const list = document.getElementById('notif-list');
     if (!data.data || data.data.length === 0) {
-      list.innerHTML = '<div class="px-4 py-8 text-center text-slate-500 dark:text-slate-400 text-sm"><i data-lucide="bell-off" class="w-8 h-8 mx-auto mb-2 opacity-40"></i>Tidak ada notifikasi</div>';
+      list.innerHTML = '<div class="px-4 py-8 text-center text-slate-500 dark:text-slate-400 text-sm"><img src="https://img.icons8.com/3d-fluency/64/bell.png" alt="" class="w-10 h-10 mx-auto mb-2 opacity-80">Tidak ada notifikasi</div>';
       lucide.createIcons({ props: { search: list } });
       return;
     }
