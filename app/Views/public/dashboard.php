@@ -8,13 +8,16 @@ $namaBulan = [1=>'Januari',2=>'Februari',3=>'Maret',4=>'April',5=>'Mei',6=>'Juni
 ?>
 
 <!-- Hero -->
-<section class="bg-gradient-to-r from-primary-900 via-primary-800 to-primary-700 text-white">
+<section class="bg-primary-900 text-white overflow-hidden">
   <div class="max-w-7xl mx-auto px-4 lg:px-6 py-8 lg:py-10">
-    <div class="max-w-3xl">
-      <h1 class="text-2xl lg:text-3xl font-bold leading-tight">Pengelolaan Keuangan Internal</h1>
-      <p class="text-primary-100 mt-2 text-sm lg:text-base">
-        Publikasi arus kas dan rencana anggaran Balai Besar POM di Pangkal Pinang secara terbuka.
-      </p>
+    <div class="flex items-center justify-between gap-6">
+      <div class="max-w-3xl">
+        <h1 class="text-2xl lg:text-3xl font-bold leading-tight">Pengelolaan Keuangan Internal</h1>
+        <p class="text-primary-100 mt-2 text-sm lg:text-base">
+          Publikasi arus kas dan rencana anggaran Balai Besar POM di Pangkal Pinang secara terbuka.
+        </p>
+      </div>
+      <img src="https://img.icons8.com/clouds/500/wallet.png" alt="" class="hidden md:block w-28 lg:w-36 shrink-0">
     </div>
   </div>
 </section>
@@ -22,29 +25,29 @@ $namaBulan = [1=>'Januari',2=>'Februari',3=>'Maret',4=>'April',5=>'Mei',6=>'Juni
 <div class="max-w-7xl mx-auto px-4 lg:px-6 py-6 space-y-6">
 
   <!-- KPI Cards -->
-  <div class="grid grid-cols-2 md:grid-cols-3 gap-3">
-    <!-- Saldo -->
-    <div class="kpi">
-      <div class="kpi-label"><i data-lucide="wallet" class="w-4 h-4"></i> Saldo Kas</div>
-      <div class="kpi-value text-primary-700 dark:text-primary-300 text-currency">
+  <div class="grid grid-cols-2 md:grid-cols-3 gap-2.5 sm:gap-3">
+    <!-- Saldo: featured/hero stat, tinted to stand out from the two secondary figures -->
+    <div class="kpi p-3 sm:p-5 col-span-2 md:col-span-1 bg-primary-50/70 dark:bg-primary-900/20 border-primary-100 dark:border-primary-800/60">
+      <div class="kpi-label"><img src="<?= icons8('wallet') ?>" alt="" class="w-5 h-5"> Saldo Kas</div>
+      <div class="kpi-value text-lg sm:text-2xl text-primary-700 dark:text-primary-300 text-currency">
         Rp <?= number_format($saldoAkhir, 0, ',', '.') ?>
       </div>
       <div class="text-xs text-slate-500 dark:text-slate-400">Selisih total pemasukan dan pengeluaran</div>
     </div>
 
     <!-- Pemasukan with period picker -->
-    <div class="kpi" data-kpi="pemasukan">
-      <div class="kpi-label"><i data-lucide="trending-up" class="w-4 h-4 text-emerald-600"></i> Total Pemasukan</div>
-      <div class="kpi-value text-emerald-700 dark:text-emerald-400 text-currency" id="kpi-pemasukan-value">
+    <div class="kpi p-3 sm:p-5" data-kpi="pemasukan">
+      <div class="kpi-label"><img src="<?= icons8('bullish') ?>" alt="" class="w-5 h-5"> <span class="truncate">Total Pemasukan</span></div>
+      <div class="kpi-value text-lg sm:text-2xl text-emerald-700 dark:text-emerald-400 text-currency" id="kpi-pemasukan-value">
         Rp <?= number_format($totalPemasukan, 0, ',', '.') ?>
       </div>
       <?= view('public/_partials/kpi_period_picker', ['id' => 'pemasukan']) ?>
     </div>
 
     <!-- Pengeluaran with period picker -->
-    <div class="kpi" data-kpi="pengeluaran">
-      <div class="kpi-label"><i data-lucide="trending-down" class="w-4 h-4 text-red-600"></i> Total Pengeluaran</div>
-      <div class="kpi-value text-red-700 dark:text-red-400 text-currency" id="kpi-pengeluaran-value">
+    <div class="kpi p-3 sm:p-5" data-kpi="pengeluaran">
+      <div class="kpi-label"><img src="<?= icons8('bearish') ?>" alt="" class="w-5 h-5"> <span class="truncate">Total Pengeluaran</span></div>
+      <div class="kpi-value text-lg sm:text-2xl text-red-700 dark:text-red-400 text-currency" id="kpi-pengeluaran-value">
         Rp <?= number_format($totalPengeluaran, 0, ',', '.') ?>
       </div>
       <?= view('public/_partials/kpi_period_picker', ['id' => 'pengeluaran']) ?>
@@ -52,7 +55,7 @@ $namaBulan = [1=>'Januari',2=>'Februari',3=>'Maret',4=>'April',5=>'Mei',6=>'Juni
   </div>
 
   <!-- Charts -->
-  <div class="grid grid-cols-1 lg:grid-cols-3 gap-4">
+  <div class="grid grid-cols-1 lg:grid-cols-3 gap-4 items-start">
     <div class="card lg:col-span-2">
       <div class="card-header">
         <h3 class="text-sm font-semibold text-slate-700 dark:text-slate-200">Tren Keuangan Bulanan</h3>
@@ -71,8 +74,12 @@ $namaBulan = [1=>'Januari',2=>'Februari',3=>'Maret',4=>'April',5=>'Mei',6=>'Juni
       <div class="card-header">
         <h3 class="text-sm font-semibold text-slate-700 dark:text-slate-200">Kategori Pengeluaran</h3>
       </div>
-      <div class="card-body">
-        <canvas id="chart-kategori" class="chart-canvas"></canvas>
+      <div class="card-body flex items-center justify-center">
+        <canvas id="chart-kategori" class="chart-canvas chart-canvas-compact"></canvas>
+        <div id="chart-kategori-empty" class="hidden flex-col items-center justify-center text-center text-slate-400 dark:text-slate-500 py-10">
+          <img src="<?= icons8('pie-chart', '3d-fluency', 96) ?>" alt="" class="w-12 h-12 mb-2 opacity-80">
+          <p class="text-sm">Belum ada data pengeluaran.</p>
+        </div>
       </div>
     </div>
   </div>
@@ -111,6 +118,20 @@ $namaBulan = [1=>'Januari',2=>'Februari',3=>'Maret',4=>'April',5=>'Mei',6=>'Juni
   </div>
   <?php endif; ?>
 
+  <!-- Tab: Transaksi Keuangan / Perjalanan Dinas / Dana Taktis -->
+  <div class="segment w-full">
+    <button type="button" id="tab-btn-transaksi" class="segment-btn active flex-1 flex items-center justify-center gap-1.5" onclick="aktifkanTab('transaksi')">
+      <?= iconsax('receipt-item', 'w-3.5 h-3.5 shrink-0') ?> <span class="truncate">Transaksi</span>
+    </button>
+    <button type="button" id="tab-btn-perjadin" class="segment-btn flex-1 flex items-center justify-center gap-1.5" onclick="aktifkanTab('perjadin')">
+      <?= iconsax('airplane', 'w-3.5 h-3.5 shrink-0') ?> <span class="truncate">Perjalanan Dinas</span>
+    </button>
+    <button type="button" id="tab-btn-dana-taktis" class="segment-btn flex-1 flex items-center justify-center gap-1.5" onclick="aktifkanTab('dana-taktis')">
+      <?= iconsax('moneys', 'w-3.5 h-3.5 shrink-0') ?> <span class="truncate">Dana Taktis</span>
+    </button>
+  </div>
+
+  <div id="panel-transaksi">
   <!-- Daftar Transaksi -->
   <div class="card">
     <div class="card-header">
@@ -174,6 +195,9 @@ $namaBulan = [1=>'Januari',2=>'Februari',3=>'Maret',4=>'April',5=>'Mei',6=>'Juni
       </div>
     </div>
 
+    <div class="sm:hidden flex items-center gap-1.5 px-3 py-1.5 text-[11px] text-slate-400 dark:text-slate-500 border-t border-slate-100 dark:border-slate-800">
+      <i data-lucide="move-horizontal" class="w-3 h-3"></i> Geser tabel untuk melihat kolom lainnya
+    </div>
     <div class="overflow-x-auto">
       <table class="table">
         <thead>
@@ -181,13 +205,14 @@ $namaBulan = [1=>'Januari',2=>'Februari',3=>'Maret',4=>'April',5=>'Mei',6=>'Juni
             <th class="w-12 text-center">No</th>
             <th>Tanggal</th>
             <th>Kategori</th>
+            <th>Sumber</th>
             <th>Tipe</th>
             <th class="text-right">Nominal</th>
             <th class="w-16 text-center">Detail</th>
           </tr>
         </thead>
         <tbody id="txn-tbody">
-          <tr><td colspan="6" class="text-center py-8 text-slate-500">Memuat data...</td></tr>
+          <tr><td colspan="7" class="text-center py-8 text-slate-500">Memuat data...</td></tr>
         </tbody>
       </table>
     </div>
@@ -195,6 +220,154 @@ $namaBulan = [1=>'Januari',2=>'Februari',3=>'Maret',4=>'April',5=>'Mei',6=>'Juni
     <!-- Pagination -->
     <div id="pagination-wrap" class="flex items-center justify-between gap-3 p-3 border-t border-slate-200 dark:border-slate-700 flex-wrap"></div>
   </div>
+  </div><!-- /panel-transaksi -->
+
+  <div id="panel-perjadin" class="hidden">
+    <?php $namaBulanPerjadin = ['', 'Januari', 'Februari', 'Maret', 'April', 'Mei', 'Juni', 'Juli', 'Agustus', 'September', 'Oktober', 'November', 'Desember']; ?>
+
+    <div class="card">
+      <div class="card-header">
+        <h3 class="text-sm font-semibold text-slate-700 dark:text-slate-200">Daftar Perjalanan Dinas</h3>
+        <span class="text-xs text-slate-500">Total: <span id="pd-total-perjadin">-</span></span>
+      </div>
+      <div class="p-3 border-b border-slate-200 dark:border-slate-700 bg-slate-50 dark:bg-slate-900/40">
+        <div class="flex flex-wrap items-center gap-2">
+          <div class="relative flex-1 min-w-[160px] max-w-xs">
+            <span class="absolute inset-y-0 left-3 flex items-center text-slate-400">
+              <i data-lucide="search" class="w-3.5 h-3.5"></i>
+            </span>
+            <input type="text" id="filter-search-perjadin" oninput="jadwalkanMuatDaftarPerjadin()" placeholder="Nama, maksud, no surat tugas..." class="form-control form-control-sm pl-8">
+          </div>
+          <select id="filter-status-perjadin" onchange="muatDaftarTripPerjadin(1)" class="form-control form-control-sm w-auto">
+            <option value="">Semua Status</option>
+            <option value="belum">Belum Lunas</option>
+            <option value="lunas">Lunas</option>
+          </select>
+          <select id="filter-bulan-perjadin" onchange="muatDaftarTripPerjadin(1)" class="form-control form-control-sm w-auto">
+            <option value="">Semua Bulan</option>
+            <?php for ($b = 1; $b <= 12; $b++): ?>
+            <option value="<?= $b ?>"><?= $namaBulanPerjadin[$b] ?></option>
+            <?php endfor; ?>
+          </select>
+          <select id="filter-tahun-perjadin" onchange="muatDaftarTripPerjadin(1)" class="form-control form-control-sm w-auto">
+            <option value="">Semua Tahun</option>
+            <?php $tahunSaatIni = (int)date('Y'); $daftarTahunPerjadin = $tahunListPerjadin; if (!in_array($tahunSaatIni, $daftarTahunPerjadin)) $daftarTahunPerjadin[] = $tahunSaatIni; rsort($daftarTahunPerjadin); ?>
+            <?php foreach ($daftarTahunPerjadin as $th): ?>
+            <option value="<?= $th ?>"><?= $th ?></option>
+            <?php endforeach; ?>
+          </select>
+          <div class="flex items-center gap-1.5 pl-3 border-l border-slate-200 dark:border-slate-700">
+            <span class="text-xs text-slate-600 dark:text-slate-400">Tampilkan</span>
+            <select id="filter-per-page-perjadin" onchange="muatDaftarTripPerjadin(1)" class="form-control form-control-sm w-auto">
+              <option value="10" selected>10</option>
+              <option value="25">25</option>
+              <option value="50">50</option>
+              <option value="100">100</option>
+            </select>
+            <span class="text-xs text-slate-600 dark:text-slate-400">baris</span>
+          </div>
+        </div>
+      </div>
+
+      <div class="sm:hidden flex items-center gap-1.5 px-3 py-1.5 text-[11px] text-slate-400 dark:text-slate-500 border-t border-slate-100 dark:border-slate-800">
+        <i data-lucide="move-horizontal" class="w-3 h-3"></i> Geser tabel untuk melihat kolom lainnya
+      </div>
+      <div class="overflow-x-auto">
+        <table class="table">
+          <thead>
+            <tr>
+              <th class="w-10">No</th>
+              <th class="min-w-[220px]">Perjalanan Dinas</th>
+              <th>Peserta</th>
+              <th class="text-right">Uang Harian</th>
+              <th class="text-right">Total SPJ</th>
+              <th class="text-right">Dana Taktis</th>
+              <th>Status</th>
+              <th class="text-right">Biaya Lain</th>
+              <th class="text-right">Tiket</th>
+              <th class="text-right">Hotel</th>
+            </tr>
+          </thead>
+          <tbody id="pd-tbody-perjadin">
+            <tr><td colspan="10" class="text-center py-8 text-slate-500">Memuat data...</td></tr>
+          </tbody>
+        </table>
+      </div>
+
+      <div id="pd-pagination-wrap-perjadin" class="flex items-center justify-between gap-3 p-3 border-t border-slate-200 dark:border-slate-700 flex-wrap"></div>
+    </div>
+  </div><!-- /panel-perjadin -->
+
+  <div id="panel-dana-taktis" class="hidden">
+    <?php $namaBulanDt = ['', 'Januari', 'Februari', 'Maret', 'April', 'Mei', 'Juni', 'Juli', 'Agustus', 'September', 'Oktober', 'November', 'Desember']; ?>
+
+    <div class="card">
+      <div class="card-header">
+        <h3 class="text-sm font-semibold text-slate-700 dark:text-slate-200">Daftar Dana Taktis</h3>
+        <span class="text-xs text-slate-500">Total: <span id="dt-total-pub">-</span></span>
+      </div>
+      <div class="p-3 border-b border-slate-200 dark:border-slate-700 bg-slate-50 dark:bg-slate-900/40">
+        <div class="flex flex-wrap items-center gap-2">
+          <div class="relative flex-1 min-w-[160px] max-w-xs">
+            <span class="absolute inset-y-0 left-3 flex items-center text-slate-400">
+              <i data-lucide="search" class="w-3.5 h-3.5"></i>
+            </span>
+            <input type="text" id="dt-filter-search-pub" oninput="dtPubJadwalkanMuat()" placeholder="Nama, maksud, no surat tugas..." class="form-control form-control-sm pl-8">
+          </div>
+          <select id="dt-filter-status-pub" onchange="muatDaftarDanaTaktisPub(1)" class="form-control form-control-sm w-auto">
+            <option value="">Semua Status</option>
+            <option value="belum">Belum Lunas</option>
+            <option value="lunas">Lunas</option>
+          </select>
+          <select id="dt-filter-bulan-pub" onchange="muatDaftarDanaTaktisPub(1)" class="form-control form-control-sm w-auto">
+            <option value="">Semua Bulan</option>
+            <?php for ($b = 1; $b <= 12; $b++): ?>
+            <option value="<?= $b ?>"><?= $namaBulanDt[$b] ?></option>
+            <?php endfor; ?>
+          </select>
+          <select id="dt-filter-tahun-pub" onchange="muatDaftarDanaTaktisPub(1)" class="form-control form-control-sm w-auto">
+            <option value="">Semua Tahun</option>
+            <?php $tahunSaatIniDtPub = (int)date('Y'); $daftarTahunDtPub = $tahunListPerjadin; if (!in_array($tahunSaatIniDtPub, $daftarTahunDtPub)) $daftarTahunDtPub[] = $tahunSaatIniDtPub; rsort($daftarTahunDtPub); ?>
+            <?php foreach ($daftarTahunDtPub as $th): ?>
+            <option value="<?= $th ?>"><?= $th ?></option>
+            <?php endforeach; ?>
+          </select>
+          <div class="flex items-center gap-1.5 pl-3 border-l border-slate-200 dark:border-slate-700">
+            <span class="text-xs text-slate-600 dark:text-slate-400">Tampilkan</span>
+            <select id="dt-filter-perpage-pub" onchange="muatDaftarDanaTaktisPub(1)" class="form-control form-control-sm w-auto">
+              <option value="10" selected>10</option>
+              <option value="25">25</option>
+              <option value="50">50</option>
+              <option value="100">100</option>
+            </select>
+            <span class="text-xs text-slate-600 dark:text-slate-400">baris</span>
+          </div>
+        </div>
+      </div>
+
+      <div class="sm:hidden flex items-center gap-1.5 px-3 py-1.5 text-[11px] text-slate-400 dark:text-slate-500 border-t border-slate-100 dark:border-slate-800">
+        <i data-lucide="move-horizontal" class="w-3 h-3"></i> Geser tabel untuk melihat kolom lainnya
+      </div>
+      <div class="overflow-x-auto">
+        <table class="table">
+          <thead>
+            <tr>
+              <th>Nama Pegawai</th>
+              <th>Perjalanan Dinas</th>
+              <th>No. Surat Tugas / Tgl</th>
+              <th class="text-right">Dana Taktis</th>
+              <th>Status</th>
+            </tr>
+          </thead>
+          <tbody id="dt-tbody-pub">
+            <tr><td colspan="5" class="text-center py-8 text-slate-500">Memuat data...</td></tr>
+          </tbody>
+        </table>
+      </div>
+
+      <div id="dt-pagination-wrap-pub" class="flex items-center justify-between gap-3 p-3 border-t border-slate-200 dark:border-slate-700 flex-wrap"></div>
+    </div>
+  </div><!-- /panel-dana-taktis -->
 
 </div>
 
@@ -259,8 +432,20 @@ function buildTren(pemasukan, pengeluaran) {
 function buildKat() {
   const colors = chartColors();
   const data = <?= $pieData ?>;
+  const canvas = document.getElementById('chart-kategori');
+  const empty = document.getElementById('chart-kategori-empty');
+  if (!data.length) {
+    canvas.classList.add('hidden');
+    empty.classList.remove('hidden');
+    empty.classList.add('flex');
+    if (chartKat) { chartKat.destroy(); chartKat = null; }
+    return;
+  }
+  canvas.classList.remove('hidden');
+  empty.classList.add('hidden');
+  empty.classList.remove('flex');
   if (chartKat) chartKat.destroy();
-  chartKat = new Chart(document.getElementById('chart-kategori'), {
+  chartKat = new Chart(canvas, {
     type: 'doughnut',
     data: {
       labels: data.map(d => d.kategori),
@@ -349,7 +534,7 @@ function refreshTxn() {
   });
   if (currentPage) params.set('page', currentPage);
 
-  document.getElementById('txn-tbody').innerHTML = '<tr><td colspan="6" class="text-center py-8 text-slate-500">Memuat...</td></tr>';
+  document.getElementById('txn-tbody').innerHTML = '<tr><td colspan="7" class="text-center py-8 text-slate-500">Memuat...</td></tr>';
 
   fetch(BASE_URL + 'transaksi/ajax?' + params.toString())
     .then(r => r.json())
@@ -360,14 +545,14 @@ function refreshTxn() {
       renderPagination(data.total || 0, parseInt(perPage), currentPage);
     })
     .catch(() => {
-      document.getElementById('txn-tbody').innerHTML = '<tr><td colspan="6" class="text-center py-8 text-red-500">Gagal memuat data.</td></tr>';
+      document.getElementById('txn-tbody').innerHTML = '<tr><td colspan="7" class="text-center py-8 text-red-500">Gagal memuat data.</td></tr>';
     });
 }
 
 function renderTxn(rows) {
   const tbody = document.getElementById('txn-tbody');
   if (!rows.length) {
-    tbody.innerHTML = '<tr><td colspan="6" class="text-center py-8 text-slate-500">Tidak ada data yang cocok.</td></tr>';
+    tbody.innerHTML = '<tr><td colspan="7" class="text-center py-8 text-slate-500"><img src="https://img.icons8.com/3d-fluency/64/empty-box.png" alt="" class="w-10 h-10 mx-auto mb-2 opacity-80"><br>Tidak ada data yang cocok.</td></tr>';
     return;
   }
   tbody.innerHTML = rows.map(r => {
@@ -381,6 +566,7 @@ function renderTxn(rows) {
       <td class="text-center text-slate-500">${r.nomor ?? '-'}</td>
       <td class="whitespace-nowrap">${dateFormatted}</td>
       <td class="truncate max-w-[200px]">${escapeHtml(r.kategori || '-')}</td>
+      <td class="truncate max-w-[160px]">${escapeHtml(r.sumber || r.tujuan || '-')}</td>
       <td>${badge}</td>
       <td class="text-right font-medium text-currency ${isP ? 'text-emerald-600' : 'text-red-600'}">Rp ${new Intl.NumberFormat('id-ID').format(Math.round(nominal))}</td>
       <td class="text-center">
@@ -526,11 +712,170 @@ window.showDetailPub = showDetailPub;
 function closeDetailModal() { document.getElementById('modal-detail-txn').classList.add('hidden'); }
 window.closeDetailModal = closeDetailModal;
 
+/* ── Tab: Transaksi Keuangan / Perjalanan Dinas / Dana Taktis ── */
+let perjadinSudahDimuat = false;
+let danaTaktisSudahDimuat = false;
+function aktifkanTab(nama) {
+  ['transaksi', 'perjadin', 'dana-taktis'].forEach(n => {
+    document.getElementById('panel-' + n).classList.toggle('hidden', n !== nama);
+    document.getElementById('tab-btn-' + n).classList.toggle('active', n === nama);
+  });
+  if (nama === 'perjadin' && !perjadinSudahDimuat) {
+    perjadinSudahDimuat = true;
+    muatDaftarTripPerjadin(1);
+  }
+  if (nama === 'dana-taktis' && !danaTaktisSudahDimuat) {
+    danaTaktisSudahDimuat = true;
+    muatDaftarDanaTaktisPub(1);
+  }
+  lucide.createIcons();
+}
+
+/* ── Perjalanan Dinas (tabel datar 1 baris = 1 peserta, filter & pagination via AJAX) ── */
+const rupiahPd = (n) => 'Rp ' + new Intl.NumberFormat('id-ID').format(Math.round(parseFloat(n) || 0));
+let filterDebouncePerjadin = null;
+let halamanPerjadinSaatIni = 1;
+function jadwalkanMuatDaftarPerjadin() {
+  clearTimeout(filterDebouncePerjadin);
+  filterDebouncePerjadin = setTimeout(() => muatDaftarTripPerjadin(1), 400);
+}
+async function muatDaftarTripPerjadin(page) {
+  halamanPerjadinSaatIni = page || halamanPerjadinSaatIni || 1;
+  const params = new URLSearchParams();
+  const tahun = document.getElementById('filter-tahun-perjadin').value;
+  const bulan = document.getElementById('filter-bulan-perjadin').value;
+  const status = document.getElementById('filter-status-perjadin').value;
+  const search = document.getElementById('filter-search-perjadin').value;
+  const perPage = document.getElementById('filter-per-page-perjadin').value;
+  if (tahun) params.set('tahun', tahun);
+  if (bulan) params.set('bulan', bulan);
+  if (status) params.set('status', status);
+  if (search) params.set('search', search);
+  if (perPage) params.set('per_page', perPage);
+  params.set('page', halamanPerjadinSaatIni);
+
+  const tbody = document.getElementById('pd-tbody-perjadin');
+  try {
+    const res = await fetch(BASE_URL + 'perjalanan-dinas/ajax?' + params.toString());
+    const json = await res.json();
+    if (!json.success) { tbody.innerHTML = '<tr><td colspan="10" class="text-center py-8 text-red-500">Gagal memuat data.</td></tr>'; return; }
+    renderTripTablePerjadin(json.data);
+    renderPaginasiHalaman(document.getElementById('pd-pagination-wrap-perjadin'), {
+      total: json.total, perPage: json.per_page, page: json.page,
+      itemLabel: 'peserta', onPageChange: muatDaftarTripPerjadin,
+    });
+    document.getElementById('pd-total-perjadin').textContent = new Intl.NumberFormat('id-ID').format(json.total);
+  } catch (e) {
+    tbody.innerHTML = '<tr><td colspan="10" class="text-center py-8 text-red-500">Gagal memuat data.</td></tr>';
+  }
+}
+
+function renderTripTablePerjadin(rows) {
+  const tbody = document.getElementById('pd-tbody-perjadin');
+  if (!rows.length) {
+    tbody.innerHTML = '<tr><td colspan="10" class="text-center py-8 text-slate-500"><img src="https://img.icons8.com/3d-fluency/64/empty-box.png" alt="" class="w-10 h-10 mx-auto mb-2 opacity-80"><br>Tidak ada data yang cocok.</td></tr>';
+    return;
+  }
+  let lastTripId = null;
+  let noTrip = 0;
+  tbody.innerHTML = rows.map(r => {
+    const tripBaru = r.perjalanan_dinas_id !== lastTripId;
+    if (tripBaru) { lastTripId = r.perjalanan_dinas_id; noTrip++; }
+
+    const tgl = r.tanggal_surat_tugas ? new Date(r.tanggal_surat_tugas).toLocaleDateString('id-ID', { day: 'numeric', month: 'short', year: 'numeric' }) : '-';
+    const biayaLain = (parseFloat(r.meeting_fullboard) || 0) + (parseFloat(r.meeting_fullday) || 0) + (parseFloat(r.uang_representasi) || 0) + (parseFloat(r.transport_lokal) || 0) + (parseFloat(r.bbm) || 0);
+    const totalTiket = (r.tiket || []).reduce((s, t) => s + (parseFloat(t.harga_tiket) || 0), 0);
+    const totalHotel = r.hotel ? ((parseFloat(r.hotel.total_bill) || 0) + (parseFloat(r.hotel.total_biaya_30persen) || 0)) : 0;
+    const statusBadge = r.status_lunas === 'lunas'
+      ? '<span class="badge badge-success">Lunas</span>'
+      : '<span class="badge badge-warning">Belum Lunas</span>';
+
+    const selTrip = tripBaru ? `
+      <td class="align-top font-semibold text-slate-500 dark:text-slate-400">${noTrip}</td>
+      <td class="align-top">
+        <p class="font-medium text-slate-800 dark:text-slate-100 max-w-[240px] truncate" title="${escapeHtml(r.maksud)}">${escapeHtml(r.maksud)}</p>
+        <p class="text-xs text-slate-500 dark:text-slate-400 mt-0.5">${escapeHtml(r.no_surat_tugas || '-')} &middot; ${tgl}</p>
+      </td>` : `<td></td><td></td>`;
+
+    return `<tr class="${tripBaru ? 'border-t-2 border-slate-100 dark:border-slate-800' : ''}">
+      ${selTrip}
+      <td class="font-medium text-slate-700 dark:text-slate-200 max-w-[200px] truncate" title="${escapeHtml(r.nama_peserta)}">${escapeHtml(r.nama_peserta)}</td>
+      <td class="text-right text-currency">${r.uang_harian > 0 ? rupiahPd(r.uang_harian) : '-'}</td>
+      <td class="text-right text-currency font-semibold">${rupiahPd(r.total_spj)}</td>
+      <td class="text-right text-currency font-semibold text-emerald-600">${rupiahPd(r.dana_taktis)}</td>
+      <td>${statusBadge}</td>
+      <td class="text-right text-currency">${biayaLain > 0 ? rupiahPd(biayaLain) : '-'}</td>
+      <td class="text-right text-currency">${(r.tiket || []).length > 0 ? ((r.tiket.length) + 'x &middot; ' + rupiahPd(totalTiket)) : '-'}</td>
+      <td class="text-right text-currency">${r.hotel ? (escapeHtml(r.hotel.nama_hotel || 'Hotel') + '<br><span class="text-xs">' + rupiahPd(totalHotel) + '</span>') : '-'}</td>
+    </tr>`;
+  }).join('');
+}
+
+
+/* ── Dana Taktis (tabel datar semua pegawai, filter & pagination via AJAX) ── */
+let dtPubFilterDebounce = null;
+function dtPubJadwalkanMuat() {
+  clearTimeout(dtPubFilterDebounce);
+  dtPubFilterDebounce = setTimeout(() => muatDaftarDanaTaktisPub(1), 400);
+}
+async function muatDaftarDanaTaktisPub(page) {
+  const params = new URLSearchParams();
+  const search = document.getElementById('dt-filter-search-pub').value;
+  const status = document.getElementById('dt-filter-status-pub').value;
+  const bulan = document.getElementById('dt-filter-bulan-pub').value;
+  const tahun = document.getElementById('dt-filter-tahun-pub').value;
+  const perPage = document.getElementById('dt-filter-perpage-pub').value;
+  if (search) params.set('search', search);
+  if (status) params.set('status', status);
+  if (bulan) params.set('bulan', bulan);
+  if (tahun) params.set('tahun', tahun);
+  params.set('per_page', perPage);
+  params.set('page', page || 1);
+
+  const tbody = document.getElementById('dt-tbody-pub');
+  try {
+    const res = await fetch(BASE_URL + 'perjalanan-dinas/dana-taktis/ajax?' + params.toString());
+    const json = await res.json();
+    if (!json.success) { tbody.innerHTML = '<tr><td colspan="5" class="text-center py-8 text-red-500">Gagal memuat data.</td></tr>'; return; }
+    renderDanaTaktisTablePub(json.data);
+    renderPaginasiHalaman(document.getElementById('dt-pagination-wrap-pub'), {
+      total: json.total, perPage: json.per_page, page: json.page,
+      itemLabel: 'baris', onPageChange: muatDaftarDanaTaktisPub,
+    });
+    document.getElementById('dt-total-pub').textContent = new Intl.NumberFormat('id-ID').format(json.total);
+  } catch (e) {
+    tbody.innerHTML = '<tr><td colspan="5" class="text-center py-8 text-red-500">Gagal memuat data.</td></tr>';
+  }
+}
+
+function renderDanaTaktisTablePub(rows) {
+  const tbody = document.getElementById('dt-tbody-pub');
+  if (!rows.length) {
+    tbody.innerHTML = '<tr><td colspan="5" class="text-center py-8 text-slate-500"><img src="https://img.icons8.com/3d-fluency/64/empty-box.png" alt="" class="w-10 h-10 mx-auto mb-2 opacity-80"><br>Tidak ada data yang cocok.</td></tr>';
+    return;
+  }
+  tbody.innerHTML = rows.map(r => {
+    const tgl = r.tanggal_surat_tugas ? new Date(r.tanggal_surat_tugas).toLocaleDateString('id-ID', { day: 'numeric', month: 'short', year: 'numeric' }) : '-';
+    const statusBadge = r.status_lunas === 'lunas'
+      ? '<span class="badge badge-success">Lunas</span>'
+      : '<span class="badge badge-warning">Belum Lunas</span>';
+    return `<tr>
+      <td class="font-medium text-slate-700 dark:text-slate-200">${escapeHtml(r.nama_peserta)}</td>
+      <td class="max-w-[280px] truncate" title="${escapeHtml(r.maksud)}">${escapeHtml(r.maksud)}</td>
+      <td class="whitespace-nowrap text-xs">${escapeHtml(r.no_surat_tugas || '-')}<br>${tgl}</td>
+      <td class="text-right text-currency font-semibold text-emerald-600">${fmtRp(r.dana_taktis)}</td>
+      <td>${statusBadge}</td>
+    </tr>`;
+  }).join('');
+}
+
 /* ── Init ── */
 document.addEventListener('DOMContentLoaded', () => {
   buildKat();
   loadTren(<?= $tahunSekarang ?>);
   refreshTxn();
+  if (location.hash === '#perjadin') aktifkanTab('perjadin');
+  else if (location.hash === '#dana-taktis') aktifkanTab('dana-taktis');
 });
 </script>
 <?= $this->endSection() ?>

@@ -7,6 +7,7 @@ use App\Models\PemasukanModel;
 use App\Models\PengeluaranModel;
 use App\Models\PengaturanModel;
 use App\Models\NotifikasiModel;
+use App\Models\PerjalananDinasPesertaModel;
 
 class Laporan extends BaseController
 {
@@ -155,9 +156,60 @@ class Laporan extends BaseController
         return [$bulanDari, $bulanSampai, $dipangkas, $maxBulan];
     }
 
+    /**
+     * Rincian opsional Perjalanan Dinas & Dana Taktis untuk periode laporan — dihitung terpisah
+     * dari hitungLaporan() dan hanya dipanggil kalau salah satu checkbox "sertakan" dicentang,
+     * supaya laporan dasar (pemasukan/pengeluaran) tidak ikut kena biaya query tambahan saat
+     * keduanya tidak dipakai. Ini murni bagian INFORMASIONAL tambahan — tidak digabung ke
+     * totalPemasukan/totalPengeluaran/saldo, karena setoran Dana Taktis yang sudah lunas SUDAH
+     * ikut terhitung di sana lewat kategori "Setoran Taktis Pegawai" (lihat tandaiLunas() di
+     * PerjalananDinasPesertaModel) — menjumlahkannya lagi di sini akan dobel hitung.
+     */
+    private function hitungPerjadinDanaTaktis(string $bulanDari, string $bulanSampai): array
+    {
+        [$tahunSampai, $blnSampai] = explode('-', $bulanSampai);
+        $tglAkhir = $bulanSampai . '-' . cal_days_in_month(CAL_GREGORIAN, $blnSampai, $tahunSampai);
+        $tglMulai = $bulanDari . '-01';
+
+        $rows = (new PerjalananDinasPesertaModel())->getForLaporan($tglMulai, $tglAkhir);
+
+        $trips = [];
+        foreach ($rows as $r) {
+            $tid = $r['perjalanan_dinas_id'];
+            if (!isset($trips[$tid])) {
+                $trips[$tid] = [
+                    'no_surat_tugas'      => $r['no_surat_tugas'],
+                    'maksud'              => $r['maksud'],
+                    'tanggal_surat_tugas' => $r['tanggal_surat_tugas'],
+                    'kode_mak'            => $r['kode_mak'],
+                    'jumlah_peserta'      => 0,
+                    'total_spj'           => 0.0,
+                    'total_dana_taktis'   => 0.0,
+                ];
+            }
+            $trips[$tid]['jumlah_peserta']++;
+            $trips[$tid]['total_spj']         += (float) $r['total_spj'];
+            $trips[$tid]['total_dana_taktis'] += (float) $r['dana_taktis'];
+        }
+
+        $danaTaktisRows = array_values(array_filter($rows, fn($r) => (float) $r['dana_taktis'] > 0));
+
+        return [
+            'perjadinTrips'        => array_values($trips),
+            'perjadinTotalSpj'     => array_sum(array_column($trips, 'total_spj')),
+            'danaTaktisRows'       => $danaTaktisRows,
+            'danaTaktisTotalLunas' => array_sum(array_map(fn($r) => (float) $r['dana_taktis'],
+                array_filter($danaTaktisRows, fn($r) => $r['status_lunas'] === 'lunas'))),
+            'danaTaktisTotalBelum' => array_sum(array_map(fn($r) => (float) $r['dana_taktis'],
+                array_filter($danaTaktisRows, fn($r) => $r['status_lunas'] === 'belum'))),
+        ];
+    }
+
     public function index(): string
     {
         [$bulanDari, $bulanSampai, $dipangkas, $maxBulan] = $this->resolvePeriode();
+        $sertakanPerjadin   = (bool) $this->request->getGet('sertakan_perjadin');
+        $sertakanDanaTaktis = (bool) $this->request->getGet('sertakan_dana_taktis');
 
         $data = $this->hitungLaporan($bulanDari, $bulanSampai);
         $data['bulanDari']   = $bulanDari;
@@ -165,6 +217,11 @@ class Laporan extends BaseController
         $data['periodeDipangkas'] = $dipangkas;
         $data['maxBulanPeriode']  = $maxBulan;
         $data['notifCount']  = $this->notifikasiModel->countUnread();
+        $data['sertakanPerjadin']   = $sertakanPerjadin;
+        $data['sertakanDanaTaktis'] = $sertakanDanaTaktis;
+        if ($sertakanPerjadin || $sertakanDanaTaktis) {
+            $data = array_merge($data, $this->hitungPerjadinDanaTaktis($bulanDari, $bulanSampai));
+        }
 
         return view('admin/laporan', $data);
     }
@@ -173,12 +230,19 @@ class Laporan extends BaseController
     {
         // Gunakan dompdf jika tersedia, fallback ke print CSS
         [$bulanDari, $bulanSampai, $dipangkas, $maxBulan] = $this->resolvePeriode();
+        $sertakanPerjadin   = (bool) $this->request->getGet('sertakan_perjadin');
+        $sertakanDanaTaktis = (bool) $this->request->getGet('sertakan_dana_taktis');
 
         $data = $this->hitungLaporan($bulanDari, $bulanSampai);
         $data['bulanDari']   = $bulanDari;
         $data['bulanSampai'] = $bulanSampai;
         $data['periodeDipangkas'] = $dipangkas;
         $data['maxBulanPeriode']  = $maxBulan;
+        $data['sertakanPerjadin']   = $sertakanPerjadin;
+        $data['sertakanDanaTaktis'] = $sertakanDanaTaktis;
+        if ($sertakanPerjadin || $sertakanDanaTaktis) {
+            $data = array_merge($data, $this->hitungPerjadinDanaTaktis($bulanDari, $bulanSampai));
+        }
 
         $html = view('admin/laporan_pdf', $data);
 
@@ -199,8 +263,13 @@ class Laporan extends BaseController
     public function exportExcel()
     {
         [$bulanDari, $bulanSampai] = $this->resolvePeriode();
+        $sertakanPerjadin   = (bool) $this->request->getGet('sertakan_perjadin');
+        $sertakanDanaTaktis = (bool) $this->request->getGet('sertakan_dana_taktis');
 
         $data = $this->hitungLaporan($bulanDari, $bulanSampai);
+        if ($sertakanPerjadin || $sertakanDanaTaktis) {
+            $data = array_merge($data, $this->hitungPerjadinDanaTaktis($bulanDari, $bulanSampai));
+        }
 
         $spreadsheet = new \PhpOffice\PhpSpreadsheet\Spreadsheet();
         $spreadsheet->getProperties()
@@ -231,6 +300,16 @@ class Laporan extends BaseController
 
         $sheetGabungan = $spreadsheet->createSheet();
         $this->buildSheetGabungan($sheetGabungan, $data['gabungan']);
+
+        if ($sertakanPerjadin) {
+            $sheetPerjadin = $spreadsheet->createSheet();
+            $this->buildSheetPerjadin($sheetPerjadin, $data['perjadinTrips'], $data['perjadinTotalSpj']);
+        }
+
+        if ($sertakanDanaTaktis) {
+            $sheetDanaTaktis = $spreadsheet->createSheet();
+            $this->buildSheetDanaTaktis($sheetDanaTaktis, $data['danaTaktisRows'], $data['danaTaktisTotalLunas'], $data['danaTaktisTotalBelum']);
+        }
 
         $spreadsheet->setActiveSheetIndex(0);
 
@@ -515,6 +594,93 @@ class Laporan extends BaseController
 
         $sheet->getColumnDimension('A')->setWidth(6);
         foreach (['B', 'C', 'D', 'E', 'F', 'G'] as $c) $sheet->getColumnDimension($c)->setWidth(20);
+        $sheet->freezePane('A3');
+    }
+
+    /** Sheet opsional: rincian trip Perjalanan Dinas pada periode ini (satu baris per trip). */
+    private function buildSheetPerjadin($sheet, array $trips, float $totalSpj)
+    {
+        $sheet->setTitle('Perjalanan Dinas');
+        $fill = ['fillType' => \PhpOffice\PhpSpreadsheet\Style\Fill::FILL_SOLID, 'startColor' => ['rgb' => '0066B2']];
+
+        $sheet->setCellValue('A1', 'RINCIAN PERJALANAN DINAS');
+        $sheet->mergeCells('A1:F1');
+        $sheet->getStyle('A1')->applyFromArray(['font' => ['bold' => true, 'size' => 12, 'color' => ['rgb' => '0066B2']]]);
+
+        $header = ['No', 'Tanggal', 'No. Surat Tugas', 'Maksud', 'Jumlah Peserta', 'Total SPJ'];
+        $sheet->fromArray($header, null, 'A2');
+        $sheet->getStyle('A2:F2')->applyFromArray(['font' => ['bold' => true, 'color' => ['rgb' => 'FFFFFF']], 'fill' => $fill]);
+
+        $r = 3;
+        foreach ($trips as $i => $t) {
+            $sheet->setCellValue("A{$r}", $i + 1);
+            $sheet->setCellValue("B{$r}", $t['tanggal_surat_tugas']);
+            $sheet->setCellValue("C{$r}", $t['no_surat_tugas'] ?: '-');
+            $sheet->setCellValue("D{$r}", $t['maksud']);
+            $sheet->setCellValue("E{$r}", $t['jumlah_peserta']);
+            $sheet->setCellValue("F{$r}", $t['total_spj']);
+            $sheet->getStyle("F{$r}")->getNumberFormat()->setFormatCode('"Rp" #,##0');
+            $r++;
+        }
+
+        if (empty($trips)) {
+            $sheet->setCellValue('A3', 'Tidak ada data pada periode ini');
+            $r = 4;
+        } else {
+            $sheet->setCellValue("D{$r}", 'TOTAL');
+            $sheet->setCellValue("F{$r}", $totalSpj);
+            $sheet->getStyle("F{$r}")->getNumberFormat()->setFormatCode('"Rp" #,##0');
+            $sheet->getStyle("D{$r}:F{$r}")->applyFromArray(['font' => ['bold' => true], 'borders' => ['top' => ['borderStyle' => \PhpOffice\PhpSpreadsheet\Style\Border::BORDER_THIN]]]);
+        }
+
+        $sheet->getColumnDimension('A')->setWidth(6);
+        foreach (['B', 'C', 'D', 'E', 'F'] as $c) $sheet->getColumnDimension($c)->setWidth(22);
+        $sheet->freezePane('A3');
+    }
+
+    /** Sheet opsional: rincian setoran Dana Taktis per peserta pada periode ini. */
+    private function buildSheetDanaTaktis($sheet, array $rows, float $totalLunas, float $totalBelum)
+    {
+        $sheet->setTitle('Dana Taktis');
+        $fill = ['fillType' => \PhpOffice\PhpSpreadsheet\Style\Fill::FILL_SOLID, 'startColor' => ['rgb' => '0066B2']];
+
+        $sheet->setCellValue('A1', 'RINCIAN DANA TAKTIS');
+        $sheet->mergeCells('A1:F1');
+        $sheet->getStyle('A1')->applyFromArray(['font' => ['bold' => true, 'size' => 12, 'color' => ['rgb' => '0066B2']]]);
+
+        $header = ['No', 'Tanggal', 'Nama Peserta', 'Maksud Perjalanan', 'Dana Taktis', 'Status'];
+        $sheet->fromArray($header, null, 'A2');
+        $sheet->getStyle('A2:F2')->applyFromArray(['font' => ['bold' => true, 'color' => ['rgb' => 'FFFFFF']], 'fill' => $fill]);
+
+        $r = 3;
+        foreach ($rows as $i => $row) {
+            $sheet->setCellValue("A{$r}", $i + 1);
+            $sheet->setCellValue("B{$r}", $row['tanggal_surat_tugas']);
+            $sheet->setCellValue("C{$r}", $row['nama_peserta']);
+            $sheet->setCellValue("D{$r}", $row['maksud']);
+            $sheet->setCellValue("E{$r}", (float) $row['dana_taktis']);
+            $sheet->setCellValue("F{$r}", $row['status_lunas'] === 'lunas' ? 'Lunas' : 'Belum Lunas');
+            $sheet->getStyle("E{$r}")->getNumberFormat()->setFormatCode('"Rp" #,##0');
+            $r++;
+        }
+
+        if (empty($rows)) {
+            $sheet->setCellValue('A3', 'Tidak ada data pada periode ini');
+            $r = 4;
+        } else {
+            $sheet->setCellValue("D{$r}", 'TOTAL LUNAS');
+            $sheet->setCellValue("E{$r}", $totalLunas);
+            $sheet->getStyle("E{$r}")->getNumberFormat()->setFormatCode('"Rp" #,##0');
+            $sheet->getStyle("D{$r}:E{$r}")->applyFromArray(['font' => ['bold' => true]]);
+            $r++;
+            $sheet->setCellValue("D{$r}", 'TOTAL BELUM LUNAS');
+            $sheet->setCellValue("E{$r}", $totalBelum);
+            $sheet->getStyle("E{$r}")->getNumberFormat()->setFormatCode('"Rp" #,##0');
+            $sheet->getStyle("D{$r}:E{$r}")->applyFromArray(['font' => ['bold' => true]]);
+        }
+
+        $sheet->getColumnDimension('A')->setWidth(6);
+        foreach (['B', 'C', 'D', 'E', 'F'] as $c) $sheet->getColumnDimension($c)->setWidth(22);
         $sheet->freezePane('A3');
     }
 }

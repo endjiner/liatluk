@@ -6,6 +6,7 @@ use App\Controllers\BaseController;
 use App\Models\RencanaPemasukanModel;
 use App\Models\RencanaPengeluaranModel;
 use App\Models\NotifikasiModel;
+use App\Models\PerjalananDinasPesertaModel;
 
 class RencanaKeuangan extends BaseController
 {
@@ -50,6 +51,9 @@ class RencanaKeuangan extends BaseController
             'totalPengeluaranAll' => $totalPengeluaran,
             'limitRencana'        => $limitRencana,
             'notifCount'         => $notifCount,
+            // Setoran Dana Taktis dari Perjalanan Dinas yang belum dibayar — ditampilkan
+            // sebagai bagian dari Rencana Pemasukan (lihat catatan di getBelumDibayarSummary()).
+            'danaTaktisBelumDibayar' => (new PerjalananDinasPesertaModel())->getBelumDibayarSummary(),
         ]);
     }
 
@@ -62,6 +66,25 @@ class RencanaKeuangan extends BaseController
     {
         $val = $this->request->getPost($a);
         return ($val !== null && $val !== '') ? $val : $this->request->getPost($b);
+    }
+
+    /**
+     * Validasi manual (bukan $rules array) karena tanggal/jumlah bisa datang dengan 2 nama
+     * field berbeda tergantung form asal — lihat getPostEither(). Dipakai di store & update
+     * kedua jenis rencana supaya konsisten. Return null kalau valid, pesan error kalau tidak.
+     */
+    private function validasiRencana(array $data): ?string
+    {
+        if (empty($data['tanggal_rencana']) || strtotime($data['tanggal_rencana']) === false) {
+            return 'Tanggal rencana wajib diisi dengan format yang valid.';
+        }
+        if (empty(trim((string)($data['kategori'] ?? '')))) {
+            return 'Kategori wajib diisi.';
+        }
+        if (($data['jumlah_rencana'] ?? 0) <= 0) {
+            return 'Nominal rencana harus lebih dari 0.';
+        }
+        return null;
     }
 
     // ── Rencana Pemasukan ────────────────────────────────────────────────────────
@@ -83,6 +106,9 @@ class RencanaKeuangan extends BaseController
             'status'          => 'aktif',
             'file_bukti'      => $this->simpanBukti(),
         ];
+        if ($error = $this->validasiRencana($data)) {
+            return $this->response->setJSON(['success' => false, 'message' => $error]);
+        }
         $id = $this->rencanaPemasukanModel->insert($data);
         return $this->response->setJSON(['success' => true, 'id' => $id, 'message' => 'Rencana pemasukan ditambahkan']);
     }
@@ -90,7 +116,11 @@ class RencanaKeuangan extends BaseController
     public function updateRencanaPemasukan($id)
     {
         $data = $this->request->getPost();
-        if (isset($data['jumlah_rencana'])) $data['jumlah_rencana'] = $this->sanitizeNominal($data['jumlah_rencana']);
+        $data['tanggal_rencana'] = $this->getPostEither('tanggal_rencana', 'tanggal');
+        $data['jumlah_rencana']  = $this->sanitizeNominal($this->getPostEither('jumlah_rencana', 'jumlah'));
+        if ($error = $this->validasiRencana($data)) {
+            return $this->response->setJSON(['success' => false, 'message' => $error]);
+        }
         $this->rencanaPemasukanModel->update($id, $data);
         return $this->response->setJSON(['success' => true, 'message' => 'Rencana pemasukan diupdate']);
     }
@@ -138,6 +168,9 @@ class RencanaKeuangan extends BaseController
             'status'          => 'aktif',
             'file_bukti'      => $this->simpanBukti(),
         ];
+        if ($error = $this->validasiRencana($data)) {
+            return $this->response->setJSON(['success' => false, 'message' => $error]);
+        }
         $id = $this->rencanaPengeluaranModel->insert($data);
         return $this->response->setJSON(['success' => true, 'id' => $id, 'message' => 'Rencana pengeluaran ditambahkan']);
     }
@@ -145,7 +178,11 @@ class RencanaKeuangan extends BaseController
     public function updateRencanaPengeluaran($id)
     {
         $data = $this->request->getPost();
-        if (isset($data['jumlah_rencana'])) $data['jumlah_rencana'] = $this->sanitizeNominal($data['jumlah_rencana']);
+        $data['tanggal_rencana'] = $this->getPostEither('tanggal_rencana', 'tanggal');
+        $data['jumlah_rencana']  = $this->sanitizeNominal($this->getPostEither('jumlah_rencana', 'jumlah'));
+        if ($error = $this->validasiRencana($data)) {
+            return $this->response->setJSON(['success' => false, 'message' => $error]);
+        }
         $this->rencanaPengeluaranModel->update($id, $data);
         return $this->response->setJSON(['success' => true, 'message' => 'Rencana pengeluaran diupdate']);
     }

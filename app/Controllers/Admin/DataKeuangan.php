@@ -181,9 +181,21 @@ class DataKeuangan extends BaseController
         $data = $this->request->getPost();
         unset($data['_method']);
 
-        // Normalisasi nominal (guard terhadap format id-ID atau decimal string dari DB)
+        // Normalisasi nominal SEBELUM validasi (sama seperti storePemasukan) supaya rule
+        // 'numeric' membaca nilai yang sudah bersih, bukan format id-ID mentah "1.000.000".
         if (isset($data['jumlah'])) $data['jumlah'] = $this->sanitizeNominal($data['jumlah']);
         if (isset($data['jumlah_diterima'])) $data['jumlah_diterima'] = $this->sanitizeNominal($data['jumlah_diterima']);
+        $_POST['jumlah'] = $data['jumlah'] ?? null;
+
+        $rules = [
+            'tanggal'  => 'required|valid_date',
+            'kategori' => 'required|min_length[2]',
+            'jumlah'   => 'required|numeric|greater_than[0]',
+            'bukti'    => 'max_size[bukti,3072]|ext_in[bukti,jpg,jpeg,png,pdf]|mime_in[bukti,image/jpg,image/jpeg,image/png,application/pdf]',
+        ];
+        if (!$this->validate($rules)) {
+            return $this->response->setJSON(['success' => false, 'errors' => $this->validator->getErrors()]);
+        }
 
         $bukti = $this->simpanBukti();
         if ($bukti) {
@@ -267,8 +279,19 @@ class DataKeuangan extends BaseController
         $data = $this->request->getPost();
         unset($data['_method']);
 
-        // Normalisasi nominal (guard defense-in-depth)
+        // Normalisasi nominal SEBELUM validasi (sama seperti storePengeluaran)
         if (isset($data['jumlah'])) $data['jumlah'] = $this->sanitizeNominal($data['jumlah']);
+        $_POST['jumlah'] = $data['jumlah'] ?? null;
+
+        $rules = [
+            'tanggal'  => 'required|valid_date',
+            'kategori' => 'required|min_length[2]',
+            'jumlah'   => 'required|numeric|greater_than[0]',
+            'bukti'    => 'max_size[bukti,3072]|ext_in[bukti,jpg,jpeg,png,pdf]|mime_in[bukti,image/jpg,image/jpeg,image/png,application/pdf]',
+        ];
+        if (!$this->validate($rules)) {
+            return $this->response->setJSON(['success' => false, 'errors' => $this->validator->getErrors()]);
+        }
 
         $bukti = $this->simpanBukti();
         if ($bukti) {

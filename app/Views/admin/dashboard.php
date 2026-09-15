@@ -20,14 +20,14 @@ $tahunOpsi = range($tahunSekarang, $tahunSekarang - 5);
 </div>
 
 <!-- KPI Cards -->
-<div class="grid grid-cols-2 md:grid-cols-2 lg:grid-cols-4 gap-3 mb-6">
+<div class="grid grid-cols-2 lg:grid-cols-4 gap-2.5 sm:gap-3 mb-6">
 
   <!-- Saldo Akhir -->
-  <div class="kpi">
+  <div class="kpi p-3 sm:p-5">
     <div class="kpi-label">
-      <i data-lucide="wallet" class="w-4 h-4"></i> Saldo Akhir
+      <img src="<?= icons8('wallet') ?>" alt="" class="w-5 h-5"> <span class="truncate">Saldo Akhir</span>
     </div>
-    <div class="kpi-value text-primary-700 dark:text-primary-300 text-currency">
+    <div class="kpi-value text-lg sm:text-2xl text-primary-700 dark:text-primary-300 text-currency">
       Rp <?= number_format($saldoAkhir, 0, ',', '.') ?>
     </div>
     <div class="text-xs text-slate-500 dark:text-slate-400">
@@ -36,26 +36,26 @@ $tahunOpsi = range($tahunSekarang, $tahunSekarang - 5);
   </div>
 
   <!-- Total Pemasukan dengan period picker -->
-  <div class="kpi" data-kpi="pemasukan">
+  <div class="kpi p-3 sm:p-5" data-kpi="pemasukan">
     <div class="flex items-start justify-between gap-2">
       <div class="kpi-label">
-        <i data-lucide="trending-up" class="w-4 h-4 text-emerald-600"></i> Total Pemasukan
+        <img src="<?= icons8('bullish') ?>" alt="" class="w-5 h-5"> <span class="truncate">Total Pemasukan</span>
       </div>
     </div>
-    <div class="kpi-value text-emerald-700 dark:text-emerald-400 text-currency" id="kpi-pemasukan-value">
+    <div class="kpi-value text-lg sm:text-2xl text-emerald-700 dark:text-emerald-400 text-currency" id="kpi-pemasukan-value">
       Rp <?= number_format($totalPemasukan, 0, ',', '.') ?>
     </div>
     <?= view('admin/_partials/kpi_period_picker', ['id' => 'pemasukan']) ?>
   </div>
 
   <!-- Total Pengeluaran dengan period picker -->
-  <div class="kpi" data-kpi="pengeluaran">
+  <div class="kpi p-3 sm:p-5" data-kpi="pengeluaran">
     <div class="flex items-start justify-between gap-2">
       <div class="kpi-label">
-        <i data-lucide="trending-down" class="w-4 h-4 text-red-600"></i> Total Pengeluaran
+        <img src="<?= icons8('bearish') ?>" alt="" class="w-5 h-5"> <span class="truncate">Total Pengeluaran</span>
       </div>
     </div>
-    <div class="kpi-value text-red-700 dark:text-red-400 text-currency" id="kpi-pengeluaran-value">
+    <div class="kpi-value text-lg sm:text-2xl text-red-700 dark:text-red-400 text-currency" id="kpi-pengeluaran-value">
       Rp <?= number_format($totalPengeluaran, 0, ',', '.') ?>
     </div>
     <?= view('admin/_partials/kpi_period_picker', ['id' => 'pengeluaran']) ?>
@@ -63,11 +63,11 @@ $tahunOpsi = range($tahunSekarang, $tahunSekarang - 5);
 
   <!-- Saldo Bulan Ini -->
   <?php $selisihBulanIni = $pemasukanBulanIni - $pengeluaranBulanIni; ?>
-  <div class="kpi">
+  <div class="kpi p-3 sm:p-5">
     <div class="kpi-label">
-      <i data-lucide="calendar-clock" class="w-4 h-4"></i> Saldo Bulan Ini
+      <img src="<?= icons8('calendar') ?>" alt="" class="w-5 h-5"> <span class="truncate">Saldo Bulan Ini</span>
     </div>
-    <div class="kpi-value <?= $selisihBulanIni >= 0 ? 'text-emerald-700 dark:text-emerald-400' : 'text-red-700 dark:text-red-400' ?> text-currency">
+    <div class="kpi-value text-lg sm:text-2xl <?= $selisihBulanIni >= 0 ? 'text-emerald-700 dark:text-emerald-400' : 'text-red-700 dark:text-red-400' ?> text-currency">
       Rp <?= number_format(abs($selisihBulanIni), 0, ',', '.') ?>
     </div>
     <div class="text-xs text-slate-500 dark:text-slate-400">
@@ -81,23 +81,23 @@ $tahunOpsi = range($tahunSekarang, $tahunSekarang - 5);
 <?php
   $extraCards = [];
   if ($danaBelumDiterima > 0) {
-    $extraCards[] = ['icon' => 'alert-triangle', 'color' => 'amber', 'label' => 'Dana Belum Diterima', 'value' => $danaBelumDiterima, 'caption' => 'Total pemasukan yang belum masuk ke kas'];
+    $extraCards[] = ['icon' => 'high-priority', 'color' => 'amber', 'label' => 'Dana Belum Diterima', 'value' => $danaBelumDiterima, 'caption' => 'Total pemasukan yang belum masuk ke kas'];
   }
   if ($totalRencanaPemasukan > 0) {
-    $extraCards[] = ['icon' => 'calendar-clock', 'color' => 'emerald', 'label' => 'Rencana Pemasukan', 'value' => $totalRencanaPemasukan, 'caption' => 'Total rencana pemasukan aktif'];
+    $extraCards[] = ['icon' => 'budget', 'color' => 'emerald', 'label' => 'Rencana Pemasukan', 'value' => $totalRencanaPemasukan, 'caption' => 'Total rencana pemasukan aktif'];
   }
   if ($totalRencanaPengeluaran > 0) {
-    $extraCards[] = ['icon' => 'calendar-clock', 'color' => 'primary', 'label' => 'Rencana Pengeluaran', 'value' => $totalRencanaPengeluaran, 'caption' => 'Total rencana pengeluaran aktif'];
+    $extraCards[] = ['icon' => 'budget', 'color' => 'primary', 'label' => 'Rencana Pengeluaran', 'value' => $totalRencanaPengeluaran, 'caption' => 'Total rencana pengeluaran aktif'];
   }
 ?>
 <?php if (!empty($extraCards)): ?>
-<div class="grid grid-cols-2 md:grid-cols-2 lg:grid-cols-3 gap-3 mb-6">
+<div class="grid grid-cols-2 lg:grid-cols-3 gap-2.5 sm:gap-3 mb-6">
   <?php foreach ($extraCards as $c): ?>
-  <div class="kpi">
+  <div class="kpi p-3 sm:p-5">
     <div class="kpi-label">
-      <i data-lucide="<?= $c['icon'] ?>" class="w-4 h-4 text-<?= $c['color'] ?>-600"></i> <?= $c['label'] ?>
+      <img src="<?= icons8($c['icon']) ?>" alt="" class="w-5 h-5"> <span class="truncate"><?= $c['label'] ?></span>
     </div>
-    <div class="kpi-value text-<?= $c['color'] ?>-700 dark:text-<?= $c['color'] ?>-400 text-currency">
+    <div class="kpi-value text-lg sm:text-2xl text-<?= $c['color'] ?>-700 dark:text-<?= $c['color'] ?>-400 text-currency">
       Rp <?= number_format($c['value'], 0, ',', '.') ?>
     </div>
     <div class="text-xs text-slate-500 dark:text-slate-400">
@@ -109,7 +109,7 @@ $tahunOpsi = range($tahunSekarang, $tahunSekarang - 5);
 <?php endif; ?>
 
 <!-- Charts -->
-<div class="grid grid-cols-1 lg:grid-cols-3 gap-4 mb-6">
+<div class="grid grid-cols-1 lg:grid-cols-3 gap-4 mb-6 items-start">
   <div class="card lg:col-span-2">
     <div class="card-header">
       <h3 class="text-sm font-semibold text-slate-700 dark:text-slate-200">Arus Kas Bulanan</h3>
@@ -128,8 +128,12 @@ $tahunOpsi = range($tahunSekarang, $tahunSekarang - 5);
     <div class="card-header">
       <h3 class="text-sm font-semibold text-slate-700 dark:text-slate-200">Kategori Pengeluaran</h3>
     </div>
-    <div class="card-body">
-      <canvas id="chart-kategori" class="chart-canvas"></canvas>
+    <div class="card-body flex items-center justify-center">
+      <canvas id="chart-kategori" class="chart-canvas chart-canvas-compact"></canvas>
+      <div id="chart-kategori-empty" class="hidden flex-col items-center justify-center text-center text-slate-400 dark:text-slate-500 py-10">
+        <img src="<?= icons8('pie-chart', '3d-fluency', 96) ?>" alt="" class="w-12 h-12 mb-2 opacity-80">
+        <p class="text-sm">Belum ada data pengeluaran.</p>
+      </div>
     </div>
   </div>
 </div>
@@ -201,6 +205,31 @@ $tahunOpsi = range($tahunSekarang, $tahunSekarang - 5);
       </table>
     </div>
   </div>
+
+  <div class="card">
+    <div class="card-header">
+      <h3 class="text-sm font-semibold text-slate-700 dark:text-slate-200">Dana Taktis Belum Dibayar</h3>
+      <a href="<?= base_url('admin/perjalanan-dinas/dana-taktis') ?>" class="text-xs text-primary-600 dark:text-primary-400 hover:underline">Lihat semua</a>
+    </div>
+    <div class="overflow-x-auto">
+      <table class="table">
+        <thead>
+          <tr><th>Nama Pegawai</th><th>Perjalanan Dinas</th><th class="text-right">Dana Taktis</th></tr>
+        </thead>
+        <tbody>
+        <?php if (empty($danaTaktisBelumDibayar)): ?>
+          <tr><td colspan="3" class="text-center py-6 text-slate-500">Semua setoran Dana Taktis sudah lunas.</td></tr>
+        <?php else: foreach ($danaTaktisBelumDibayar as $dt): ?>
+          <tr>
+            <td class="font-medium text-slate-700 dark:text-slate-200"><?= esc($dt['nama_peserta']) ?></td>
+            <td class="truncate max-w-[220px]" title="<?= esc($dt['maksud']) ?>"><?= esc($dt['maksud']) ?></td>
+            <td class="text-right font-medium text-currency text-amber-600">Rp <?= number_format($dt['dana_taktis'], 0, ',', '.') ?></td>
+          </tr>
+        <?php endforeach; endif; ?>
+        </tbody>
+      </table>
+    </div>
+  </div>
 </div>
 
 <?= $this->endSection() ?>
@@ -247,10 +276,22 @@ function buildArus(pemasukan, pengeluaran) {
 function buildKat() {
   const colors = chartColors();
   const data = <?= $pieData ?>;
+  const canvas = document.getElementById('chart-kategori');
+  const empty = document.getElementById('chart-kategori-empty');
+  if (!data.length) {
+    canvas.classList.add('hidden');
+    empty.classList.remove('hidden');
+    empty.classList.add('flex');
+    if (chartKat) { chartKat.destroy(); chartKat = null; }
+    return;
+  }
+  canvas.classList.remove('hidden');
+  empty.classList.add('hidden');
+  empty.classList.remove('flex');
   const labels = data.map(d => d.kategori);
   const values = data.map(d => d.total);
   if (chartKat) chartKat.destroy();
-  chartKat = new Chart(document.getElementById('chart-kategori'), {
+  chartKat = new Chart(canvas, {
     type: 'doughnut',
     data: {
       labels,

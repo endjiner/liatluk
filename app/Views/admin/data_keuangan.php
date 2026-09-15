@@ -8,7 +8,7 @@ $tahunOpsi = range($tahunSekarang, $tahunSekarang - 5);
 ?>
 
 <!-- Header -->
-<div class="mb-6 flex flex-wrap items-center justify-between gap-3">
+<div class="mb-8 flex flex-wrap items-center justify-between gap-4">
   <div>
     <h1 class="text-xl lg:text-2xl font-bold text-slate-800 dark:text-slate-100">Data Keuangan</h1>
     <p class="text-sm text-slate-500 dark:text-slate-400 mt-1">Kelola pemasukan & pengeluaran</p>
@@ -103,6 +103,9 @@ $tahunOpsi = range($tahunSekarang, $tahunSekarang - 5);
     </div>
   </div>
 
+  <div class="sm:hidden flex items-center gap-1.5 px-3 py-1.5 text-[11px] text-slate-400 dark:text-slate-500 border-t border-slate-100 dark:border-slate-800">
+    <i data-lucide="move-horizontal" class="w-3 h-3"></i> Geser tabel untuk melihat kolom lainnya
+  </div>
   <div class="overflow-x-auto">
     <table class="table">
       <thead>
@@ -113,13 +116,14 @@ $tahunOpsi = range($tahunSekarang, $tahunSekarang - 5);
           <th class="w-12 text-center">No</th>
           <th>Tanggal</th>
           <th>Kategori</th>
+          <th>Sumber</th>
           <th>Tipe</th>
           <th class="text-right">Nominal</th>
           <th class="w-28 text-center">Aksi</th>
         </tr>
       </thead>
       <tbody id="txn-tbody">
-        <tr><td colspan="7" class="text-center py-8 text-slate-500">Memuat data...</td></tr>
+        <tr><td colspan="8" class="text-center py-8 text-slate-500">Memuat data...</td></tr>
       </tbody>
     </table>
   </div>
@@ -494,7 +498,7 @@ function refreshTxn() {
   });
   if (currentPage) params.set('page', currentPage);
 
-  document.getElementById('txn-tbody').innerHTML = '<tr><td colspan="7" class="text-center py-8 text-slate-500">Memuat...</td></tr>';
+  document.getElementById('txn-tbody').innerHTML = '<tr><td colspan="8" class="text-center py-8 text-slate-500">Memuat...</td></tr>';
 
   fetch(BASE_URL + 'admin/keuangan/ajax?' + params.toString())
     .then(r => r.json())
@@ -506,14 +510,14 @@ function refreshTxn() {
       clearAllSelection();
     })
     .catch(() => {
-      document.getElementById('txn-tbody').innerHTML = '<tr><td colspan="7" class="text-center py-8 text-red-500">Gagal memuat data.</td></tr>';
+      document.getElementById('txn-tbody').innerHTML = '<tr><td colspan="8" class="text-center py-8 text-red-500">Gagal memuat data.</td></tr>';
     });
 }
 
 function renderTxn(rows) {
   const tbody = document.getElementById('txn-tbody');
   if (!rows.length) {
-    tbody.innerHTML = '<tr><td colspan="7" class="text-center py-8 text-slate-500">Tidak ada data yang cocok.</td></tr>';
+    tbody.innerHTML = '<tr><td colspan="8" class="text-center py-8 text-slate-500"><img src="https://img.icons8.com/3d-fluency/64/empty-box.png" alt="" class="w-10 h-10 mx-auto mb-2 opacity-80"><br>Tidak ada data yang cocok.</td></tr>';
     return;
   }
   tbody.innerHTML = rows.map(r => {
@@ -534,6 +538,7 @@ function renderTxn(rows) {
       <td class="text-center text-slate-500">${r.nomor ?? '-'}</td>
       <td class="whitespace-nowrap">${dateFormatted}</td>
       <td class="truncate max-w-[180px]">${escapeHtml(r.kategori || '-')}</td>
+      <td class="truncate max-w-[150px]">${escapeHtml(r.sumber || r.tujuan || '-')}</td>
       <td>${badge}</td>
       <td class="text-right font-medium text-currency ${isP ? 'text-emerald-600' : 'text-red-600'}">Rp ${new Intl.NumberFormat('id-ID').format(Math.round(nominal))}</td>
       <td>

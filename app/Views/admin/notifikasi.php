@@ -1,7 +1,7 @@
 <?= $this->extend('layouts/admin') ?>
 <?= $this->section('content') ?>
 
-<div class="mb-6 flex flex-wrap items-center justify-between gap-3">
+<div class="mb-8 flex flex-wrap items-center justify-between gap-4">
   <div>
     <h1 class="text-xl lg:text-2xl font-bold text-slate-800 dark:text-slate-100">Semua Notifikasi</h1>
     <p class="text-sm text-slate-500 dark:text-slate-400 mt-1">Riwayat notifikasi sistem</p>
@@ -53,7 +53,7 @@
   <div>
     <?php if (empty($notifikasi)): ?>
     <div class="text-center py-12 text-slate-500">
-      <i data-lucide="bell-off" class="w-10 h-10 mx-auto mb-2 opacity-40"></i>
+      <img src="<?= icons8('bell', '3d-fluency', 96) ?>" alt="" class="w-14 h-14 mx-auto mb-2 opacity-80">
       Tidak ada notifikasi pada periode &amp; jenis yang dipilih
     </div>
     <?php else:

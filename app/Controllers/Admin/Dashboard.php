@@ -9,6 +9,7 @@ use App\Models\RencanaPemasukanModel;
 use App\Models\RencanaPengeluaranModel;
 use App\Models\PengaturanModel;
 use App\Models\NotifikasiModel;
+use App\Models\PerjalananDinasPesertaModel;
 
 class Dashboard extends BaseController
 {
@@ -100,6 +101,7 @@ class Dashboard extends BaseController
             'pieData'             => json_encode($pieData),
             'rencanaAktif'        => $rencanaAktif,
             'transaksiRecent'     => $transaksiRecent,
+            'danaTaktisBelumDibayar' => array_slice((new PerjalananDinasPesertaModel())->getAllBelumDibayar(), 0, 5),
             'danaBelumDiterima'   => $danaBelumDiterima,
             'totalRencanaPemasukan'   => $totalRencanaPemasukan,
             'totalRencanaPengeluaran' => $totalRencanaPengeluaran,

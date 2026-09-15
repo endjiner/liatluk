@@ -233,5 +233,77 @@
   </tbody>
 </table>
 
+<?php if (!empty($sertakanPerjadin)): ?>
+<div class="section-head">Rincian Perjalanan Dinas</div>
+<table class="data-table">
+  <thead>
+    <tr>
+      <th class="col-w12">Tanggal</th>
+      <th class="col-w20">No. Surat Tugas</th>
+      <th>Maksud</th>
+      <th class="col-w15">Jml Peserta</th>
+      <th class="col-w15">Total SPJ</th>
+    </tr>
+  </thead>
+  <tbody>
+    <?php if (empty($perjadinTrips)): ?>
+    <tr><td colspan="5" class="text-center">Tidak ada data pada periode ini</td></tr>
+    <?php else: foreach ($perjadinTrips as $t): ?>
+    <tr>
+      <td><?= date('d/m/Y', strtotime($t['tanggal_surat_tugas'])) ?></td>
+      <td><?= esc($t['no_surat_tugas'] ?: '-') ?></td>
+      <td><?= esc($t['maksud']) ?></td>
+      <td class="text-center"><?= $t['jumlah_peserta'] ?></td>
+      <td class="text-right"><?= number_format($t['total_spj'], 0, ',', '.') ?></td>
+    </tr>
+    <?php endforeach; endif; ?>
+  </tbody>
+  <?php if (!empty($perjadinTrips)): ?>
+  <tfoot>
+    <tr>
+      <td colspan="4" class="text-right font-bold">TOTAL SPJ</td>
+      <td class="text-right font-bold"><?= number_format($perjadinTotalSpj, 0, ',', '.') ?></td>
+    </tr>
+  </tfoot>
+  <?php endif; ?>
+</table>
+<?php endif; ?>
+
+<?php if (!empty($sertakanDanaTaktis)): ?>
+<div class="section-head">Rincian Dana Taktis</div>
+<table class="data-table">
+  <thead>
+    <tr>
+      <th class="col-w12">Tanggal</th>
+      <th class="col-w20">Nama Peserta</th>
+      <th>Maksud Perjalanan</th>
+      <th class="col-w15">Dana Taktis</th>
+      <th class="col-w15">Status</th>
+    </tr>
+  </thead>
+  <tbody>
+    <?php if (empty($danaTaktisRows)): ?>
+    <tr><td colspan="5" class="text-center">Tidak ada data pada periode ini</td></tr>
+    <?php else: foreach ($danaTaktisRows as $row): ?>
+    <tr>
+      <td><?= date('d/m/Y', strtotime($row['tanggal_surat_tugas'])) ?></td>
+      <td><?= esc($row['nama_peserta']) ?></td>
+      <td><?= esc($row['maksud']) ?></td>
+      <td class="text-right"><?= number_format($row['dana_taktis'], 0, ',', '.') ?></td>
+      <td class="<?= $row['status_lunas'] === 'lunas' ? 'text-success' : 'text-danger' ?>"><?= $row['status_lunas'] === 'lunas' ? 'Lunas' : 'Belum Lunas' ?></td>
+    </tr>
+    <?php endforeach; endif; ?>
+  </tbody>
+  <?php if (!empty($danaTaktisRows)): ?>
+  <tfoot>
+    <tr>
+      <td colspan="3" class="text-right font-bold">TOTAL LUNAS / BELUM LUNAS</td>
+      <td colspan="2" class="text-right font-bold"><?= number_format($danaTaktisTotalLunas, 0, ',', '.') ?> / <?= number_format($danaTaktisTotalBelum, 0, ',', '.') ?></td>
+    </tr>
+  </tfoot>
+  <?php endif; ?>
+</table>
+<?php endif; ?>
+
 </body>
 </html>

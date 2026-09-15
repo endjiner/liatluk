@@ -13,7 +13,7 @@ class PemasukanModel extends Model
     protected $useSoftDeletes = false;
     protected $allowedFields = [
         'tanggal', 'kategori', 'jumlah', 'jumlah_diterima',
-        'status_dana', 'sumber', 'keterangan', 'file_bukti', 'catatan_internal'
+        'status_dana', 'sumber', 'keterangan', 'file_bukti', 'catatan_internal', 'dari_tandai_lunas'
     ];
     protected $useTimestamps = true;
 

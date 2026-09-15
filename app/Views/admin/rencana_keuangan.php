@@ -1,7 +1,7 @@
 <?= $this->extend('layouts/admin') ?>
 <?= $this->section('content') ?>
 
-<div class="mb-6 flex flex-wrap items-center justify-between gap-3">
+<div class="mb-8 flex flex-wrap items-center justify-between gap-4">
   <div>
     <h1 class="text-xl lg:text-2xl font-bold text-slate-800 dark:text-slate-100">Rencana Keuangan</h1>
     <p class="text-sm text-slate-500 dark:text-slate-400 mt-1">Kelola rencana pemasukan &amp; pengeluaran mendatang</p>
@@ -18,6 +18,25 @@
 
 <div class="grid grid-cols-1 xl:grid-cols-2 gap-4">
   <!-- Rencana Pemasukan -->
+  <div>
+  <?php if ($danaTaktisBelumDibayar['jumlah'] > 0): ?>
+  <div class="card border-l-4 border-emerald-500 mb-3">
+    <div class="card-body flex items-center justify-between gap-3 py-3 flex-wrap">
+      <div class="flex items-center gap-3 min-w-0">
+        <div class="w-9 h-9 rounded-full bg-emerald-100 dark:bg-emerald-900/40 text-emerald-600 dark:text-emerald-400 flex items-center justify-center shrink-0">
+          <i data-lucide="plane" class="w-4 h-4"></i>
+        </div>
+        <div class="min-w-0">
+          <p class="text-xs text-slate-500 dark:text-slate-400">Setoran Dana Taktis (Perjalanan Dinas) belum dibayar &middot; <?= number_format($danaTaktisBelumDibayar['jumlah'], 0, ',', '.') ?> peserta</p>
+          <p class="text-base font-bold text-emerald-600">Rp <?= number_format($danaTaktisBelumDibayar['total'], 0, ',', '.') ?></p>
+        </div>
+      </div>
+      <a href="<?= base_url('admin/perjalanan-dinas/dana-taktis') ?>" class="btn btn-outline btn-sm shrink-0">
+        <span class="hidden sm:inline">Lihat Daftar</span> <i data-lucide="arrow-right"></i>
+      </a>
+    </div>
+  </div>
+  <?php endif; ?>
   <div class="card">
     <div class="card-header">
       <h3 class="text-sm font-semibold text-slate-700 dark:text-slate-200 flex items-center gap-2">
@@ -40,7 +59,7 @@
         </thead>
         <tbody>
         <?php if (empty($rencanaPemasukan)): ?>
-          <tr><td colspan="5" class="text-center py-8 text-slate-500">Belum ada rencana pemasukan.</td></tr>
+          <tr><td colspan="5" class="text-center py-8 text-slate-500"><img src="<?= icons8('empty-box', '3d-fluency', 64) ?>" alt="" class="w-10 h-10 mx-auto mb-2 opacity-80"><br>Belum ada rencana pemasukan.</td></tr>
         <?php else: foreach ($rencanaPemasukan as $row): $sisaP = (float)$row['jumlah_rencana'] - (float)($row['jumlah_terealisasi'] ?? 0); ?>
           <tr>
             <td class="whitespace-nowrap"><?= date('d M Y', strtotime($row['tanggal_rencana'])) ?></td>
@@ -80,6 +99,7 @@
       </table>
     </div>
   </div>
+  </div>
 
   <!-- Rencana Pengeluaran -->
   <div class="card">
@@ -104,7 +124,7 @@
         </thead>
         <tbody>
         <?php if (empty($rencanaPengeluaran)): ?>
-          <tr><td colspan="5" class="text-center py-8 text-slate-500">Belum ada rencana pengeluaran.</td></tr>
+          <tr><td colspan="5" class="text-center py-8 text-slate-500"><img src="<?= icons8('empty-box', '3d-fluency', 64) ?>" alt="" class="w-10 h-10 mx-auto mb-2 opacity-80"><br>Belum ada rencana pengeluaran.</td></tr>
         <?php else: foreach ($rencanaPengeluaran as $row): $sisaE = (float)$row['jumlah_rencana'] - (float)($row['jumlah_terealisasi'] ?? 0); ?>
           <tr>
             <td class="whitespace-nowrap"><?= date('d M Y', strtotime($row['tanggal_rencana'])) ?></td>
