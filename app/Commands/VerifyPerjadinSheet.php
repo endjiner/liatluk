@@ -212,6 +212,17 @@ class VerifyPerjadinSheet extends BaseCommand
                     }
                 }
 
+                // Status lunas — dibandingkan terpisah dari nominal karena ini status
+                // pembayaran, bukan angka: DB bilang lunas padahal sheet bilang belum berarti
+                // ada tautan yang salah/tidak seharusnya (lihat batalkanLunas() & app:audit-
+                // tanggal-lunas untuk cara aman membatalkannya); sebaliknya (sheet lunas, DB
+                // belum) berarti pembayaran yang sudah dicatat di sheet belum masuk ke sistem.
+                if ($sp['status_lunas'] !== $dp['status_lunas']) {
+                    $masalah[] = sprintf('STATUS LUNAS (%s) beda: sheet=%s db=%s%s', $sp['nama_peserta'],
+                        strtoupper($sp['status_lunas']), strtoupper($dp['status_lunas']),
+                        $dp['status_lunas'] === 'lunas' ? " [DB peserta id #{$dp['id']}, tautan pemasukan_id={$dp['pemasukan_id']}]" : '');
+                }
+
                 // Tiket: cocokkan per leg via (maskapai, harga_tiket) — laporkan selisih jumlah & total.
                 $dbTiketPeserta = $tiketByPeserta[$dp['id']] ?? [];
                 if (count($sp['tiket']) !== count($dbTiketPeserta)) {
