@@ -85,6 +85,8 @@ class VerifyKasTaktisLedger extends BaseCommand
 
         $cocokPersis = ['pemasukan' => 0, 'pengeluaran' => 0];
         $cocokLonggar = ['pemasukan' => [], 'pengeluaran' => []];
+        $kategoriBeda = ['pemasukan' => [], 'pengeluaran' => []];
+        $renameMap = ['pemasukan' => [], 'pengeluaran' => []];
         $hilang = ['pemasukan' => [], 'pengeluaran' => []];
 
         // Sum per kategori untuk sanity check cepat di laporan — HANYA baris DB dengan tanggal
@@ -142,6 +144,27 @@ class VerifyKasTaktisLedger extends BaseCommand
                 continue;
             }
 
+            // Pass 3: sama tanggal+jumlah+(sumber/tujuan ATAU keterangan), TAPI kategori
+            // beda — kemungkinan besar kategorinya di-rename/direorganisasi di kemudian
+            // hari (kategori cuma teks bebas, bukan dropdown tetap), bukan baris hilang.
+            $idxKategoriBeda = null;
+            foreach ($kandidat as $i => $db) {
+                if ($db['dipakai']) continue;
+                $sumberSama = $this->normalisasi($db['sumber_tujuan']) === $this->normalisasi($L['sumber_tujuan']);
+                $ketSama    = $this->normalisasi($db['keterangan']) === $this->normalisasi($L['keterangan']);
+                if ($sumberSama || $ketSama) {
+                    $idxKategoriBeda = $i;
+                    break;
+                }
+            }
+            if ($idxKategoriBeda !== null) {
+                $kandidat[$idxKategoriBeda]['dipakai'] = true;
+                $kategoriBeda[$sisi][] = ['ledger' => $L, 'db' => $kandidat[$idxKategoriBeda]];
+                $renameMap[$sisi][$L['kategori'] . ' -> ' . $kandidat[$idxKategoriBeda]['kategori']] =
+                    ($renameMap[$sisi][$L['kategori'] . ' -> ' . $kandidat[$idxKategoriBeda]['kategori']] ?? 0) + 1;
+                continue;
+            }
+
             $hilang[$sisi][] = $L;
         }
         unset($kandidat);
@@ -177,10 +200,22 @@ class VerifyKasTaktisLedger extends BaseCommand
             CLI::write("--- " . strtoupper($sisi) . " ---", 'yellow');
             CLI::write("  Cocok persis  : {$cocokPersis[$sisi]}");
             CLI::write("  Cocok (teks beda dikit): " . count($cocokLonggar[$sisi]));
+            CLI::write("  Cocok (kategori beda, kemungkinan di-rename): " . count($kategoriBeda[$sisi]));
             CLI::write("  HILANG dari DB: " . count($hilang[$sisi]), empty($hilang[$sisi]) ? 'green' : 'red');
             CLI::write("  ADA DI DB, TIDAK DI LEDGER (dalam rentang tanggal ledger): " . count($ekstra[$sisi]), empty($ekstra[$sisi]) ? 'green' : 'red');
             CLI::write("  Di DB, tanggal setelah ledger berakhir (wajar, transaksi baru): " . count($ekstraBaru[$sisi]));
             CLI::newLine();
+        }
+
+        foreach (['pemasukan', 'pengeluaran'] as $sisi) {
+            if (!empty($renameMap[$sisi])) {
+                CLI::write('--- KEMUNGKINAN KATEGORI DI-RENAME (' . strtoupper($sisi) . ') — data sama persis, cuma label kategori beda ---', 'cyan');
+                arsort($renameMap[$sisi]);
+                foreach ($renameMap[$sisi] as $pair => $count) {
+                    CLI::write("  {$pair}  ({$count}x)");
+                }
+                CLI::newLine();
+            }
         }
 
         // Sanity check total per kategori — DB di sini sudah dibatasi ke rentang tanggal ledger
@@ -188,6 +223,9 @@ class VerifyKasTaktisLedger extends BaseCommand
         // kecil) berarti ada masalah nyata: lebih besar = kemungkinan duplikat, lebih kecil =
         // kemungkinan ada yang hilang. Tidak ada alasan sah untuk beda dalam rentang ini.
         CLI::write('--- Perbandingan total per kategori (ledger vs DB, HANYA dalam rentang tanggal ledger) ---', 'yellow');
+        CLI::write('  Kalau sepasang kategori di sini saling melengkapi total yang sama dengan kategori lain', 'yellow');
+        CLI::write('  (lihat "KEMUNGKINAN KATEGORI DI-RENAME" di atas kalau ada) — itu bukan data hilang,', 'yellow');
+        CLI::write('  cuma nama kategorinya beda antara ledger dan database.', 'yellow');
         foreach (['pemasukan', 'pengeluaran'] as $sisi) {
             $semuaKategori = array_unique(array_merge(array_keys($sumLedger[$sisi]), array_keys($sumDb[$sisi])));
             sort($semuaKategori);
