@@ -6,11 +6,19 @@
     <h1 class="text-xl lg:text-2xl font-bold text-slate-800 dark:text-slate-100">Laporan &amp; Rekapitulasi</h1>
     <p class="text-sm text-slate-500 dark:text-slate-400 mt-1">Ringkasan keuangan per periode</p>
   </div>
+  <?php
+    $qsExport = http_build_query([
+      'bulan_dari'           => $bulanDari,
+      'bulan_sampai'         => $bulanSampai,
+      'sertakan_perjadin'    => $sertakanPerjadin ? 1 : 0,
+      'sertakan_dana_taktis' => $sertakanDanaTaktis ? 1 : 0,
+    ]);
+  ?>
   <div class="flex flex-wrap items-center gap-2">
-    <a href="<?= base_url('admin/laporan/export-pdf?bulan_dari=' . $bulanDari . '&bulan_sampai=' . $bulanSampai) ?>" target="_blank" class="btn btn-outline btn-sm">
+    <a href="<?= base_url('admin/laporan/export-pdf?' . $qsExport) ?>" target="_blank" class="btn btn-outline btn-sm">
       <i data-lucide="file-text" class="text-red-600"></i> Export PDF
     </a>
-    <a href="<?= base_url('admin/laporan/export-excel?bulan_dari=' . $bulanDari . '&bulan_sampai=' . $bulanSampai) ?>" class="btn btn-outline btn-sm">
+    <a href="<?= base_url('admin/laporan/export-excel?' . $qsExport) ?>" class="btn btn-outline btn-sm">
       <i data-lucide="file-spreadsheet" class="text-emerald-600"></i> Export Excel
     </a>
   </div>
@@ -28,6 +36,16 @@
       <input type="month" name="bulan_sampai" class="form-control form-control-sm" value="<?= $bulanSampai ?>">
     </div>
     <button type="submit" class="btn btn-primary btn-sm"><i data-lucide="filter"></i> Tampilkan</button>
+    <div class="flex flex-wrap items-center gap-4 ml-auto pt-1">
+      <label class="flex items-center gap-2 text-sm text-slate-600 dark:text-slate-300 cursor-pointer">
+        <input type="checkbox" name="sertakan_perjadin" value="1" class="form-checkbox" <?= $sertakanPerjadin ? 'checked' : '' ?>>
+        Sertakan Perjalanan Dinas
+      </label>
+      <label class="flex items-center gap-2 text-sm text-slate-600 dark:text-slate-300 cursor-pointer">
+        <input type="checkbox" name="sertakan_dana_taktis" value="1" class="form-checkbox" <?= $sertakanDanaTaktis ? 'checked' : '' ?>>
+        Sertakan Dana Taktis
+      </label>
+    </div>
   </div>
 </form>
 
@@ -108,5 +126,81 @@
     </div>
   </div>
 </div>
+
+<?php if ($sertakanPerjadin): ?>
+<div class="card mt-4">
+  <div class="card-header">
+    <h3 class="text-sm font-semibold text-slate-700 dark:text-slate-200 flex items-center gap-2">
+      <i data-lucide="plane" class="w-4 h-4 text-primary-600"></i> Rincian Perjalanan Dinas Periode Ini
+    </h3>
+  </div>
+  <div class="overflow-x-auto">
+    <table class="table">
+      <thead><tr><th>Tanggal</th><th>No. Surat Tugas</th><th>Maksud</th><th class="text-right">Jml Peserta</th><th class="text-right">Total SPJ</th></tr></thead>
+      <tbody>
+      <?php if (empty($perjadinTrips)): ?>
+        <tr><td colspan="5" class="text-center py-8 text-slate-500">Tidak ada data pada periode ini</td></tr>
+      <?php else: foreach ($perjadinTrips as $t): ?>
+        <tr>
+          <td class="whitespace-nowrap"><?= date('d/m/Y', strtotime($t['tanggal_surat_tugas'])) ?></td>
+          <td><?= esc($t['no_surat_tugas'] ?: '-') ?></td>
+          <td class="truncate max-w-[280px]"><?= esc($t['maksud']) ?></td>
+          <td class="text-right"><?= $t['jumlah_peserta'] ?></td>
+          <td class="text-right font-medium text-currency">Rp <?= number_format($t['total_spj'], 0, ',', '.') ?></td>
+        </tr>
+      <?php endforeach; endif; ?>
+      </tbody>
+      <?php if (!empty($perjadinTrips)): ?>
+      <tfoot>
+        <tr>
+          <td colspan="4" class="text-right font-semibold">TOTAL SPJ</td>
+          <td class="text-right font-semibold text-currency">Rp <?= number_format($perjadinTotalSpj, 0, ',', '.') ?></td>
+        </tr>
+      </tfoot>
+      <?php endif; ?>
+    </table>
+  </div>
+</div>
+<?php endif; ?>
+
+<?php if ($sertakanDanaTaktis): ?>
+<div class="card mt-4">
+  <div class="card-header">
+    <h3 class="text-sm font-semibold text-slate-700 dark:text-slate-200 flex items-center gap-2">
+      <i data-lucide="wallet" class="w-4 h-4 text-primary-600"></i> Rincian Dana Taktis Periode Ini
+    </h3>
+  </div>
+  <div class="overflow-x-auto">
+    <table class="table">
+      <thead><tr><th>Tanggal</th><th>Nama Peserta</th><th>Maksud Perjalanan</th><th class="text-right">Dana Taktis</th><th>Status</th></tr></thead>
+      <tbody>
+      <?php if (empty($danaTaktisRows)): ?>
+        <tr><td colspan="5" class="text-center py-8 text-slate-500">Tidak ada data pada periode ini</td></tr>
+      <?php else: foreach ($danaTaktisRows as $row): ?>
+        <tr>
+          <td class="whitespace-nowrap"><?= date('d/m/Y', strtotime($row['tanggal_surat_tugas'])) ?></td>
+          <td><?= esc($row['nama_peserta']) ?></td>
+          <td class="truncate max-w-[240px]"><?= esc($row['maksud']) ?></td>
+          <td class="text-right font-medium text-currency">Rp <?= number_format($row['dana_taktis'], 0, ',', '.') ?></td>
+          <td><?= $row['status_lunas'] === 'lunas' ? '<span class="badge badge-success">Lunas</span>' : '<span class="badge badge-warning">Belum Lunas</span>' ?></td>
+        </tr>
+      <?php endforeach; endif; ?>
+      </tbody>
+      <?php if (!empty($danaTaktisRows)): ?>
+      <tfoot>
+        <tr>
+          <td colspan="3" class="text-right font-semibold">TOTAL LUNAS / BELUM LUNAS</td>
+          <td colspan="2" class="text-right font-semibold text-currency">
+            <span class="text-emerald-600">Rp <?= number_format($danaTaktisTotalLunas, 0, ',', '.') ?></span>
+            /
+            <span class="text-amber-600">Rp <?= number_format($danaTaktisTotalBelum, 0, ',', '.') ?></span>
+          </td>
+        </tr>
+      </tfoot>
+      <?php endif; ?>
+    </table>
+  </div>
+</div>
+<?php endif; ?>
 
 <?= $this->endSection() ?>

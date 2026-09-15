@@ -283,4 +283,22 @@ class PerjalananDinasPesertaModel extends Model
     {
         return $this->applyFilterPerjalananDinas($filters)->countAllResults();
     }
+
+    /**
+     * Semua peserta (dengan data trip) dalam rentang tanggal_surat_tugas [tglMulai, tglAkhir] —
+     * dipakai khusus oleh Laporan untuk rincian opsional Perjalanan Dinas / Dana Taktis. Tidak
+     * dipaginasi, sama seperti pemasukan/pengeluaran di Laporan yang juga ditampilkan utuh untuk
+     * satu periode (bukan per halaman).
+     */
+    public function getForLaporan(string $tglMulai, string $tglAkhir): array
+    {
+        return $this->select('perjalanan_dinas_peserta.*, perjalanan_dinas.maksud, perjalanan_dinas.no_surat_tugas, perjalanan_dinas.tanggal_surat_tugas, perjalanan_dinas.kode_mak')
+            ->join('perjalanan_dinas', 'perjalanan_dinas.id = perjalanan_dinas_peserta.perjalanan_dinas_id')
+            ->where('perjalanan_dinas.tanggal_surat_tugas >=', $tglMulai)
+            ->where('perjalanan_dinas.tanggal_surat_tugas <=', $tglAkhir)
+            ->orderBy('perjalanan_dinas.tanggal_surat_tugas', 'ASC')
+            ->orderBy('perjalanan_dinas_peserta.perjalanan_dinas_id', 'ASC')
+            ->orderBy('perjalanan_dinas_peserta.id', 'ASC')
+            ->findAll();
+    }
 }
