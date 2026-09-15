@@ -137,7 +137,15 @@ class ReconcileSetoranTaktis extends BaseCommand
         }
         $pemasukanYatim = $builder->orderBy('id', 'ASC')->findAll();
 
-        $pesertaBelum = $pesertaModel->where('status_lunas', 'belum')->where('dana_taktis >', 0)->findAll();
+        // tanggal_surat_tugas diikutkan karena setoran gabungan cuma bisa menutup trip yang
+        // TANGGALNYA SUDAH LEWAT saat setoran itu dibayar — trip yang baru terjadi belakangan
+        // jelas bukan bagian dari pembayaran lama itu (lihat pemakaiannya di bawah).
+        $pesertaBelum = $pesertaModel
+            ->select('perjalanan_dinas_peserta.*, perjalanan_dinas.tanggal_surat_tugas')
+            ->join('perjalanan_dinas', 'perjalanan_dinas.id = perjalanan_dinas_peserta.perjalanan_dinas_id')
+            ->where('perjalanan_dinas_peserta.status_lunas', 'belum')
+            ->where('perjalanan_dinas_peserta.dana_taktis >', 0)
+            ->findAll();
 
         // Index kandidat per (nama_ternormalisasi, nominal) supaya pencarian cepat & jelas
         // ambigu-tidaknya (lebih dari satu peserta dengan nama+nominal identik).
@@ -191,8 +199,14 @@ class ReconcileSetoranTaktis extends BaseCommand
             // Tidak ada trip TUNGGAL yang nominalnya persis sama — coba kenali orangnya lewat
             // tabel pegawai (nama pendek/panggilan tetap unik ke satu orang, per konfirmasi
             // user), lalu cek apakah setoran ini sebenarnya gabungan beberapa trip sekaligus.
+            // Trip yang tanggalnya SETELAH tanggal setoran dikeluarkan dari jumlah — setoran
+            // lama jelas tidak mungkin menutup perjalanan dinas yang belum terjadi saat itu.
             $pgCocok = $this->resolvePegawaiUnik($namaSumberNormal, $semuaPegawai);
-            $tripBelumOrangIni = $pgCocok ? ($belumByPegawai[$pgCocok['id']] ?? []) : [];
+            $semuaTripOrangIni = $pgCocok ? ($belumByPegawai[$pgCocok['id']] ?? []) : [];
+            $tripBelumOrangIni = array_values(array_filter(
+                $semuaTripOrangIni,
+                static fn($p) => $p['tanggal_surat_tugas'] <= $pm['tanggal']
+            ));
 
             if ($pgCocok !== null && !empty($tripBelumOrangIni)) {
                 $totalBelum = array_sum(array_map(static fn($p) => (float) $p['dana_taktis'], $tripBelumOrangIni));
@@ -267,7 +281,7 @@ class ReconcileSetoranTaktis extends BaseCommand
         }
         CLI::newLine();
 
-        CLI::write('--- IDENTITAS DITEMUKAN, TOTAL TIDAK PAS (tinjau manual — mungkin cuma sebagian trip yang disetor): ' . count($identitasSajaCocok) . ' ---', 'yellow');
+        CLI::write('--- IDENTITAS DITEMUKAN, TOTAL TIDAK PAS (trip di bawah ini dibatasi sampai tanggal setoran — tinjau manual): ' . count($identitasSajaCocok) . ' ---', 'yellow');
         foreach ($identitasSajaCocok as $m) {
             $daftarTrip = implode(', ', array_map(
                 static fn($p) => '#' . $p['id'] . ' (trip #' . $p['perjalanan_dinas_id'] . ', Rp' . number_format((float) $p['dana_taktis'], 0, ',', '.') . ')',
