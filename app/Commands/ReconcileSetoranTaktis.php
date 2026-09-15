@@ -246,6 +246,7 @@ class ReconcileSetoranTaktis extends BaseCommand
                 } else {
                     $identitasSajaCocok[] = [
                         'pemasukan' => $pm, 'pegawai' => $pgCocok, 'trips' => $tripBelumOrangIni, 'total_belum' => $totalBelum,
+                        'total_trip_semua' => count($semuaTripOrangIni),
                     ];
                 }
                 continue;
@@ -317,20 +318,28 @@ class ReconcileSetoranTaktis extends BaseCommand
         CLI::newLine();
 
         CLI::write('--- IDENTITAS DITEMUKAN, TOTAL TIDAK PAS (trip di bawah ini dibatasi sampai tanggal setoran — tinjau manual): ' . count($identitasSajaCocok) . ' ---', 'yellow');
+        CLI::write('  Kalau jumlah trip yang dihitung jauh lebih kecil dari total trip belum lunas orang itu, setoran');
+        CLI::write('  ini kemungkinan besar BUKAN untuk trip yang kebetulan ketemu itu — kemungkinan setoran gabungan/');
+        CLI::write('  di muka yang tidak terkait trip manapun (mirip kasus di kategori TIDAK ADA KANDIDAT di bawah).');
         foreach ($identitasSajaCocok as $m) {
             $daftarTrip = implode(', ', array_map(
                 static fn($p) => '#' . $p['id'] . ' (trip #' . $p['perjalanan_dinas_id'] . ', Rp' . number_format((float) $p['dana_taktis'], 0, ',', '.') . ')',
                 $m['trips']
             ));
+            $sisaSetelah = $m['total_trip_semua'] - count($m['trips']);
+            $keteranganTotal = $sisaSetelah > 0
+                ? sprintf(' [%d dihitung dari %d total trip belum lunas — %d sisanya SETELAH tanggal setoran, tidak dihitung]', count($m['trips']), $m['total_trip_semua'], $sisaSetelah)
+                : '';
             CLI::write(sprintf(
-                '  Pemasukan #%d [%s, Rp%s, %s] -> %s, trip belum lunas (total Rp%s): %s',
+                '  Pemasukan #%d [%s, Rp%s, %s] -> %s, trip belum lunas (total Rp%s): %s%s',
                 $m['pemasukan']['id'],
                 $m['pemasukan']['sumber'],
                 number_format((float) $m['pemasukan']['jumlah'], 0, ',', '.'),
                 $m['pemasukan']['tanggal'],
                 $m['pegawai']['nama'],
                 number_format($m['total_belum'], 0, ',', '.'),
-                $daftarTrip
+                $daftarTrip,
+                $keteranganTotal
             ));
         }
         CLI::newLine();
