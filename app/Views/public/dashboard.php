@@ -296,73 +296,74 @@ $namaBulan = [1=>'Januari',2=>'Februari',3=>'Maret',4=>'April',5=>'Mei',6=>'Juni
   </div><!-- /panel-perjadin -->
 
   <div id="panel-dana-taktis" class="hidden">
-    <div class="mb-4">
-      <h2 class="text-lg font-bold text-slate-800 dark:text-slate-100">Dana Taktis Belum Dibayar per Pegawai</h2>
-      <p class="text-sm text-slate-500 dark:text-slate-400 mt-1">Pilih nama Anda untuk cek rekap setoran Dana Taktis (10% Uang Harian)</p>
-    </div>
+    <?php $namaBulanDt = ['', 'Januari', 'Februari', 'Maret', 'April', 'Mei', 'Juni', 'Juli', 'Agustus', 'September', 'Oktober', 'November', 'Desember']; ?>
 
-    <div class="card mb-4">
-      <div class="card-body py-4">
-        <label class="form-label">Pilih Nama Pegawai</label>
-        <select id="pegawai-select" class="form-control max-w-md" onchange="muatRekapDanaTaktis()">
-          <option value="">Pilih pegawai...</option>
-          <?php foreach ($pegawaiList as $pg): ?>
-          <option value="<?= $pg['id'] ?>"><?= esc($pg['nama']) ?><?= $pg['nip'] ? ' — ' . esc($pg['nip']) : '' ?></option>
-          <?php endforeach; ?>
-        </select>
+    <div class="card">
+      <div class="card-header">
+        <h3 class="text-sm font-semibold text-slate-700 dark:text-slate-200">Daftar Dana Taktis</h3>
+        <span class="text-xs text-slate-500">Total: <span id="dt-total-pub">-</span></span>
       </div>
-    </div>
-
-    <div id="rekap-wrap" class="hidden">
-      <div class="grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-4 gap-4 mb-4">
-        <div class="card"><div class="card-body">
-          <p class="text-xs text-slate-500 dark:text-slate-400">Total Uang Harian</p>
-          <p class="text-lg font-bold text-slate-800 dark:text-slate-100 mt-1" id="rekap-uang-harian">Rp 0</p>
-        </div></div>
-        <div class="card"><div class="card-body">
-          <p class="text-xs text-slate-500 dark:text-slate-400">Total SPJ</p>
-          <p class="text-lg font-bold text-slate-800 dark:text-slate-100 mt-1" id="rekap-total-spj">Rp 0</p>
-        </div></div>
-        <div class="card"><div class="card-body">
-          <p class="text-xs text-slate-500 dark:text-slate-400">Total Dana Taktis</p>
-          <p class="text-lg font-bold text-emerald-600 mt-1" id="rekap-dana-taktis">Rp 0</p>
-        </div></div>
-        <div class="card"><div class="card-body">
-          <p class="text-xs text-slate-500 dark:text-slate-400">Dana Taktis Belum Dibayar</p>
-          <p class="text-lg font-bold text-amber-600 mt-1" id="rekap-belum-dibayar">Rp 0</p>
-        </div></div>
-      </div>
-
-      <div class="card">
-        <div class="card-header">
-          <h3 class="text-sm font-semibold text-slate-700 dark:text-slate-200">Rincian per Perjalanan Dinas</h3>
-        </div>
-        <div class="sm:hidden flex items-center gap-1.5 px-3 py-1.5 text-[11px] text-slate-400 dark:text-slate-500 border-t border-slate-100 dark:border-slate-800">
-          <i data-lucide="move-horizontal" class="w-3 h-3"></i> Geser tabel untuk melihat kolom lainnya
-        </div>
-        <div class="overflow-x-auto">
-          <table class="table">
-            <thead>
-              <tr>
-                <th>Maksud Perjalanan Dinas</th>
-                <th>No. Surat Tugas / Tgl</th>
-                <th>Kode MAK</th>
-                <th class="text-right">Uang Harian</th>
-                <th class="text-right">Total SPJ</th>
-                <th class="text-right">Dana Taktis</th>
-                <th>Status</th>
-              </tr>
-            </thead>
-            <tbody id="rekap-tbody"></tbody>
-          </table>
+      <div class="p-3 border-b border-slate-200 dark:border-slate-700 bg-slate-50 dark:bg-slate-900/40">
+        <div class="flex flex-wrap items-center gap-2">
+          <div class="relative flex-1 min-w-[160px] max-w-xs">
+            <span class="absolute inset-y-0 left-3 flex items-center text-slate-400">
+              <i data-lucide="search" class="w-3.5 h-3.5"></i>
+            </span>
+            <input type="text" id="dt-filter-search-pub" oninput="dtPubJadwalkanMuat()" placeholder="Nama, maksud, no surat tugas..." class="form-control form-control-sm pl-8">
+          </div>
+          <select id="dt-filter-status-pub" onchange="muatDaftarDanaTaktisPub(1)" class="form-control form-control-sm w-auto">
+            <option value="">Semua Status</option>
+            <option value="belum">Belum Lunas</option>
+            <option value="lunas">Lunas</option>
+          </select>
+          <select id="dt-filter-bulan-pub" onchange="muatDaftarDanaTaktisPub(1)" class="form-control form-control-sm w-auto">
+            <option value="">Semua Bulan</option>
+            <?php for ($b = 1; $b <= 12; $b++): ?>
+            <option value="<?= $b ?>"><?= $namaBulanDt[$b] ?></option>
+            <?php endfor; ?>
+          </select>
+          <select id="dt-filter-tahun-pub" onchange="muatDaftarDanaTaktisPub(1)" class="form-control form-control-sm w-auto">
+            <option value="">Semua Tahun</option>
+            <?php $tahunSaatIniDtPub = (int)date('Y'); $daftarTahunDtPub = $tahunListPerjadin; if (!in_array($tahunSaatIniDtPub, $daftarTahunDtPub)) $daftarTahunDtPub[] = $tahunSaatIniDtPub; rsort($daftarTahunDtPub); ?>
+            <?php foreach ($daftarTahunDtPub as $th): ?>
+            <option value="<?= $th ?>"><?= $th ?></option>
+            <?php endforeach; ?>
+          </select>
+          <div class="flex items-center gap-1.5 pl-3 border-l border-slate-200 dark:border-slate-700">
+            <span class="text-xs text-slate-600 dark:text-slate-400">Tampilkan</span>
+            <select id="dt-filter-perpage-pub" onchange="muatDaftarDanaTaktisPub(1)" class="form-control form-control-sm w-auto">
+              <option value="10" selected>10</option>
+              <option value="25">25</option>
+              <option value="50">50</option>
+              <option value="100">100</option>
+            </select>
+            <span class="text-xs text-slate-600 dark:text-slate-400">baris</span>
+          </div>
         </div>
       </div>
-    </div>
 
-    <div id="rekap-empty" class="card"><div class="card-body text-center py-12 text-slate-500">
-      <i data-lucide="piggy-bank" class="w-10 h-10 mx-auto mb-3 opacity-30"></i>
-      Pilih nama pegawai di atas untuk melihat rekap Dana Taktis-nya.
-    </div></div>
+      <div class="sm:hidden flex items-center gap-1.5 px-3 py-1.5 text-[11px] text-slate-400 dark:text-slate-500 border-t border-slate-100 dark:border-slate-800">
+        <i data-lucide="move-horizontal" class="w-3 h-3"></i> Geser tabel untuk melihat kolom lainnya
+      </div>
+      <div class="overflow-x-auto">
+        <table class="table">
+          <thead>
+            <tr>
+              <th>Nama Pegawai</th>
+              <th>Perjalanan Dinas</th>
+              <th>No. Surat Tugas / Tgl</th>
+              <th class="text-right">Dana Taktis</th>
+              <th>Status</th>
+            </tr>
+          </thead>
+          <tbody id="dt-tbody-pub">
+            <tr><td colspan="5" class="text-center py-8 text-slate-500">Memuat data...</td></tr>
+          </tbody>
+        </table>
+      </div>
+
+      <div id="dt-pagination-wrap-pub" class="flex items-center justify-between gap-3 p-3 border-t border-slate-200 dark:border-slate-700 flex-wrap"></div>
+    </div>
   </div><!-- /panel-dana-taktis -->
 
 </div>
@@ -710,6 +711,7 @@ window.closeDetailModal = closeDetailModal;
 
 /* ── Tab: Transaksi Keuangan / Perjalanan Dinas / Dana Taktis ── */
 let perjadinSudahDimuat = false;
+let danaTaktisSudahDimuat = false;
 function aktifkanTab(nama) {
   ['transaksi', 'perjadin', 'dana-taktis'].forEach(n => {
     document.getElementById('panel-' + n).classList.toggle('hidden', n !== nama);
@@ -718,6 +720,10 @@ function aktifkanTab(nama) {
   if (nama === 'perjadin' && !perjadinSudahDimuat) {
     perjadinSudahDimuat = true;
     muatDaftarTripPerjadin(1);
+  }
+  if (nama === 'dana-taktis' && !danaTaktisSudahDimuat) {
+    danaTaktisSudahDimuat = true;
+    muatDaftarDanaTaktisPub(1);
   }
   lucide.createIcons();
 }
@@ -803,46 +809,61 @@ function renderTripTablePerjadin(rows) {
 }
 
 
-/* ── Dana Taktis Saya ── */
-async function muatRekapDanaTaktis() {
-  const id = document.getElementById('pegawai-select').value;
-  if (!id) {
-    document.getElementById('rekap-wrap').classList.add('hidden');
-    document.getElementById('rekap-empty').classList.remove('hidden');
+/* ── Dana Taktis (tabel datar semua pegawai, filter & pagination via AJAX) ── */
+let dtPubFilterDebounce = null;
+function dtPubJadwalkanMuat() {
+  clearTimeout(dtPubFilterDebounce);
+  dtPubFilterDebounce = setTimeout(() => muatDaftarDanaTaktisPub(1), 400);
+}
+async function muatDaftarDanaTaktisPub(page) {
+  const params = new URLSearchParams();
+  const search = document.getElementById('dt-filter-search-pub').value;
+  const status = document.getElementById('dt-filter-status-pub').value;
+  const bulan = document.getElementById('dt-filter-bulan-pub').value;
+  const tahun = document.getElementById('dt-filter-tahun-pub').value;
+  const perPage = document.getElementById('dt-filter-perpage-pub').value;
+  if (search) params.set('search', search);
+  if (status) params.set('status', status);
+  if (bulan) params.set('bulan', bulan);
+  if (tahun) params.set('tahun', tahun);
+  params.set('per_page', perPage);
+  params.set('page', page || 1);
+
+  const tbody = document.getElementById('dt-tbody-pub');
+  try {
+    const res = await fetch(BASE_URL + 'perjalanan-dinas/dana-taktis/ajax?' + params.toString());
+    const json = await res.json();
+    if (!json.success) { tbody.innerHTML = '<tr><td colspan="5" class="text-center py-8 text-red-500">Gagal memuat data.</td></tr>'; return; }
+    renderDanaTaktisTablePub(json.data);
+    renderPaginasiHalaman(document.getElementById('dt-pagination-wrap-pub'), {
+      total: json.total, perPage: json.per_page, page: json.page,
+      itemLabel: 'baris', onPageChange: muatDaftarDanaTaktisPub,
+    });
+    document.getElementById('dt-total-pub').textContent = new Intl.NumberFormat('id-ID').format(json.total);
+  } catch (e) {
+    tbody.innerHTML = '<tr><td colspan="5" class="text-center py-8 text-red-500">Gagal memuat data.</td></tr>';
+  }
+}
+
+function renderDanaTaktisTablePub(rows) {
+  const tbody = document.getElementById('dt-tbody-pub');
+  if (!rows.length) {
+    tbody.innerHTML = '<tr><td colspan="5" class="text-center py-8 text-slate-500">Tidak ada data yang cocok.</td></tr>';
     return;
   }
-  const res = await fetch(BASE_URL + 'perjalanan-dinas/dana-taktis/data/' + id);
-  const json = await res.json();
-  if (!json.success) { alert(json.message || 'Gagal memuat rekap'); return; }
-
-  document.getElementById('rekap-empty').classList.add('hidden');
-  document.getElementById('rekap-wrap').classList.remove('hidden');
-  document.getElementById('rekap-uang-harian').textContent = fmtRp(json.total_uang_harian);
-  document.getElementById('rekap-total-spj').textContent = fmtRp(json.total_spj);
-  document.getElementById('rekap-dana-taktis').textContent = fmtRp(json.total_dana_taktis);
-  document.getElementById('rekap-belum-dibayar').textContent = fmtRp(json.belum_dibayar);
-
-  const tbody = document.getElementById('rekap-tbody');
-  tbody.innerHTML = '';
-  if (!json.rows || json.rows.length === 0) {
-    tbody.innerHTML = '<tr><td colspan="7" class="text-center py-8 text-slate-500">Belum pernah ikut perjalanan dinas.</td></tr>';
-    return;
-  }
-  json.rows.forEach(r => {
+  tbody.innerHTML = rows.map(r => {
     const tgl = r.tanggal_surat_tugas ? new Date(r.tanggal_surat_tugas).toLocaleDateString('id-ID', { day: 'numeric', month: 'short', year: 'numeric' }) : '-';
     const statusBadge = r.status_lunas === 'lunas'
       ? '<span class="badge badge-success">Lunas</span>'
       : '<span class="badge badge-warning">Belum Lunas</span>';
-    const tr = document.createElement('tr');
-    tr.innerHTML = `<td class="max-w-[280px] truncate" title="${escapeHtml(r.maksud || '')}">${escapeHtml(r.maksud || '-')}</td>` +
-      `<td class="whitespace-nowrap text-xs">${escapeHtml(r.no_surat_tugas || '-')}<br>${tgl}</td>` +
-      `<td>${escapeHtml(r.kode_mak || '-')}</td>` +
-      `<td class="text-right text-currency">${fmtRp(r.uang_harian)}</td>` +
-      `<td class="text-right text-currency">${fmtRp(r.total_spj)}</td>` +
-      `<td class="text-right text-currency font-semibold text-emerald-600">${fmtRp(r.dana_taktis)}</td>` +
-      `<td>${statusBadge}</td>`;
-    tbody.appendChild(tr);
-  });
+    return `<tr>
+      <td class="font-medium text-slate-700 dark:text-slate-200">${escapeHtml(r.nama_peserta)}</td>
+      <td class="max-w-[280px] truncate" title="${escapeHtml(r.maksud)}">${escapeHtml(r.maksud)}</td>
+      <td class="whitespace-nowrap text-xs">${escapeHtml(r.no_surat_tugas || '-')}<br>${tgl}</td>
+      <td class="text-right text-currency font-semibold text-emerald-600">${fmtRp(r.dana_taktis)}</td>
+      <td>${statusBadge}</td>
+    </tr>`;
+  }).join('');
 }
 
 /* ── Init ── */

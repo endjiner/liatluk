@@ -12,7 +12,7 @@ $routes->get('/chart-tren', 'Home::chartTren');
 $routes->get('/perjalanan-dinas', 'Home::perjalananDinas');
 $routes->get('/perjalanan-dinas/ajax', 'Home::perjalananDinasAjax');
 $routes->get('/perjalanan-dinas/dana-taktis', 'Home::danaTaktis');
-$routes->get('/perjalanan-dinas/dana-taktis/data/(:num)', 'Home::danaTaktisData/$1');
+$routes->get('/perjalanan-dinas/dana-taktis/ajax', 'Home::danaTaktisAjax');
 
 // Auth
 $routes->get('/login', 'Auth::login');

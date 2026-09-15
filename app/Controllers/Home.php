@@ -7,7 +7,6 @@ use App\Models\PengeluaranModel;
 use App\Models\PengaturanModel;
 use App\Models\PerjalananDinasModel;
 use App\Models\PerjalananDinasPesertaModel;
-use App\Models\PegawaiModel;
 
 class Home extends BaseController
 {
@@ -75,7 +74,6 @@ class Home extends BaseController
             'tahunTren'           => $tahunTren,
             'tahunTersedia'       => $tahunTersedia,
             'tahunListPerjadin'   => (new PerjalananDinasModel())->getAvailableYears(),
-            'pegawaiList'         => (new PegawaiModel())->getAktifList(),
         ]);
     }
 
@@ -323,14 +321,35 @@ class Home extends BaseController
         return redirect()->to(base_url('#dana-taktis'));
     }
 
-    public function danaTaktisData($pegawaiId)
+    /** JSON untuk fetch() dari filter/search/pagination publik — tabel datar semua pegawai,
+     *  sama seperti Admin\PerjalananDinas::danaTaktisList() tapi read-only (tanpa aksi
+     *  tandai-lunas). Menggantikan pola lama "pilih pegawai dulu baru lihat rekapnya". */
+    public function danaTaktisAjax()
     {
-        $pegawaiModel = new PegawaiModel();
-        $pegawai = $pegawaiModel->find((int)$pegawaiId);
-        if (!$pegawai) {
-            return $this->response->setJSON(['success' => false, 'message' => 'Pegawai tidak ditemukan']);
-        }
-        $rekap = (new PerjalananDinasPesertaModel())->getRekapDanaTaktisByPegawai((int)$pegawaiId);
-        return $this->response->setJSON(['success' => true, 'pegawai' => $pegawai] + $rekap);
+        $filters = [
+            'search' => $this->request->getGet('search'),
+            'status' => $this->request->getGet('status'),
+            'tahun'  => $this->request->getGet('tahun'),
+            'bulan'  => $this->request->getGet('bulan'),
+        ];
+        $page    = max(1, (int)($this->request->getGet('page') ?? 1));
+        $perPage = (int)($this->request->getGet('per_page') ?? 10);
+        if (!in_array($perPage, [10, 25, 50, 100])) $perPage = 10;
+
+        $pesertaModel = new PerjalananDinasPesertaModel();
+        $total      = $pesertaModel->countFilteredDanaTaktis($filters);
+        $totalPages = max(1, (int)ceil($total / $perPage));
+        $page       = min($page, $totalPages);
+
+        $rows = $pesertaModel->getFilteredDanaTaktis($filters, $perPage, ($page - 1) * $perPage);
+
+        return $this->response->setJSON([
+            'success'     => true,
+            'data'        => $rows,
+            'total'       => $total,
+            'page'        => $page,
+            'per_page'    => $perPage,
+            'total_pages' => $totalPages,
+        ]);
     }
 }
