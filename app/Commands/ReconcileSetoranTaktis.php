@@ -199,7 +199,7 @@ class ReconcileSetoranTaktis extends BaseCommand
 
         foreach ($pemasukanYatim as $pm) {
             if (empty($pm['sumber'])) {
-                $tidakCocok[] = $pm;
+                $tidakCocok[] = ['pemasukan' => $pm, 'pegawai_unik' => null, 'total_trip_belum_lunas' => 0];
                 continue;
             }
 
@@ -251,7 +251,11 @@ class ReconcileSetoranTaktis extends BaseCommand
                 continue;
             }
 
-            $tidakCocok[] = $pm;
+            $tidakCocok[] = [
+                'pemasukan' => $pm,
+                'pegawai_unik' => $pgCocok,
+                'total_trip_belum_lunas' => count($semuaTripOrangIni),
+            ];
         }
 
         CLI::write('=== Rekonsiliasi Setoran Taktis Pegawai ===', 'yellow');
@@ -351,10 +355,15 @@ class ReconcileSetoranTaktis extends BaseCommand
         CLI::newLine();
 
         CLI::write('--- TIDAK ADA KANDIDAT (ada nama, tapi nama+nominal tidak cocok dengan peserta manapun): ' . count($tidakCocok) . ' ---', 'red');
-        CLI::write('  "Kemungkinan terkait" di bawah HANYA petunjuk (tidak pernah ditautkan otomatis) — kalau muncul');
+        CLI::write('  Kalau baris di bawah menyebut pegawai "teridentifikasi unik" — nama itu memang cuma cocok ke 1');
+        CLI::write('  pegawai, tapi pegawai itu tidak punya trip belum lunas yang bisa ditagih pada tanggal setoran ini');
+        CLI::write('  (sudah lunas semua / belum pernah ada / semua tripnya justru SETELAH tanggal setoran).');
+        CLI::write('  "Kemungkinan terkait" HANYA petunjuk longgar (tidak pernah ditautkan otomatis) — kalau muncul');
         CLI::write('  lebih dari 1 nama, berarti ada beberapa pegawai dengan kata nama yang sama (makanya tidak bisa');
-        CLI::write('  ditautkan otomatis); kalau kosong, kemungkinan cuma beda ejaan atau memang bukan pegawai aktif.');
-        foreach (array_slice($tidakCocok, 0, 50) as $pm) {
+        CLI::write('  ditautkan otomatis); kalau kosong, kemungkinan cuma beda ejaan, bukan pegawai aktif, atau bukan');
+        CLI::write('  nama individu sama sekali (mis. label lokasi/kelompok).');
+        foreach (array_slice($tidakCocok, 0, 50) as $entry) {
+            $pm = $entry['pemasukan'];
             CLI::write(sprintf(
                 '  Pemasukan #%d [%s, Rp%s, %s]',
                 $pm['id'],
@@ -362,7 +371,13 @@ class ReconcileSetoranTaktis extends BaseCommand
                 number_format((float) $pm['jumlah'], 0, ',', '.'),
                 $pm['tanggal']
             ));
-            if (!empty($pm['sumber'])) {
+            if ($entry['pegawai_unik'] !== null) {
+                if ($entry['total_trip_belum_lunas'] === 0) {
+                    CLI::write('    Teridentifikasi unik ke pegawai "' . $entry['pegawai_unik']['nama'] . '", tapi pegawai ini tidak punya trip berstatus belum lunas sama sekali.');
+                } else {
+                    CLI::write('    Teridentifikasi unik ke pegawai "' . $entry['pegawai_unik']['nama'] . '" — punya ' . $entry['total_trip_belum_lunas'] . ' trip belum lunas, tapi semuanya bertanggal SETELAH setoran ini.');
+                }
+            } elseif (!empty($pm['sumber'])) {
                 $kemungkinan = $this->cariKemungkinanPegawai($this->normalisasiNama($pm['sumber']), $semuaPegawai);
                 if (!empty($kemungkinan)) {
                     CLI::write('    Kemungkinan terkait: ' . implode(', ', $kemungkinan));
