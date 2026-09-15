@@ -209,9 +209,15 @@ class ReconcileSetoranTaktis extends BaseCommand
                 continue;
             }
 
+            // Sama seperti pencocokan multi-trip: buang kandidat yang tanggal tripnya SETELAH
+            // tanggal setoran — setoran tidak mungkin menutup trip yang belum terjadi saat itu.
             $namaSumberNormal = $this->normalisasiNama($pm['sumber']);
-            $key    = $namaSumberNormal . '|' . (int) round((float) $pm['jumlah']);
-            $daftar = $kandidat[$key] ?? [];
+            $key        = $namaSumberNormal . '|' . (int) round((float) $pm['jumlah']);
+            $daftarSemua = $kandidat[$key] ?? [];
+            $daftar = array_values(array_filter(
+                $daftarSemua,
+                static fn($p) => $p['tanggal_surat_tugas'] <= $pm['tanggal']
+            ));
             if (count($daftar) === 1) {
                 $pasti[] = ['pemasukan' => $pm, 'peserta' => $daftar[0]];
                 continue;
