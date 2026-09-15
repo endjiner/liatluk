@@ -280,8 +280,11 @@ class PerjalananDinas extends BaseController
         }
 
         if ($aksi === 'batal') {
-            $ok = $this->pesertaModel->batalkanLunas((int)$pesertaId);
-            $pesan = 'Status lunas dibatalkan, pemasukan otomatis ikut dihapus';
+            $hasil = $this->pesertaModel->batalkanLunas((int)$pesertaId);
+            $ok    = $hasil['ok'];
+            $pesan = $hasil['pemasukan_dihapus']
+                ? 'Status lunas dibatalkan, pemasukan otomatis ikut dihapus'
+                : 'Status lunas dibatalkan (pemasukan yang tertaut tetap ada di pembukuan)';
         } else {
             $tanggal = $this->request->getPost('tanggal_lunas') ?: date('Y-m-d');
             $ok = $this->pesertaModel->tandaiLunas((int)$pesertaId, $tanggal);

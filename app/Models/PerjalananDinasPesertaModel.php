@@ -69,13 +69,14 @@ class PerjalananDinasPesertaModel extends Model
         if ((float)$peserta['dana_taktis'] > 0) {
             $trip = (new PerjalananDinasModel())->find($peserta['perjalanan_dinas_id']);
             $pemasukanId = (new PemasukanModel())->insert([
-                'tanggal'         => $tanggalLunas,
-                'kategori'        => 'Setoran Taktis Pegawai',
-                'jumlah'          => $peserta['dana_taktis'],
-                'jumlah_diterima' => $peserta['dana_taktis'],
-                'status_dana'     => 'diterima',
-                'sumber'          => $peserta['nama_peserta'],
-                'keterangan'      => 'Setoran Dana Taktis 10% Uang Harian — ' . ($trip['maksud'] ?? ('Perjalanan Dinas #' . $peserta['perjalanan_dinas_id'])),
+                'tanggal'           => $tanggalLunas,
+                'kategori'          => 'Setoran Taktis Pegawai',
+                'jumlah'            => $peserta['dana_taktis'],
+                'jumlah_diterima'   => $peserta['dana_taktis'],
+                'status_dana'       => 'diterima',
+                'sumber'            => $peserta['nama_peserta'],
+                'keterangan'        => 'Setoran Dana Taktis 10% Uang Harian — ' . ($trip['maksud'] ?? ('Perjalanan Dinas #' . $peserta['perjalanan_dinas_id'])),
+                'dari_tandai_lunas' => 1,
             ]);
         }
 
@@ -86,27 +87,41 @@ class PerjalananDinasPesertaModel extends Model
         ]);
     }
 
-    /** Batalkan status lunas & hapus balik pemasukan otomatis yang tadi dibuat — kecuali
-     *  pemasukan itu juga masih dipakai peserta lain (setoran gabungan satu pegawai untuk
-     *  beberapa trip sekaligus, lihat ReconcileSetoranTaktis), supaya baris lain tidak ikut
-     *  kehilangan pemasukan-nya. */
-    public function batalkanLunas(int $id): bool
+    /**
+     * Batalkan status lunas. Pemasukan yang tadi ditautkan HANYA ikut dihapus kalau memang
+     * dibuat otomatis oleh tandaiLunas() (dari_tandai_lunas=1) DAN tidak juga masih dipakai
+     * peserta lain (setoran gabungan satu pegawai untuk beberapa trip sekaligus). Pemasukan
+     * yang sudah ada sebelumnya dan cuma ditautkan (mis. lewat app:reconcile-setoran-taktis,
+     * atau data lama) TIDAK PERNAH ikut terhapus di sini — itu data keuangan asli, bukan
+     * sesuatu yang dibuat oleh aksi ini, jadi membatalkan tautannya tidak boleh menghilangkan
+     * catatan pemasukannya dari pembukuan.
+     *
+     * @return array{ok: bool, pemasukan_dihapus: bool}
+     */
+    public function batalkanLunas(int $id): array
     {
         $peserta = $this->find($id);
-        if (!$peserta || $peserta['status_lunas'] !== 'lunas') return false;
+        if (!$peserta || $peserta['status_lunas'] !== 'lunas') {
+            return ['ok' => false, 'pemasukan_dihapus' => false];
+        }
 
+        $pemasukanDihapus = false;
         if (!empty($peserta['pemasukan_id'])) {
+            $pemasukan = (new PemasukanModel())->find($peserta['pemasukan_id']);
             $masihDipakai = $this->where('pemasukan_id', $peserta['pemasukan_id'])->where('id !=', $id)->countAllResults();
-            if ($masihDipakai === 0) {
+            if ($pemasukan && (int) $pemasukan['dari_tandai_lunas'] === 1 && $masihDipakai === 0) {
                 (new PemasukanModel())->delete($peserta['pemasukan_id']);
+                $pemasukanDihapus = true;
             }
         }
 
-        return $this->update($id, [
+        $ok = $this->update($id, [
             'status_lunas'  => 'belum',
             'tanggal_lunas' => null,
             'pemasukan_id'  => null,
         ]);
+
+        return ['ok' => $ok, 'pemasukan_dihapus' => $pemasukanDihapus];
     }
 
     /** Rekap Dana Taktis milik satu pegawai — dipakai di halaman "Dana Taktis". */
