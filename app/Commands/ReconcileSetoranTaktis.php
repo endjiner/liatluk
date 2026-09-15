@@ -39,15 +39,41 @@ class ReconcileSetoranTaktis extends BaseCommand
         's ip', 's sos', 'm m', 'm si', 's pd', 's km', 'a md', 'm kes', 's psi', 'm ap',
     ];
 
+    /** Sapaan/panggilan umum di data — "pegawai" sendiri juga dibuang karena semua sumber
+     *  di data nyata diawali kata itu (mis. "Pegawai (Setoran Rutin)", "Pegawai - Ade Yan
+     *  Emerson"), bukan bagian dari nama. */
+    private const PANGGILAN = ['pegawai', 'pak', 'bapak', 'bu', 'ibu', 'bang', 'uni', 'mas', 'mbak', 'kak'];
+
     private function normalisasiNama(string $nama): string
     {
         $n = strtolower($nama);
-        $n = str_replace(['.', ','], [' ', ' '], $n);
+        $n = str_replace(['.', ',', '-', '(', ')', '/'], ' ', $n);
         foreach (self::GELAR as $g) {
             $n = preg_replace('/\b' . preg_quote($g, '/') . '\b/', ' ', $n);
         }
+        foreach (self::PANGGILAN as $p) {
+            $n = preg_replace('/\b' . preg_quote($p, '/') . '\b/', ' ', $n);
+        }
         $n = preg_replace('/\s+/', ' ', $n);
         return trim($n);
+    }
+
+    /**
+     * Sebagian sumber di data nyata jelas BUKAN nama satu orang tertentu — kalau dipaksa
+     * dicocokkan lewat nama+nominal, berisiko salah tautkan (mis. nominal gabungan banyak
+     * orang yang kebetulan sama dengan dana_taktis satu peserta). Baris begini dikeluarkan
+     * dari pencocokan nama sama sekali dan dilaporkan terpisah supaya jelas kenapa dilewati.
+     */
+    private function klasifikasiKhusus(string $sumberAsli): ?string
+    {
+        $s = strtolower($sumberAsli);
+        if (str_contains($s, 'setoran rutin')) return 'GENERIK — bukan nama individu, cuma label kategori umum';
+        if (preg_match('/taktis\s*20\d\d/', $s)) return 'KEMUNGKINAN SETORAN GABUNGAN TAHUNAN (mis. "TAKTIS 2024")';
+        if (str_contains($s, 'pengembalian')) return 'KEMUNGKINAN BUKAN SETORAN (mengandung kata "pengembalian")';
+        if (str_contains($s, 'dkk') || str_contains($s, ' dan ') || str_contains($s, '&') || substr_count($s, ',') >= 1) {
+            return 'MULTI-ORANG (menyebut lebih dari satu nama/kelompok)';
+        }
+        return null;
     }
 
     public function run(array $params)
@@ -83,12 +109,20 @@ class ReconcileSetoranTaktis extends BaseCommand
         $pasti = [];
         $ambigu = [];
         $tidakCocok = [];
+        $khususPerKategori = [];
 
         foreach ($pemasukanYatim as $pm) {
             if (empty($pm['sumber'])) {
                 $tidakCocok[] = $pm;
                 continue;
             }
+
+            $khusus = $this->klasifikasiKhusus($pm['sumber']);
+            if ($khusus !== null) {
+                $khususPerKategori[$khusus][] = $pm;
+                continue;
+            }
+
             $key    = $this->normalisasiNama($pm['sumber']) . '|' . (int) round((float) $pm['jumlah']);
             $daftar = $kandidat[$key] ?? [];
             if (count($daftar) === 1) {
@@ -104,6 +138,26 @@ class ReconcileSetoranTaktis extends BaseCommand
         CLI::write('Pemasukan manual "Setoran Taktis Pegawai" yang belum tertaut: ' . count($pemasukanYatim));
         CLI::write('Peserta Perjalanan Dinas berstatus Belum Lunas: ' . count($pesertaBelum));
         CLI::newLine();
+
+        if (!empty($khususPerKategori)) {
+            CLI::write('--- DIKELUARKAN DARI PENCOCOKAN (bukan setoran satu orang tertentu) ---', 'yellow');
+            CLI::write('Baris ini TIDAK bisa ditautkan otomatis ke satu peserta manapun secara aman, apapun namanya —');
+            CLI::write('kalau memang perlu, cocokkan manual satu per satu lewat tombol "Lunas" di halaman Perjalanan Dinas.');
+            foreach ($khususPerKategori as $label => $rows) {
+                CLI::write('  [' . $label . '] — ' . count($rows) . ' baris', 'yellow');
+                $contoh = array_slice($rows, 0, 3);
+                foreach ($contoh as $pm) {
+                    CLI::write(sprintf(
+                        '    Pemasukan #%d [%s, Rp%s, %s]',
+                        $pm['id'], $pm['sumber'], number_format((float) $pm['jumlah'], 0, ',', '.'), $pm['tanggal']
+                    ));
+                }
+                if (count($rows) > 3) {
+                    CLI::write('    ... dan ' . (count($rows) - 3) . ' baris lain dengan kategori yang sama.');
+                }
+            }
+            CLI::newLine();
+        }
 
         CLI::write('--- COCOK PASTI (nama + nominal unik): ' . count($pasti) . ' ---', 'green');
         foreach ($pasti as $m) {
@@ -135,8 +189,8 @@ class ReconcileSetoranTaktis extends BaseCommand
         }
         CLI::newLine();
 
-        CLI::write('--- TIDAK ADA KANDIDAT (nama/nominal tidak cocok dengan peserta manapun): ' . count($tidakCocok) . ' ---', 'red');
-        foreach ($tidakCocok as $pm) {
+        CLI::write('--- TIDAK ADA KANDIDAT (ada nama, tapi nama+nominal tidak cocok dengan peserta manapun): ' . count($tidakCocok) . ' ---', 'red');
+        foreach (array_slice($tidakCocok, 0, 50) as $pm) {
             CLI::write(sprintf(
                 '  Pemasukan #%d [%s, Rp%s, %s]',
                 $pm['id'],
@@ -144,6 +198,9 @@ class ReconcileSetoranTaktis extends BaseCommand
                 number_format((float) $pm['jumlah'], 0, ',', '.'),
                 $pm['tanggal']
             ));
+        }
+        if (count($tidakCocok) > 50) {
+            CLI::write('  ... dan ' . (count($tidakCocok) - 50) . ' baris lain.');
         }
         CLI::newLine();
 
