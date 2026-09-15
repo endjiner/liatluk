@@ -7,8 +7,6 @@ use App\Models\PengeluaranModel;
 use App\Models\PengaturanModel;
 use App\Models\PerjalananDinasModel;
 use App\Models\PerjalananDinasPesertaModel;
-use App\Models\PerjalananDinasTiketModel;
-use App\Models\PerjalananDinasHotelModel;
 use App\Models\PegawaiModel;
 
 class Home extends BaseController
@@ -59,9 +57,8 @@ class Home extends BaseController
         // tidak perlu dihitung lagi di sini.
 
         // Perjalanan Dinas & Dana Taktis — ditampilkan sebagai tab di halaman yang sama
-        // (lihat #panel-perjadin di public/dashboard.php), bukan halaman terpisah.
-        $filtersPerjadin = $this->ambilFilterPerjalananDinasGet();
-        $hasilPerjadin   = $this->ambilTripPerjalananDinasTerfilter($filtersPerjadin);
+        // (lihat #panel-perjadin di public/dashboard.php), bukan halaman terpisah. Daftarnya
+        // sepenuhnya dimuat lewat AJAX (perjalananDinasAjax), jadi tidak dihitung di sini.
 
         return view('public/dashboard', [
             'saldoAkhir'          => $saldoAkhir,
@@ -77,10 +74,7 @@ class Home extends BaseController
             'pieData'             => json_encode($pieData),
             'tahunTren'           => $tahunTren,
             'tahunTersedia'       => $tahunTersedia,
-            'tripsPerjadin'       => $hasilPerjadin['trips'],
-            'pagingPerjadin'      => $hasilPerjadin,
             'tahunListPerjadin'   => (new PerjalananDinasModel())->getAvailableYears(),
-            'filtersPerjadin'     => $filtersPerjadin,
             'pegawaiList'         => (new PegawaiModel())->getAktifList(),
         ]);
     }
@@ -282,44 +276,10 @@ class Home extends BaseController
         return [
             'bulan'    => $this->request->getGet('bulan'),
             'tahun'    => $this->request->getGet('tahun'),
+            'status'   => $this->request->getGet('status'),
             'search'   => $this->request->getGet('search'),
             'page'     => max(1, (int)($this->request->getGet('page') ?? 1)),
             'per_page' => $perPage,
-        ];
-    }
-
-    private function ambilTripPerjalananDinasTerfilter(array $filters): array
-    {
-        $tripModel    = new PerjalananDinasModel();
-        $pesertaModel = new PerjalananDinasPesertaModel();
-        $tiketModel   = new PerjalananDinasTiketModel();
-        $hotelModel   = new PerjalananDinasHotelModel();
-
-        $total      = $tripModel->countFiltered($filters);
-        $perPage    = $filters['per_page'] ?? 10;
-        $totalPages = max(1, (int)ceil($total / $perPage));
-        $page       = min(max(1, $filters['page'] ?? 1), $totalPages);
-        $offset     = ($page - 1) * $perPage;
-
-        $trips = $tripModel->getFiltered($filters, $perPage, $offset);
-        foreach ($trips as &$trip) {
-            $peserta = $pesertaModel->getByPerjalanan($trip['id']);
-            foreach ($peserta as &$p) {
-                $p['tiket'] = $tiketModel->getByPeserta($p['id']);
-                $p['hotel'] = $hotelModel->getByPeserta($p['id']);
-            }
-            unset($p);
-            $trip['peserta'] = $peserta;
-        }
-        unset($trip);
-
-        return [
-            'trips'      => $trips,
-            'total'      => $total,
-            'page'       => $page,
-            'per_page'   => $perPage,
-            'total_pages'=> $totalPages,
-            'offset'     => $offset,
         ];
     }
 
@@ -331,12 +291,29 @@ class Home extends BaseController
         return redirect()->to(base_url('#perjadin'));
     }
 
-    /** Fragment HTML untuk fetch() dari filter/search publik — lihat catatan yang sama
-     *  di Admin\PerjalananDinas::ajaxList(). */
-    public function perjalananDinasAjax(): string
+    /** JSON untuk fetch() dari filter/search/pagination publik — tabel datar (1 baris =
+     *  1 peserta), sama seperti Admin\PerjalananDinas::ajaxList() tapi read-only. */
+    public function perjalananDinasAjax()
     {
-        $filters = $this->ambilFilterPerjalananDinasGet();
-        return view('public/perjalanan_dinas_list', $this->ambilTripPerjalananDinasTerfilter($filters));
+        $filters      = $this->ambilFilterPerjalananDinasGet();
+        $pesertaModel = new PerjalananDinasPesertaModel();
+
+        $total      = $pesertaModel->countFilteredPerjalananDinas($filters);
+        $totalPages = max(1, (int)ceil($total / $filters['per_page']));
+        $page       = min(max(1, $filters['page']), $totalPages);
+        $offset     = ($page - 1) * $filters['per_page'];
+
+        $rows = $pesertaModel->getFilteredPerjalananDinas($filters, $filters['per_page'], $offset);
+
+        return $this->response->setJSON([
+            'success'     => true,
+            'data'        => $rows,
+            'total'       => $total,
+            'page'        => $page,
+            'per_page'    => $filters['per_page'],
+            'total_pages' => $totalPages,
+            'offset'      => $offset,
+        ]);
     }
 
     /** Halaman terpisah lama — sekarang jadi tab "Dana Taktis" tersendiri di halaman

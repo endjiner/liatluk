@@ -133,6 +133,20 @@ class PerjalananDinasPesertaModel extends Model
         ];
     }
 
+    /** Ringkasan (total + jumlah baris) setoran Dana Taktis yang belum lunas — dipakai di
+     *  Rencana Keuangan untuk menampilkan setoran ini sebagai bagian dari rencana pemasukan,
+     *  tanpa menulis baris baru ke tabel rencana_pemasukan (selalu diturunkan langsung dari
+     *  perjalanan_dinas_peserta supaya tidak bisa jadi tidak sinkron). */
+    public function getBelumDibayarSummary(): array
+    {
+        $row = $this->select('COALESCE(SUM(dana_taktis), 0) as total, COUNT(*) as jumlah')
+            ->where('status_lunas', 'belum')
+            ->where('dana_taktis >', 0)
+            ->get()->getRowArray();
+
+        return ['total' => (float)$row['total'], 'jumlah' => (int)$row['jumlah']];
+    }
+
     /** Semua setoran Dana Taktis yang belum lunas, lintas pegawai — untuk overview di halaman Dana Taktis. */
     public function getAllBelumDibayar(): array
     {
@@ -188,5 +202,64 @@ class PerjalananDinasPesertaModel extends Model
     public function countFilteredDanaTaktis(array $filters): int
     {
         return $this->applyFilterDanaTaktis($filters)->countAllResults();
+    }
+
+    /**
+     * Query dasar untuk daftar Perjalanan Dinas versi tabel datar (satu baris per peserta
+     * per trip) — dipakai bersama oleh admin & publik. Beda dengan applyFilterDanaTaktis():
+     * di sini SEMUA peserta ditampilkan (termasuk yang dana_taktis-nya 0, mis. trip
+     * "Transport Lokal" tanpa uang harian), bukan cuma yang punya setoran.
+     */
+    private function applyFilterPerjalananDinas($filters)
+    {
+        $builder = $this->select('perjalanan_dinas_peserta.*, perjalanan_dinas.maksud, perjalanan_dinas.no_surat_tugas, perjalanan_dinas.tanggal_surat_tugas, perjalanan_dinas.kode_mak, perjalanan_dinas.no_spm')
+            ->join('perjalanan_dinas', 'perjalanan_dinas.id = perjalanan_dinas_peserta.perjalanan_dinas_id');
+
+        if (!empty($filters['status'])) {
+            $builder->where('perjalanan_dinas_peserta.status_lunas', $filters['status']);
+        }
+        if (!empty($filters['tahun'])) {
+            $builder->where('YEAR(perjalanan_dinas.tanggal_surat_tugas)', (int)$filters['tahun']);
+        }
+        if (!empty($filters['bulan'])) {
+            $builder->where('MONTH(perjalanan_dinas.tanggal_surat_tugas)', (int)$filters['bulan']);
+        }
+        if (!empty($filters['search'])) {
+            $builder->groupStart()
+                ->like('perjalanan_dinas_peserta.nama_peserta', $filters['search'])
+                ->orLike('perjalanan_dinas.maksud', $filters['search'])
+                ->orLike('perjalanan_dinas.no_surat_tugas', $filters['search'])
+                ->orLike('perjalanan_dinas.kode_mak', $filters['search'])
+                ->groupEnd();
+        }
+        return $builder;
+    }
+
+    /** Daftar Perjalanan Dinas datar (1 baris = 1 peserta), dipaginasi & difilter, lengkap
+     *  dengan tiket & hotel per baris — pengganti tampilan kartu bertingkat lama. Diurutkan
+     *  (tanggal, trip id, peserta id) supaya peserta dari trip yang sama selalu bersebelahan,
+     *  jadi baris "Perjalanan Dinas" yang berulang bisa disembunyikan sisi klien. */
+    public function getFilteredPerjalananDinas(array $filters, int $limit, int $offset): array
+    {
+        $rows = $this->applyFilterPerjalananDinas($filters)
+            ->orderBy('perjalanan_dinas.tanggal_surat_tugas', 'ASC')
+            ->orderBy('perjalanan_dinas_peserta.perjalanan_dinas_id', 'ASC')
+            ->orderBy('perjalanan_dinas_peserta.id', 'ASC')
+            ->findAll($limit, $offset);
+
+        $tiketModel = new PerjalananDinasTiketModel();
+        $hotelModel = new PerjalananDinasHotelModel();
+        foreach ($rows as &$r) {
+            $r['tiket'] = $tiketModel->getByPeserta($r['id']);
+            $r['hotel'] = $hotelModel->getByPeserta($r['id']);
+        }
+        unset($r);
+
+        return $rows;
+    }
+
+    public function countFilteredPerjalananDinas(array $filters): int
+    {
+        return $this->applyFilterPerjalananDinas($filters)->countAllResults();
     }
 }

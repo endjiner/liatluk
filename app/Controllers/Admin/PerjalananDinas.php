@@ -56,64 +56,45 @@ class PerjalananDinas extends BaseController
         return [
             'bulan'    => $this->request->getGet('bulan'),
             'tahun'    => $this->request->getGet('tahun'),
+            'status'   => $this->request->getGet('status'),
             'search'   => $this->request->getGet('search'),
             'page'     => max(1, (int)($this->request->getGet('page') ?? 1)),
             'per_page' => $perPage,
         ];
     }
 
-    private function ambilTripTerfilter(array $filters): array
-    {
-        $total      = $this->tripModel->countFiltered($filters);
-        $perPage    = $filters['per_page'] ?? 10;
-        $totalPages = max(1, (int)ceil($total / $perPage));
-        $page       = min(max(1, $filters['page'] ?? 1), $totalPages);
-        $offset     = ($page - 1) * $perPage;
-
-        $trips = $this->tripModel->getFiltered($filters, $perPage, $offset);
-
-        foreach ($trips as &$trip) {
-            $peserta = $this->pesertaModel->getByPerjalanan($trip['id']);
-            foreach ($peserta as &$p) {
-                $p['tiket'] = $this->tiketModel->getByPeserta($p['id']);
-                $p['hotel'] = $this->hotelModel->getByPeserta($p['id']);
-            }
-            unset($p);
-            $trip['peserta'] = $peserta;
-        }
-        unset($trip);
-
-        return [
-            'trips'      => $trips,
-            'total'      => $total,
-            'page'       => $page,
-            'per_page'   => $perPage,
-            'total_pages'=> $totalPages,
-            'offset'     => $offset,
-        ];
-    }
-
     public function index(): string
     {
         $notifCount = $this->notifikasiModel->countUnread();
-        $filters    = $this->ambilFilterGet();
-        $hasil      = $this->ambilTripTerfilter($filters);
 
-        return view('admin/perjalanan_dinas', array_merge($hasil, [
+        return view('admin/perjalanan_dinas', [
             'notifCount'  => $notifCount,
             'pegawaiList' => $this->pegawaiModel->getAktifList(),
             'tahunList'   => $this->tripModel->getAvailableYears(),
-            'filters'     => $filters,
-        ]));
+        ]);
     }
 
-    /** Dipanggil via fetch() dari filter/search di halaman index — kembalikan HTML daftar
-     *  trip saja (bukan JSON) supaya markup kartu bertingkat (trip->peserta->tiket/hotel)
-     *  tidak perlu dituliskan ulang di JS. */
-    public function ajaxList(): string
+    /** Dipanggil via fetch() dari filter/search/pagination di halaman index — tabel datar
+     *  (1 baris = 1 peserta per trip), bukan lagi kartu bertingkat. */
+    public function ajaxList()
     {
-        $filters = $this->ambilFilterGet();
-        return view('admin/perjalanan_dinas_list', $this->ambilTripTerfilter($filters));
+        $filters    = $this->ambilFilterGet();
+        $total      = $this->pesertaModel->countFilteredPerjalananDinas($filters);
+        $totalPages = max(1, (int)ceil($total / $filters['per_page']));
+        $page       = min(max(1, $filters['page']), $totalPages);
+        $offset     = ($page - 1) * $filters['per_page'];
+
+        $rows = $this->pesertaModel->getFilteredPerjalananDinas($filters, $filters['per_page'], $offset);
+
+        return $this->response->setJSON([
+            'success'     => true,
+            'data'        => $rows,
+            'total'       => $total,
+            'page'        => $page,
+            'per_page'    => $filters['per_page'],
+            'total_pages' => $totalPages,
+            'offset'      => $offset,
+        ]);
     }
 
     // ── CRUD Header Perjalanan Dinas ──────────────────────────────────────────────

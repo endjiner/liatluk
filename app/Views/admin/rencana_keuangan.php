@@ -18,6 +18,25 @@
 
 <div class="grid grid-cols-1 xl:grid-cols-2 gap-4">
   <!-- Rencana Pemasukan -->
+  <div>
+  <?php if ($danaTaktisBelumDibayar['jumlah'] > 0): ?>
+  <div class="card border-l-4 border-emerald-500 mb-3">
+    <div class="card-body flex items-center justify-between gap-3 py-3 flex-wrap">
+      <div class="flex items-center gap-3 min-w-0">
+        <div class="w-9 h-9 rounded-full bg-emerald-100 dark:bg-emerald-900/40 text-emerald-600 dark:text-emerald-400 flex items-center justify-center shrink-0">
+          <i data-lucide="plane" class="w-4 h-4"></i>
+        </div>
+        <div class="min-w-0">
+          <p class="text-xs text-slate-500 dark:text-slate-400">Setoran Dana Taktis (Perjalanan Dinas) belum dibayar &middot; <?= number_format($danaTaktisBelumDibayar['jumlah'], 0, ',', '.') ?> peserta</p>
+          <p class="text-base font-bold text-emerald-600">Rp <?= number_format($danaTaktisBelumDibayar['total'], 0, ',', '.') ?></p>
+        </div>
+      </div>
+      <a href="<?= base_url('admin/perjalanan-dinas/dana-taktis') ?>" class="btn btn-outline btn-sm shrink-0">
+        <span class="hidden sm:inline">Lihat Daftar</span> <i data-lucide="arrow-right"></i>
+      </a>
+    </div>
+  </div>
+  <?php endif; ?>
   <div class="card">
     <div class="card-header">
       <h3 class="text-sm font-semibold text-slate-700 dark:text-slate-200 flex items-center gap-2">
@@ -79,6 +98,7 @@
         </tbody>
       </table>
     </div>
+  </div>
   </div>
 
   <!-- Rencana Pengeluaran -->

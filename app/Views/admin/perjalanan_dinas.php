@@ -21,45 +21,77 @@
 </div>
 
 <!-- Filter -->
-<form id="form-filter" class="card mb-4" onsubmit="return false">
-  <div class="card-body flex flex-wrap items-end gap-3 py-3">
-    <div>
-      <label class="form-label">Tahun</label>
-      <select name="tahun" id="filter-tahun" class="form-control form-control-sm" onchange="muatDaftarTrip()">
+<div class="card mb-4">
+  <div class="card-header">
+    <h3 class="text-sm font-semibold text-slate-700 dark:text-slate-200">Daftar Perjalanan Dinas</h3>
+    <span class="text-xs text-slate-500">Total: <span id="pd-total">-</span></span>
+  </div>
+  <div class="p-3 border-b border-slate-200 dark:border-slate-700 bg-slate-50 dark:bg-slate-900/40">
+    <div class="flex flex-wrap items-center gap-2">
+      <div class="relative flex-1 min-w-[160px] max-w-xs">
+        <span class="absolute inset-y-0 left-3 flex items-center text-slate-400">
+          <i data-lucide="search" class="w-3.5 h-3.5"></i>
+        </span>
+        <input type="text" id="filter-search" oninput="jadwalkanMuatDaftar()" placeholder="Nama, maksud, no surat tugas, MAK..." class="form-control form-control-sm pl-8">
+      </div>
+      <select id="filter-status" onchange="muatDaftarTrip(1)" class="form-control form-control-sm w-auto">
+        <option value="">Semua Status</option>
+        <option value="belum">Belum Lunas</option>
+        <option value="lunas">Lunas</option>
+      </select>
+      <select id="filter-bulan" onchange="muatDaftarTrip(1)" class="form-control form-control-sm w-auto">
+        <option value="">Semua Bulan</option>
+        <?php for ($b = 1; $b <= 12; $b++): ?>
+        <option value="<?= $b ?>"><?= $namaBulan[$b] ?></option>
+        <?php endfor; ?>
+      </select>
+      <select id="filter-tahun" onchange="muatDaftarTrip(1)" class="form-control form-control-sm w-auto">
         <option value="">Semua Tahun</option>
         <?php $tahunSaatIni = (int)date('Y'); $daftarTahun = $tahunList; if (!in_array($tahunSaatIni, $daftarTahun)) $daftarTahun[] = $tahunSaatIni; rsort($daftarTahun); ?>
         <?php foreach ($daftarTahun as $th): ?>
-        <option value="<?= $th ?>" <?= (string)($filters['tahun'] ?? '') === (string)$th ? 'selected' : '' ?>><?= $th ?></option>
+        <option value="<?= $th ?>"><?= $th ?></option>
         <?php endforeach; ?>
       </select>
+      <div class="flex items-center gap-1.5 pl-3 border-l border-slate-200 dark:border-slate-700">
+        <span class="text-xs text-slate-600 dark:text-slate-400">Tampilkan</span>
+        <select id="filter-per-page" onchange="muatDaftarTrip(1)" class="form-control form-control-sm w-auto">
+          <option value="10" selected>10</option>
+          <option value="25">25</option>
+          <option value="50">50</option>
+          <option value="100">100</option>
+        </select>
+        <span class="text-xs text-slate-600 dark:text-slate-400">baris</span>
+      </div>
     </div>
-    <div>
-      <label class="form-label">Bulan</label>
-      <select name="bulan" id="filter-bulan" class="form-control form-control-sm" onchange="muatDaftarTrip()">
-        <option value="">Semua Bulan</option>
-        <?php for ($b = 1; $b <= 12; $b++): ?>
-        <option value="<?= $b ?>" <?= (int)($filters['bulan'] ?? 0) === $b ? 'selected' : '' ?>><?= $namaBulan[$b] ?></option>
-        <?php endfor; ?>
-      </select>
-    </div>
-    <div class="flex-1 min-w-[180px]">
-      <label class="form-label">Cari</label>
-      <input type="text" name="search" id="filter-search" value="<?= esc($filters['search'] ?? '') ?>" class="form-control form-control-sm" placeholder="Maksud, no surat tugas, kode MAK..." oninput="jadwalkanMuatDaftar()">
-    </div>
-    <div>
-      <label class="form-label">Tampilkan</label>
-      <select name="per_page" id="filter-per-page" class="form-control form-control-sm w-auto" onchange="muatDaftarTrip(1)">
-        <?php foreach ([10, 25, 50, 100] as $pp): ?>
-        <option value="<?= $pp ?>" <?= (int)($filters['per_page'] ?? 10) === $pp ? 'selected' : '' ?>><?= $pp ?></option>
-        <?php endforeach; ?>
-      </select>
-    </div>
-    <button type="button" class="btn btn-primary btn-sm" onclick="muatDaftarTrip(1)"><i data-lucide="search"></i> Filter</button>
   </div>
-</form>
 
-<div id="daftar-trip">
-<?= view('admin/perjalanan_dinas_list', ['trips' => $trips, 'total' => $total, 'page' => $page, 'per_page' => $per_page, 'total_pages' => $total_pages, 'offset' => $offset]) ?>
+  <div class="sm:hidden flex items-center gap-1.5 px-3 py-1.5 text-[11px] text-slate-400 dark:text-slate-500 border-t border-slate-100 dark:border-slate-800">
+    <i data-lucide="move-horizontal" class="w-3 h-3"></i> Geser tabel untuk melihat kolom lainnya
+  </div>
+  <div class="overflow-x-auto">
+    <table class="table">
+      <thead>
+        <tr>
+          <th class="w-10">No</th>
+          <th class="min-w-[220px]">Perjalanan Dinas</th>
+          <th>Peserta</th>
+          <th class="text-right">Uang Harian</th>
+          <th class="text-right">Total SPJ</th>
+          <th class="text-right">Dana Taktis</th>
+          <th>Status</th>
+          <th class="w-20 text-center">Aksi</th>
+          <th class="text-right">Biaya Lain</th>
+          <th class="text-right">Tiket</th>
+          <th class="text-right">Hotel</th>
+        </tr>
+      </thead>
+      <tbody id="pd-tbody">
+        <tr><td colspan="11" class="text-center py-8 text-slate-500">Memuat data...</td></tr>
+      </tbody>
+    </table>
+  </div>
+
+  <div id="pd-pagination-wrap" class="flex items-center justify-between gap-3 p-3 border-t border-slate-200 dark:border-slate-700 flex-wrap"></div>
 </div>
 
 <!-- Modal Tambah/Edit Perjalanan Dinas -->
@@ -276,10 +308,13 @@
 const BASE = '<?= base_url() ?>';
 const API  = BASE + 'admin/perjalanan-dinas';
 let tiketIdx = 0;
+const rupiah = (n) => 'Rp ' + new Intl.NumberFormat('id-ID').format(Math.round(parseFloat(n) || 0));
+function escapeHtml(s) { return String(s ?? '').replace(/[&<>"']/g, m => ({ '&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;' })[m]); }
 
-// ── Filter & Search (AJAX, tanpa reload halaman) ──────────────────────────────────
+// ── Filter & Search (AJAX, tabel datar 1 baris = 1 peserta) ───────────────────────
 let filterDebounceTimer = null;
-let halamanTripSaatIni = <?= (int)($page ?? 1) ?>;
+let halamanTripSaatIni = 1;
+let currentRows = [];
 function jadwalkanMuatDaftar() {
   clearTimeout(filterDebounceTimer);
   filterDebounceTimer = setTimeout(() => muatDaftarTrip(1), 400);
@@ -289,27 +324,116 @@ async function muatDaftarTrip(page) {
   const params = new URLSearchParams();
   const tahun = document.getElementById('filter-tahun').value;
   const bulan = document.getElementById('filter-bulan').value;
+  const status = document.getElementById('filter-status').value;
   const search = document.getElementById('filter-search').value;
   const perPage = document.getElementById('filter-per-page').value;
   if (tahun) params.set('tahun', tahun);
   if (bulan) params.set('bulan', bulan);
+  if (status) params.set('status', status);
   if (search) params.set('search', search);
   if (perPage) params.set('per_page', perPage);
   params.set('page', halamanTripSaatIni);
 
-  const wrap = document.getElementById('daftar-trip');
-  wrap.style.opacity = '0.5';
+  const tbody = document.getElementById('pd-tbody');
   try {
     const res = await fetch(API + '/ajax?' + params.toString());
-    wrap.innerHTML = await res.text();
-    lucide.createIcons();
+    const json = await res.json();
+    if (!json.success) { tbody.innerHTML = '<tr><td colspan="11" class="text-center py-8 text-red-500">Gagal memuat data.</td></tr>'; return; }
+    renderTripTable(json.data);
+    renderPaginasiTrip(json.total, json.per_page, json.page);
+    document.getElementById('pd-total').textContent = new Intl.NumberFormat('id-ID').format(json.total);
     history.replaceState(null, '', BASE + 'admin/perjalanan-dinas' + (params.toString() ? '?' + params.toString() : ''));
   } catch (e) {
-    showToast('Gagal memuat data', 'error');
-  } finally {
-    wrap.style.opacity = '1';
+    tbody.innerHTML = '<tr><td colspan="11" class="text-center py-8 text-red-500">Gagal memuat data.</td></tr>';
   }
 }
+
+/** Tabel datar 1 baris = 1 peserta. Kolom "No"/"Perjalanan Dinas" (+ aksi trip) hanya
+ *  ditampilkan pada baris pertama tiap trip (baris-baris berikutnya dari trip yang sama
+ *  dikosongkan) supaya trip dengan banyak peserta tidak mengulang info yang sama. */
+function renderTripTable(rows) {
+  currentRows = rows;
+  const tbody = document.getElementById('pd-tbody');
+  if (!rows.length) {
+    tbody.innerHTML = '<tr><td colspan="11" class="text-center py-8 text-slate-500">Tidak ada data yang cocok.</td></tr>';
+    return;
+  }
+  let lastTripId = null;
+  let noTrip = 0;
+  tbody.innerHTML = rows.map((r, idx) => {
+    const tripBaru = r.perjalanan_dinas_id !== lastTripId;
+    if (tripBaru) { lastTripId = r.perjalanan_dinas_id; noTrip++; }
+
+    const tgl = r.tanggal_surat_tugas ? new Date(r.tanggal_surat_tugas).toLocaleDateString('id-ID', { day: 'numeric', month: 'short', year: 'numeric' }) : '-';
+    const biayaLain = (parseFloat(r.meeting_fullboard) || 0) + (parseFloat(r.meeting_fullday) || 0) + (parseFloat(r.uang_representasi) || 0) + (parseFloat(r.transport_lokal) || 0) + (parseFloat(r.bbm) || 0);
+    const totalTiket = (r.tiket || []).reduce((s, t) => s + (parseFloat(t.harga_tiket) || 0), 0);
+    const totalHotel = r.hotel ? ((parseFloat(r.hotel.total_bill) || 0) + (parseFloat(r.hotel.total_biaya_30persen) || 0)) : 0;
+    const statusBadge = r.status_lunas === 'lunas'
+      ? '<span class="badge badge-success">Lunas</span>'
+      : '<span class="badge badge-warning">Belum Lunas</span>';
+    const aksiLunas = r.status_lunas === 'lunas'
+      ? `<button type="button" class="block text-[11px] text-slate-400 hover:text-red-600 mt-0.5" onclick="batalkanLunas(${r.id})">batalkan</button>`
+      : `<button type="button" class="mt-1 p-1 rounded bg-emerald-600 hover:bg-emerald-700 text-white" onclick="bukaModalLunas(${r.id})" title="Tandai Lunas"><i data-lucide="check" class="w-3.5 h-3.5"></i></button>`;
+
+    const selTrip = tripBaru ? `
+      <td class="align-top font-semibold text-slate-500 dark:text-slate-400">${noTrip}</td>
+      <td class="align-top">
+        <div class="flex items-start gap-1">
+          <div class="min-w-0">
+            <p class="font-medium text-slate-800 dark:text-slate-100 max-w-[240px] truncate" title="${escapeHtml(r.maksud)}">${escapeHtml(r.maksud)}</p>
+            <p class="text-xs text-slate-500 dark:text-slate-400 mt-0.5">${escapeHtml(r.no_surat_tugas || '-')} &middot; ${tgl}</p>
+          </div>
+          <div class="flex items-center gap-0.5 shrink-0">
+            <button type="button" class="p-1 rounded hover:bg-slate-100 dark:hover:bg-slate-700 text-slate-400 hover:text-primary-600" title="Tambah peserta" onclick="bukaModalPeserta(${r.perjalanan_dinas_id})"><i data-lucide="user-plus" class="w-3.5 h-3.5"></i></button>
+            <button type="button" class="p-1 rounded hover:bg-slate-100 dark:hover:bg-slate-700 text-slate-400 hover:text-primary-600" title="Edit perjalanan dinas" onclick="editTripByIdx(${idx})"><i data-lucide="pencil" class="w-3.5 h-3.5"></i></button>
+            <button type="button" class="p-1 rounded hover:bg-red-50 dark:hover:bg-red-900/30 text-slate-400 hover:text-red-600" title="Hapus perjalanan dinas" onclick="hapusTrip(${r.perjalanan_dinas_id})"><i data-lucide="trash-2" class="w-3.5 h-3.5"></i></button>
+          </div>
+        </div>
+      </td>` : `<td></td><td></td>`;
+
+    return `<tr class="${tripBaru ? 'border-t-2 border-slate-100 dark:border-slate-800' : ''}">
+      ${selTrip}
+      <td class="font-medium text-slate-700 dark:text-slate-200 max-w-[200px] truncate" title="${escapeHtml(r.nama_peserta)}">${escapeHtml(r.nama_peserta)}</td>
+      <td class="text-right text-currency">${r.uang_harian > 0 ? rupiah(r.uang_harian) : '-'}</td>
+      <td class="text-right text-currency font-semibold">${rupiah(r.total_spj)}</td>
+      <td class="text-right text-currency font-semibold text-emerald-600">${rupiah(r.dana_taktis)}</td>
+      <td class="whitespace-nowrap">${statusBadge}${aksiLunas}</td>
+      <td class="text-center">
+        <div class="flex items-center justify-center gap-1">
+          <button type="button" class="p-1.5 rounded hover:bg-slate-100 dark:hover:bg-slate-700 text-slate-500 hover:text-primary-600" title="Edit peserta" onclick="editPesertaByIdx(${idx})"><i data-lucide="pencil" class="w-4 h-4"></i></button>
+          <button type="button" class="p-1.5 rounded hover:bg-red-50 dark:hover:bg-red-900/30 text-slate-500 hover:text-red-600" title="Hapus peserta" onclick="hapusPeserta(${r.id})"><i data-lucide="trash-2" class="w-4 h-4"></i></button>
+        </div>
+      </td>
+      <td class="text-right text-currency">${biayaLain > 0 ? rupiah(biayaLain) : '-'}</td>
+      <td class="text-right text-currency">${(r.tiket || []).length > 0 ? ((r.tiket.length) + 'x &middot; ' + rupiah(totalTiket)) : '-'}</td>
+      <td class="text-right text-currency">${r.hotel ? (escapeHtml(r.hotel.nama_hotel || 'Hotel') + '<br><span class="text-xs">' + rupiah(totalHotel) + '</span>') : '-'}</td>
+    </tr>`;
+  }).join('');
+  lucide.createIcons({ props: { search: tbody } });
+}
+
+function editTripByIdx(idx) {
+  const r = currentRows[idx];
+  editTrip({ id: r.perjalanan_dinas_id, maksud: r.maksud, tanggal_surat_tugas: r.tanggal_surat_tugas, no_surat_tugas: r.no_surat_tugas, kode_mak: r.kode_mak, no_spm: r.no_spm });
+}
+function editPesertaByIdx(idx) { editPeserta(currentRows[idx]); }
+
+function renderPaginasiTrip(total, perPage, page) {
+  const wrap = document.getElementById('pd-pagination-wrap');
+  const totalPages = Math.max(1, Math.ceil(total / perPage));
+  if (total === 0) { wrap.innerHTML = ''; return; }
+  const from = (page - 1) * perPage + 1;
+  const to = Math.min(total, page * perPage);
+  wrap.innerHTML = `
+    <div class="text-xs text-slate-600 dark:text-slate-400">Menampilkan ${from}–${to} dari ${new Intl.NumberFormat('id-ID').format(total)} peserta</div>
+    <div class="flex items-center gap-1">
+      <button ${page <= 1 ? 'disabled' : ''} onclick="muatDaftarTrip(${page - 1})" class="px-3 py-1.5 text-xs rounded-md ${page <= 1 ? 'text-slate-400 cursor-not-allowed' : 'text-slate-600 dark:text-slate-300 hover:bg-slate-100 dark:hover:bg-slate-700'}">Sebelumnya</button>
+      <span class="px-2 text-xs text-slate-500 dark:text-slate-400">Hal. ${page} / ${totalPages}</span>
+      <button ${page >= totalPages ? 'disabled' : ''} onclick="muatDaftarTrip(${page + 1})" class="px-3 py-1.5 text-xs rounded-md ${page >= totalPages ? 'text-slate-400 cursor-not-allowed' : 'text-slate-600 dark:text-slate-300 hover:bg-slate-100 dark:hover:bg-slate-700'}">Berikutnya</button>
+    </div>`;
+}
+
+document.addEventListener('DOMContentLoaded', () => { muatDaftarTrip(1); });
 
 function tampilkanKonfirmasi(pesan, aksi) {
   document.getElementById('konfirmasi-text').textContent = pesan;

@@ -6,6 +6,7 @@ use App\Controllers\BaseController;
 use App\Models\RencanaPemasukanModel;
 use App\Models\RencanaPengeluaranModel;
 use App\Models\NotifikasiModel;
+use App\Models\PerjalananDinasPesertaModel;
 
 class RencanaKeuangan extends BaseController
 {
@@ -50,6 +51,9 @@ class RencanaKeuangan extends BaseController
             'totalPengeluaranAll' => $totalPengeluaran,
             'limitRencana'        => $limitRencana,
             'notifCount'         => $notifCount,
+            // Setoran Dana Taktis dari Perjalanan Dinas yang belum dibayar — ditampilkan
+            // sebagai bagian dari Rencana Pemasukan (lihat catatan di getBelumDibayarSummary()).
+            'danaTaktisBelumDibayar' => (new PerjalananDinasPesertaModel())->getBelumDibayarSummary(),
         ]);
     }
 

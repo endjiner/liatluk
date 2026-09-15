@@ -73,6 +73,10 @@ $namaBulan = [1=>'Januari',2=>'Februari',3=>'Maret',4=>'April',5=>'Mei',6=>'Juni
       </div>
       <div class="card-body">
         <canvas id="chart-kategori" class="chart-canvas"></canvas>
+        <div id="chart-kategori-empty" class="hidden flex-col items-center justify-center text-center text-slate-400 dark:text-slate-500 py-10">
+          <i data-lucide="pie-chart" class="w-8 h-8 mb-2 opacity-40"></i>
+          <p class="text-sm">Belum ada data pengeluaran.</p>
+        </div>
       </div>
     </div>
   </div>
@@ -188,6 +192,9 @@ $namaBulan = [1=>'Januari',2=>'Februari',3=>'Maret',4=>'April',5=>'Mei',6=>'Juni
       </div>
     </div>
 
+    <div class="sm:hidden flex items-center gap-1.5 px-3 py-1.5 text-[11px] text-slate-400 dark:text-slate-500 border-t border-slate-100 dark:border-slate-800">
+      <i data-lucide="move-horizontal" class="w-3 h-3"></i> Geser tabel untuk melihat kolom lainnya
+    </div>
     <div class="overflow-x-auto">
       <table class="table">
         <thead>
@@ -212,48 +219,79 @@ $namaBulan = [1=>'Januari',2=>'Februari',3=>'Maret',4=>'April',5=>'Mei',6=>'Juni
   </div>
   </div><!-- /panel-transaksi -->
 
-  <div id="panel-perjadin" class="hidden space-y-6">
+  <div id="panel-perjadin" class="hidden">
     <?php $namaBulanPerjadin = ['', 'Januari', 'Februari', 'Maret', 'April', 'Mei', 'Juni', 'Juli', 'Agustus', 'September', 'Oktober', 'November', 'Desember']; ?>
 
-    <form id="form-filter-perjadin" class="card" onsubmit="return false">
-      <div class="card-body flex flex-wrap items-end gap-3 py-3">
-        <div>
-          <label class="form-label">Tahun</label>
-          <select name="tahun" id="filter-tahun-perjadin" class="form-control form-control-sm" onchange="muatDaftarTripPerjadin()">
+    <div class="card">
+      <div class="card-header">
+        <h3 class="text-sm font-semibold text-slate-700 dark:text-slate-200">Daftar Perjalanan Dinas</h3>
+        <span class="text-xs text-slate-500">Total: <span id="pd-total-perjadin">-</span></span>
+      </div>
+      <div class="p-3 border-b border-slate-200 dark:border-slate-700 bg-slate-50 dark:bg-slate-900/40">
+        <div class="flex flex-wrap items-center gap-2">
+          <div class="relative flex-1 min-w-[160px] max-w-xs">
+            <span class="absolute inset-y-0 left-3 flex items-center text-slate-400">
+              <i data-lucide="search" class="w-3.5 h-3.5"></i>
+            </span>
+            <input type="text" id="filter-search-perjadin" oninput="jadwalkanMuatDaftarPerjadin()" placeholder="Nama, maksud, no surat tugas..." class="form-control form-control-sm pl-8">
+          </div>
+          <select id="filter-status-perjadin" onchange="muatDaftarTripPerjadin(1)" class="form-control form-control-sm w-auto">
+            <option value="">Semua Status</option>
+            <option value="belum">Belum Lunas</option>
+            <option value="lunas">Lunas</option>
+          </select>
+          <select id="filter-bulan-perjadin" onchange="muatDaftarTripPerjadin(1)" class="form-control form-control-sm w-auto">
+            <option value="">Semua Bulan</option>
+            <?php for ($b = 1; $b <= 12; $b++): ?>
+            <option value="<?= $b ?>"><?= $namaBulanPerjadin[$b] ?></option>
+            <?php endfor; ?>
+          </select>
+          <select id="filter-tahun-perjadin" onchange="muatDaftarTripPerjadin(1)" class="form-control form-control-sm w-auto">
             <option value="">Semua Tahun</option>
             <?php $tahunSaatIni = (int)date('Y'); $daftarTahunPerjadin = $tahunListPerjadin; if (!in_array($tahunSaatIni, $daftarTahunPerjadin)) $daftarTahunPerjadin[] = $tahunSaatIni; rsort($daftarTahunPerjadin); ?>
             <?php foreach ($daftarTahunPerjadin as $th): ?>
-            <option value="<?= $th ?>" <?= (string)($filtersPerjadin['tahun'] ?? '') === (string)$th ? 'selected' : '' ?>><?= $th ?></option>
+            <option value="<?= $th ?>"><?= $th ?></option>
             <?php endforeach; ?>
           </select>
+          <div class="flex items-center gap-1.5 pl-3 border-l border-slate-200 dark:border-slate-700">
+            <span class="text-xs text-slate-600 dark:text-slate-400">Tampilkan</span>
+            <select id="filter-per-page-perjadin" onchange="muatDaftarTripPerjadin(1)" class="form-control form-control-sm w-auto">
+              <option value="10" selected>10</option>
+              <option value="25">25</option>
+              <option value="50">50</option>
+              <option value="100">100</option>
+            </select>
+            <span class="text-xs text-slate-600 dark:text-slate-400">baris</span>
+          </div>
         </div>
-        <div>
-          <label class="form-label">Bulan</label>
-          <select name="bulan" id="filter-bulan-perjadin" class="form-control form-control-sm" onchange="muatDaftarTripPerjadin()">
-            <option value="">Semua Bulan</option>
-            <?php for ($b = 1; $b <= 12; $b++): ?>
-            <option value="<?= $b ?>" <?= (int)($filtersPerjadin['bulan'] ?? 0) === $b ? 'selected' : '' ?>><?= $namaBulanPerjadin[$b] ?></option>
-            <?php endfor; ?>
-          </select>
-        </div>
-        <div class="flex-1 min-w-[180px]">
-          <label class="form-label">Cari</label>
-          <input type="text" name="search" id="filter-search-perjadin" value="<?= esc($filtersPerjadin['search'] ?? '') ?>" class="form-control form-control-sm" placeholder="Maksud, no surat tugas, kode MAK..." oninput="jadwalkanMuatDaftarPerjadin()">
-        </div>
-        <div>
-          <label class="form-label">Tampilkan</label>
-          <select name="per_page" id="filter-per-page-perjadin" class="form-control form-control-sm w-auto" onchange="muatDaftarTripPerjadin(1)">
-            <?php foreach ([10, 25, 50, 100] as $pp): ?>
-            <option value="<?= $pp ?>" <?= (int)($filtersPerjadin['per_page'] ?? 10) === $pp ? 'selected' : '' ?>><?= $pp ?></option>
-            <?php endforeach; ?>
-          </select>
-        </div>
-        <button type="button" class="btn btn-primary btn-sm" onclick="muatDaftarTripPerjadin(1)"><i data-lucide="search"></i> Filter</button>
       </div>
-    </form>
 
-    <div id="daftar-trip-perjadin">
-<?= view('public/perjalanan_dinas_list', array_merge(['trips' => $tripsPerjadin], $pagingPerjadin)) ?>
+      <div class="sm:hidden flex items-center gap-1.5 px-3 py-1.5 text-[11px] text-slate-400 dark:text-slate-500 border-t border-slate-100 dark:border-slate-800">
+        <i data-lucide="move-horizontal" class="w-3 h-3"></i> Geser tabel untuk melihat kolom lainnya
+      </div>
+      <div class="overflow-x-auto">
+        <table class="table">
+          <thead>
+            <tr>
+              <th class="w-10">No</th>
+              <th class="min-w-[220px]">Perjalanan Dinas</th>
+              <th>Peserta</th>
+              <th class="text-right">Uang Harian</th>
+              <th class="text-right">Total SPJ</th>
+              <th class="text-right">Dana Taktis</th>
+              <th>Status</th>
+              <th class="text-right">Biaya Lain</th>
+              <th class="text-right">Tiket</th>
+              <th class="text-right">Hotel</th>
+            </tr>
+          </thead>
+          <tbody id="pd-tbody-perjadin">
+            <tr><td colspan="10" class="text-center py-8 text-slate-500">Memuat data...</td></tr>
+          </tbody>
+        </table>
+      </div>
+
+      <div id="pd-pagination-wrap-perjadin" class="flex items-center justify-between gap-3 p-3 border-t border-slate-200 dark:border-slate-700 flex-wrap"></div>
     </div>
   </div><!-- /panel-perjadin -->
 
@@ -298,6 +336,9 @@ $namaBulan = [1=>'Januari',2=>'Februari',3=>'Maret',4=>'April',5=>'Mei',6=>'Juni
       <div class="card">
         <div class="card-header">
           <h3 class="text-sm font-semibold text-slate-700 dark:text-slate-200">Rincian per Perjalanan Dinas</h3>
+        </div>
+        <div class="sm:hidden flex items-center gap-1.5 px-3 py-1.5 text-[11px] text-slate-400 dark:text-slate-500 border-t border-slate-100 dark:border-slate-800">
+          <i data-lucide="move-horizontal" class="w-3 h-3"></i> Geser tabel untuk melihat kolom lainnya
         </div>
         <div class="overflow-x-auto">
           <table class="table">
@@ -387,8 +428,20 @@ function buildTren(pemasukan, pengeluaran) {
 function buildKat() {
   const colors = chartColors();
   const data = <?= $pieData ?>;
+  const canvas = document.getElementById('chart-kategori');
+  const empty = document.getElementById('chart-kategori-empty');
+  if (!data.length) {
+    canvas.classList.add('hidden');
+    empty.classList.remove('hidden');
+    empty.classList.add('flex');
+    if (chartKat) { chartKat.destroy(); chartKat = null; }
+    return;
+  }
+  canvas.classList.remove('hidden');
+  empty.classList.add('hidden');
+  empty.classList.remove('flex');
   if (chartKat) chartKat.destroy();
-  chartKat = new Chart(document.getElementById('chart-kategori'), {
+  chartKat = new Chart(canvas, {
     type: 'doughnut',
     data: {
       labels: data.map(d => d.kategori),
@@ -656,15 +709,21 @@ function closeDetailModal() { document.getElementById('modal-detail-txn').classL
 window.closeDetailModal = closeDetailModal;
 
 /* ── Tab: Transaksi Keuangan / Perjalanan Dinas / Dana Taktis ── */
+let perjadinSudahDimuat = false;
 function aktifkanTab(nama) {
   ['transaksi', 'perjadin', 'dana-taktis'].forEach(n => {
     document.getElementById('panel-' + n).classList.toggle('hidden', n !== nama);
     document.getElementById('tab-btn-' + n).classList.toggle('active', n === nama);
   });
+  if (nama === 'perjadin' && !perjadinSudahDimuat) {
+    perjadinSudahDimuat = true;
+    muatDaftarTripPerjadin(1);
+  }
   lucide.createIcons();
 }
 
-/* ── Perjalanan Dinas (filter & search, tanpa reload halaman) ── */
+/* ── Perjalanan Dinas (tabel datar 1 baris = 1 peserta, filter & pagination via AJAX) ── */
+const rupiahPd = (n) => 'Rp ' + new Intl.NumberFormat('id-ID').format(Math.round(parseFloat(n) || 0));
 let filterDebouncePerjadin = null;
 let halamanPerjadinSaatIni = 1;
 function jadwalkanMuatDaftarPerjadin() {
@@ -676,23 +735,83 @@ async function muatDaftarTripPerjadin(page) {
   const params = new URLSearchParams();
   const tahun = document.getElementById('filter-tahun-perjadin').value;
   const bulan = document.getElementById('filter-bulan-perjadin').value;
+  const status = document.getElementById('filter-status-perjadin').value;
   const search = document.getElementById('filter-search-perjadin').value;
   const perPage = document.getElementById('filter-per-page-perjadin').value;
   if (tahun) params.set('tahun', tahun);
   if (bulan) params.set('bulan', bulan);
+  if (status) params.set('status', status);
   if (search) params.set('search', search);
   if (perPage) params.set('per_page', perPage);
   params.set('page', halamanPerjadinSaatIni);
 
-  const wrap = document.getElementById('daftar-trip-perjadin');
-  wrap.style.opacity = '0.5';
+  const tbody = document.getElementById('pd-tbody-perjadin');
   try {
     const res = await fetch(BASE_URL + 'perjalanan-dinas/ajax?' + params.toString());
-    wrap.innerHTML = await res.text();
-    lucide.createIcons();
-  } finally {
-    wrap.style.opacity = '1';
+    const json = await res.json();
+    if (!json.success) { tbody.innerHTML = '<tr><td colspan="10" class="text-center py-8 text-red-500">Gagal memuat data.</td></tr>'; return; }
+    renderTripTablePerjadin(json.data);
+    renderPaginasiTripPerjadin(json.total, json.per_page, json.page);
+    document.getElementById('pd-total-perjadin').textContent = new Intl.NumberFormat('id-ID').format(json.total);
+  } catch (e) {
+    tbody.innerHTML = '<tr><td colspan="10" class="text-center py-8 text-red-500">Gagal memuat data.</td></tr>';
   }
+}
+
+function renderTripTablePerjadin(rows) {
+  const tbody = document.getElementById('pd-tbody-perjadin');
+  if (!rows.length) {
+    tbody.innerHTML = '<tr><td colspan="10" class="text-center py-8 text-slate-500">Tidak ada data yang cocok.</td></tr>';
+    return;
+  }
+  let lastTripId = null;
+  let noTrip = 0;
+  tbody.innerHTML = rows.map(r => {
+    const tripBaru = r.perjalanan_dinas_id !== lastTripId;
+    if (tripBaru) { lastTripId = r.perjalanan_dinas_id; noTrip++; }
+
+    const tgl = r.tanggal_surat_tugas ? new Date(r.tanggal_surat_tugas).toLocaleDateString('id-ID', { day: 'numeric', month: 'short', year: 'numeric' }) : '-';
+    const biayaLain = (parseFloat(r.meeting_fullboard) || 0) + (parseFloat(r.meeting_fullday) || 0) + (parseFloat(r.uang_representasi) || 0) + (parseFloat(r.transport_lokal) || 0) + (parseFloat(r.bbm) || 0);
+    const totalTiket = (r.tiket || []).reduce((s, t) => s + (parseFloat(t.harga_tiket) || 0), 0);
+    const totalHotel = r.hotel ? ((parseFloat(r.hotel.total_bill) || 0) + (parseFloat(r.hotel.total_biaya_30persen) || 0)) : 0;
+    const statusBadge = r.status_lunas === 'lunas'
+      ? '<span class="badge badge-success">Lunas</span>'
+      : '<span class="badge badge-warning">Belum Lunas</span>';
+
+    const selTrip = tripBaru ? `
+      <td class="align-top font-semibold text-slate-500 dark:text-slate-400">${noTrip}</td>
+      <td class="align-top">
+        <p class="font-medium text-slate-800 dark:text-slate-100 max-w-[240px] truncate" title="${escapeHtml(r.maksud)}">${escapeHtml(r.maksud)}</p>
+        <p class="text-xs text-slate-500 dark:text-slate-400 mt-0.5">${escapeHtml(r.no_surat_tugas || '-')} &middot; ${tgl}</p>
+      </td>` : `<td></td><td></td>`;
+
+    return `<tr class="${tripBaru ? 'border-t-2 border-slate-100 dark:border-slate-800' : ''}">
+      ${selTrip}
+      <td class="font-medium text-slate-700 dark:text-slate-200 max-w-[200px] truncate" title="${escapeHtml(r.nama_peserta)}">${escapeHtml(r.nama_peserta)}</td>
+      <td class="text-right text-currency">${r.uang_harian > 0 ? rupiahPd(r.uang_harian) : '-'}</td>
+      <td class="text-right text-currency font-semibold">${rupiahPd(r.total_spj)}</td>
+      <td class="text-right text-currency font-semibold text-emerald-600">${rupiahPd(r.dana_taktis)}</td>
+      <td>${statusBadge}</td>
+      <td class="text-right text-currency">${biayaLain > 0 ? rupiahPd(biayaLain) : '-'}</td>
+      <td class="text-right text-currency">${(r.tiket || []).length > 0 ? ((r.tiket.length) + 'x &middot; ' + rupiahPd(totalTiket)) : '-'}</td>
+      <td class="text-right text-currency">${r.hotel ? (escapeHtml(r.hotel.nama_hotel || 'Hotel') + '<br><span class="text-xs">' + rupiahPd(totalHotel) + '</span>') : '-'}</td>
+    </tr>`;
+  }).join('');
+}
+
+function renderPaginasiTripPerjadin(total, perPage, page) {
+  const wrap = document.getElementById('pd-pagination-wrap-perjadin');
+  const totalPages = Math.max(1, Math.ceil(total / perPage));
+  if (total === 0) { wrap.innerHTML = ''; return; }
+  const from = (page - 1) * perPage + 1;
+  const to = Math.min(total, page * perPage);
+  wrap.innerHTML = `
+    <div class="text-xs text-slate-600 dark:text-slate-400">Menampilkan ${from}–${to} dari ${new Intl.NumberFormat('id-ID').format(total)} peserta</div>
+    <div class="flex items-center gap-1">
+      <button ${page <= 1 ? 'disabled' : ''} onclick="muatDaftarTripPerjadin(${page - 1})" class="px-3 py-1.5 text-xs rounded-md ${page <= 1 ? 'text-slate-400 cursor-not-allowed' : 'text-slate-600 dark:text-slate-300 hover:bg-slate-100 dark:hover:bg-slate-700'}">Sebelumnya</button>
+      <span class="px-2 text-xs text-slate-500 dark:text-slate-400">Hal. ${page} / ${totalPages}</span>
+      <button ${page >= totalPages ? 'disabled' : ''} onclick="muatDaftarTripPerjadin(${page + 1})" class="px-3 py-1.5 text-xs rounded-md ${page >= totalPages ? 'text-slate-400 cursor-not-allowed' : 'text-slate-600 dark:text-slate-300 hover:bg-slate-100 dark:hover:bg-slate-700'}">Berikutnya</button>
+    </div>`;
 }
 
 /* ── Dana Taktis Saya ── */

@@ -130,6 +130,10 @@ $tahunOpsi = range($tahunSekarang, $tahunSekarang - 5);
     </div>
     <div class="card-body">
       <canvas id="chart-kategori" class="chart-canvas"></canvas>
+      <div id="chart-kategori-empty" class="hidden flex-col items-center justify-center text-center text-slate-400 dark:text-slate-500 py-10">
+        <i data-lucide="pie-chart" class="w-8 h-8 mb-2 opacity-40"></i>
+        <p class="text-sm">Belum ada data pengeluaran.</p>
+      </div>
     </div>
   </div>
 </div>
@@ -272,10 +276,22 @@ function buildArus(pemasukan, pengeluaran) {
 function buildKat() {
   const colors = chartColors();
   const data = <?= $pieData ?>;
+  const canvas = document.getElementById('chart-kategori');
+  const empty = document.getElementById('chart-kategori-empty');
+  if (!data.length) {
+    canvas.classList.add('hidden');
+    empty.classList.remove('hidden');
+    empty.classList.add('flex');
+    if (chartKat) { chartKat.destroy(); chartKat = null; }
+    return;
+  }
+  canvas.classList.remove('hidden');
+  empty.classList.add('hidden');
+  empty.classList.remove('flex');
   const labels = data.map(d => d.kategori);
   const values = data.map(d => d.total);
   if (chartKat) chartKat.destroy();
-  chartKat = new Chart(document.getElementById('chart-kategori'), {
+  chartKat = new Chart(canvas, {
     type: 'doughnut',
     data: {
       labels,
