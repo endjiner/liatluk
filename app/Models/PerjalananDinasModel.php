@@ -45,7 +45,8 @@ class PerjalananDinasModel extends Model
                 ->orLike('kode_mak', $filters['search'])
                 ->groupEnd();
         }
-        return $builder->orderBy('tanggal_surat_tugas', 'DESC')->orderBy('id', 'DESC')->get($limit, $offset)->getResultArray();
+        // ASC (lama -> baru): urutan & penomoran "No" mengikuti urutan sheet sumbernya.
+        return $builder->orderBy('tanggal_surat_tugas', 'ASC')->orderBy('id', 'ASC')->get($limit, $offset)->getResultArray();
     }
 
     public function countFiltered($filters = [])

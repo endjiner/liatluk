@@ -195,13 +195,14 @@ $namaBulan = [1=>'Januari',2=>'Februari',3=>'Maret',4=>'April',5=>'Mei',6=>'Juni
             <th class="w-12 text-center">No</th>
             <th>Tanggal</th>
             <th>Kategori</th>
+            <th>Sumber</th>
             <th>Tipe</th>
             <th class="text-right">Nominal</th>
             <th class="w-16 text-center">Detail</th>
           </tr>
         </thead>
         <tbody id="txn-tbody">
-          <tr><td colspan="6" class="text-center py-8 text-slate-500">Memuat data...</td></tr>
+          <tr><td colspan="7" class="text-center py-8 text-slate-500">Memuat data...</td></tr>
         </tbody>
       </table>
     </div>
@@ -239,12 +240,20 @@ $namaBulan = [1=>'Januari',2=>'Februari',3=>'Maret',4=>'April',5=>'Mei',6=>'Juni
           <label class="form-label">Cari</label>
           <input type="text" name="search" id="filter-search-perjadin" value="<?= esc($filtersPerjadin['search'] ?? '') ?>" class="form-control form-control-sm" placeholder="Maksud, no surat tugas, kode MAK..." oninput="jadwalkanMuatDaftarPerjadin()">
         </div>
-        <button type="button" class="btn btn-primary btn-sm" onclick="muatDaftarTripPerjadin()"><i data-lucide="search"></i> Filter</button>
+        <div>
+          <label class="form-label">Tampilkan</label>
+          <select name="per_page" id="filter-per-page-perjadin" class="form-control form-control-sm w-auto" onchange="muatDaftarTripPerjadin(1)">
+            <?php foreach ([10, 25, 50, 100] as $pp): ?>
+            <option value="<?= $pp ?>" <?= (int)($filtersPerjadin['per_page'] ?? 10) === $pp ? 'selected' : '' ?>><?= $pp ?></option>
+            <?php endforeach; ?>
+          </select>
+        </div>
+        <button type="button" class="btn btn-primary btn-sm" onclick="muatDaftarTripPerjadin(1)"><i data-lucide="search"></i> Filter</button>
       </div>
     </form>
 
     <div id="daftar-trip-perjadin">
-<?= view('public/perjalanan_dinas_list', ['trips' => $tripsPerjadin]) ?>
+<?= view('public/perjalanan_dinas_list', array_merge(['trips' => $tripsPerjadin], $pagingPerjadin)) ?>
     </div>
   </div><!-- /panel-perjadin -->
 
@@ -468,7 +477,7 @@ function refreshTxn() {
   });
   if (currentPage) params.set('page', currentPage);
 
-  document.getElementById('txn-tbody').innerHTML = '<tr><td colspan="6" class="text-center py-8 text-slate-500">Memuat...</td></tr>';
+  document.getElementById('txn-tbody').innerHTML = '<tr><td colspan="7" class="text-center py-8 text-slate-500">Memuat...</td></tr>';
 
   fetch(BASE_URL + 'transaksi/ajax?' + params.toString())
     .then(r => r.json())
@@ -479,14 +488,14 @@ function refreshTxn() {
       renderPagination(data.total || 0, parseInt(perPage), currentPage);
     })
     .catch(() => {
-      document.getElementById('txn-tbody').innerHTML = '<tr><td colspan="6" class="text-center py-8 text-red-500">Gagal memuat data.</td></tr>';
+      document.getElementById('txn-tbody').innerHTML = '<tr><td colspan="7" class="text-center py-8 text-red-500">Gagal memuat data.</td></tr>';
     });
 }
 
 function renderTxn(rows) {
   const tbody = document.getElementById('txn-tbody');
   if (!rows.length) {
-    tbody.innerHTML = '<tr><td colspan="6" class="text-center py-8 text-slate-500">Tidak ada data yang cocok.</td></tr>';
+    tbody.innerHTML = '<tr><td colspan="7" class="text-center py-8 text-slate-500">Tidak ada data yang cocok.</td></tr>';
     return;
   }
   tbody.innerHTML = rows.map(r => {
@@ -500,6 +509,7 @@ function renderTxn(rows) {
       <td class="text-center text-slate-500">${r.nomor ?? '-'}</td>
       <td class="whitespace-nowrap">${dateFormatted}</td>
       <td class="truncate max-w-[200px]">${escapeHtml(r.kategori || '-')}</td>
+      <td class="truncate max-w-[160px]">${escapeHtml(r.sumber || r.tujuan || '-')}</td>
       <td>${badge}</td>
       <td class="text-right font-medium text-currency ${isP ? 'text-emerald-600' : 'text-red-600'}">Rp ${new Intl.NumberFormat('id-ID').format(Math.round(nominal))}</td>
       <td class="text-center">
@@ -656,18 +666,23 @@ function aktifkanTab(nama) {
 
 /* ── Perjalanan Dinas (filter & search, tanpa reload halaman) ── */
 let filterDebouncePerjadin = null;
+let halamanPerjadinSaatIni = 1;
 function jadwalkanMuatDaftarPerjadin() {
   clearTimeout(filterDebouncePerjadin);
-  filterDebouncePerjadin = setTimeout(muatDaftarTripPerjadin, 400);
+  filterDebouncePerjadin = setTimeout(() => muatDaftarTripPerjadin(1), 400);
 }
-async function muatDaftarTripPerjadin() {
+async function muatDaftarTripPerjadin(page) {
+  halamanPerjadinSaatIni = page || halamanPerjadinSaatIni || 1;
   const params = new URLSearchParams();
   const tahun = document.getElementById('filter-tahun-perjadin').value;
   const bulan = document.getElementById('filter-bulan-perjadin').value;
   const search = document.getElementById('filter-search-perjadin').value;
+  const perPage = document.getElementById('filter-per-page-perjadin').value;
   if (tahun) params.set('tahun', tahun);
   if (bulan) params.set('bulan', bulan);
   if (search) params.set('search', search);
+  if (perPage) params.set('per_page', perPage);
+  params.set('page', halamanPerjadinSaatIni);
 
   const wrap = document.getElementById('daftar-trip-perjadin');
   wrap.style.opacity = '0.5';

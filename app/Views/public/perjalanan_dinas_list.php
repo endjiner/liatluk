@@ -7,7 +7,7 @@
 </div></div>
 <?php endif; ?>
 
-<?php $bulanBerjalan = null; $no = 0; foreach ($trips as $trip): $bulanKey = date('Y-m', strtotime($trip['tanggal_surat_tugas']));
+<?php $bulanBerjalan = null; $no = $offset ?? 0; foreach ($trips as $trip): $bulanKey = date('Y-m', strtotime($trip['tanggal_surat_tugas']));
   if ($bulanKey !== $bulanBerjalan): $bulanBerjalan = $bulanKey; ?>
   <h2 class="text-sm font-semibold text-slate-500 dark:text-slate-400 uppercase tracking-wide mt-6 mb-2">
     <?= $namaBulan[(int)date('n', strtotime($trip['tanggal_surat_tugas']))] . ' ' . date('Y', strtotime($trip['tanggal_surat_tugas'])) ?>
@@ -74,3 +74,14 @@
     </div>
   </div>
 <?php endforeach; ?>
+
+<?php if (!empty($trips)): $totalPages = $total_pages ?? 1; $curPage = $page ?? 1; $perPage = $per_page ?? 10; $totalRows = $total ?? count($trips); $from = $offset + 1; $to = min($offset + $perPage, $totalRows); ?>
+<div class="flex items-center justify-between gap-3 mt-2 px-1 flex-wrap">
+  <div class="text-xs text-slate-600 dark:text-slate-400">Menampilkan <?= $from ?>–<?= $to ?> dari <?= number_format($totalRows, 0, ',', '.') ?> perjalanan dinas</div>
+  <div class="flex items-center gap-1">
+    <button <?= $curPage <= 1 ? 'disabled' : '' ?> onclick="muatDaftarTripPerjadin(<?= $curPage - 1 ?>)" class="px-3 py-1.5 text-xs rounded-md <?= $curPage <= 1 ? 'text-slate-400 cursor-not-allowed' : 'text-slate-600 dark:text-slate-300 hover:bg-slate-100 dark:hover:bg-slate-700' ?>">Sebelumnya</button>
+    <span class="px-2 text-xs text-slate-500 dark:text-slate-400">Hal. <?= $curPage ?> / <?= $totalPages ?></span>
+    <button <?= $curPage >= $totalPages ? 'disabled' : '' ?> onclick="muatDaftarTripPerjadin(<?= $curPage + 1 ?>)" class="px-3 py-1.5 text-xs rounded-md <?= $curPage >= $totalPages ? 'text-slate-400 cursor-not-allowed' : 'text-slate-600 dark:text-slate-300 hover:bg-slate-100 dark:hover:bg-slate-700' ?>">Berikutnya</button>
+  </div>
+</div>
+<?php endif; ?>

@@ -46,12 +46,20 @@
       <label class="form-label">Cari</label>
       <input type="text" name="search" id="filter-search" value="<?= esc($filters['search'] ?? '') ?>" class="form-control form-control-sm" placeholder="Maksud, no surat tugas, kode MAK..." oninput="jadwalkanMuatDaftar()">
     </div>
-    <button type="button" class="btn btn-primary btn-sm" onclick="muatDaftarTrip()"><i data-lucide="search"></i> Filter</button>
+    <div>
+      <label class="form-label">Tampilkan</label>
+      <select name="per_page" id="filter-per-page" class="form-control form-control-sm w-auto" onchange="muatDaftarTrip(1)">
+        <?php foreach ([10, 25, 50, 100] as $pp): ?>
+        <option value="<?= $pp ?>" <?= (int)($filters['per_page'] ?? 10) === $pp ? 'selected' : '' ?>><?= $pp ?></option>
+        <?php endforeach; ?>
+      </select>
+    </div>
+    <button type="button" class="btn btn-primary btn-sm" onclick="muatDaftarTrip(1)"><i data-lucide="search"></i> Filter</button>
   </div>
 </form>
 
 <div id="daftar-trip">
-<?= view('admin/perjalanan_dinas_list', ['trips' => $trips]) ?>
+<?= view('admin/perjalanan_dinas_list', ['trips' => $trips, 'total' => $total, 'page' => $page, 'per_page' => $per_page, 'total_pages' => $total_pages, 'offset' => $offset]) ?>
 </div>
 
 <!-- Modal Tambah/Edit Perjalanan Dinas -->
@@ -271,18 +279,23 @@ let tiketIdx = 0;
 
 // ── Filter & Search (AJAX, tanpa reload halaman) ──────────────────────────────────
 let filterDebounceTimer = null;
+let halamanTripSaatIni = <?= (int)($page ?? 1) ?>;
 function jadwalkanMuatDaftar() {
   clearTimeout(filterDebounceTimer);
-  filterDebounceTimer = setTimeout(muatDaftarTrip, 400);
+  filterDebounceTimer = setTimeout(() => muatDaftarTrip(1), 400);
 }
-async function muatDaftarTrip() {
+async function muatDaftarTrip(page) {
+  halamanTripSaatIni = page || halamanTripSaatIni || 1;
   const params = new URLSearchParams();
   const tahun = document.getElementById('filter-tahun').value;
   const bulan = document.getElementById('filter-bulan').value;
   const search = document.getElementById('filter-search').value;
+  const perPage = document.getElementById('filter-per-page').value;
   if (tahun) params.set('tahun', tahun);
   if (bulan) params.set('bulan', bulan);
   if (search) params.set('search', search);
+  if (perPage) params.set('per_page', perPage);
+  params.set('page', halamanTripSaatIni);
 
   const wrap = document.getElementById('daftar-trip');
   wrap.style.opacity = '0.5';

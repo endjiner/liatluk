@@ -50,19 +50,27 @@ class PerjalananDinas extends BaseController
      *  data" padahal cuma tersaring). Kosong berarti semua tahun. */
     private function ambilFilterGet(): array
     {
+        $perPage = (int)($this->request->getGet('per_page') ?? 10);
+        if (!in_array($perPage, [10, 25, 50, 100])) $perPage = 10;
+
         return [
-            'bulan'  => $this->request->getGet('bulan'),
-            'tahun'  => $this->request->getGet('tahun'),
-            'search' => $this->request->getGet('search'),
+            'bulan'    => $this->request->getGet('bulan'),
+            'tahun'    => $this->request->getGet('tahun'),
+            'search'   => $this->request->getGet('search'),
+            'page'     => max(1, (int)($this->request->getGet('page') ?? 1)),
+            'per_page' => $perPage,
         ];
     }
 
     private function ambilTripTerfilter(array $filters): array
     {
-        $trips = $this->tripModel->getFiltered($filters, 300, 0);
-        // Urutkan naik (lama -> baru) supaya penomoran "No" & pengelompokan bulan mengikuti
-        // urutan yang sama seperti sheet sumbernya.
-        $trips = array_reverse($trips);
+        $total      = $this->tripModel->countFiltered($filters);
+        $perPage    = $filters['per_page'] ?? 10;
+        $totalPages = max(1, (int)ceil($total / $perPage));
+        $page       = min(max(1, $filters['page'] ?? 1), $totalPages);
+        $offset     = ($page - 1) * $perPage;
+
+        $trips = $this->tripModel->getFiltered($filters, $perPage, $offset);
 
         foreach ($trips as &$trip) {
             $peserta = $this->pesertaModel->getByPerjalanan($trip['id']);
@@ -75,21 +83,28 @@ class PerjalananDinas extends BaseController
         }
         unset($trip);
 
-        return $trips;
+        return [
+            'trips'      => $trips,
+            'total'      => $total,
+            'page'       => $page,
+            'per_page'   => $perPage,
+            'total_pages'=> $totalPages,
+            'offset'     => $offset,
+        ];
     }
 
     public function index(): string
     {
         $notifCount = $this->notifikasiModel->countUnread();
         $filters    = $this->ambilFilterGet();
+        $hasil      = $this->ambilTripTerfilter($filters);
 
-        return view('admin/perjalanan_dinas', [
+        return view('admin/perjalanan_dinas', array_merge($hasil, [
             'notifCount'  => $notifCount,
-            'trips'       => $this->ambilTripTerfilter($filters),
             'pegawaiList' => $this->pegawaiModel->getAktifList(),
             'tahunList'   => $this->tripModel->getAvailableYears(),
             'filters'     => $filters,
-        ]);
+        ]));
     }
 
     /** Dipanggil via fetch() dari filter/search di halaman index — kembalikan HTML daftar
@@ -98,7 +113,7 @@ class PerjalananDinas extends BaseController
     public function ajaxList(): string
     {
         $filters = $this->ambilFilterGet();
-        return view('admin/perjalanan_dinas_list', ['trips' => $this->ambilTripTerfilter($filters)]);
+        return view('admin/perjalanan_dinas_list', $this->ambilTripTerfilter($filters));
     }
 
     // ── CRUD Header Perjalanan Dinas ──────────────────────────────────────────────
@@ -302,13 +317,41 @@ class PerjalananDinas extends BaseController
 
     public function danaTaktis(): string
     {
-        $notifCount   = $this->notifikasiModel->countUnread();
-        $belumDibayar = $this->pesertaModel->getAllBelumDibayar();
         return view('admin/dana_taktis', [
-            'notifCount'        => $notifCount,
-            'pegawaiList'       => $this->pegawaiModel->getAktifList(),
-            'belumDibayar'      => $belumDibayar,
-            'totalBelumDibayar' => array_sum(array_column($belumDibayar, 'dana_taktis')),
+            'notifCount'  => $this->notifikasiModel->countUnread(),
+            'pegawaiList' => $this->pegawaiModel->getAktifList(),
+        ]);
+    }
+
+    /** Daftar Dana Taktis per peserta-per-trip, dipaginasi & difilter — dipakai di kartu
+     *  "Dana Taktis" pada halaman ini dan di dashboard admin (lihat dashboardDanaTaktisList()
+     *  di Admin\Dashboard). Bukan agregat per pegawai supaya status per-trip tetap kelihatan
+     *  (mis. satu pegawai 3 perjalanan dinas, cuma 1 yang sudah lunas). */
+    public function danaTaktisList()
+    {
+        $filters = [
+            'search' => $this->request->getGet('search'),
+            'status' => $this->request->getGet('status'),
+            'tahun'  => $this->request->getGet('tahun'),
+            'bulan'  => $this->request->getGet('bulan'),
+        ];
+        $page    = max(1, (int)($this->request->getGet('page') ?? 1));
+        $perPage = (int)($this->request->getGet('per_page') ?? 10);
+        if (!in_array($perPage, [10, 25, 50, 100])) $perPage = 10;
+
+        $total      = $this->pesertaModel->countFilteredDanaTaktis($filters);
+        $totalPages = max(1, (int)ceil($total / $perPage));
+        $page       = min($page, $totalPages);
+
+        $rows = $this->pesertaModel->getFilteredDanaTaktis($filters, $perPage, ($page - 1) * $perPage);
+
+        return $this->response->setJSON([
+            'success'     => true,
+            'data'        => $rows,
+            'total'       => $total,
+            'page'        => $page,
+            'per_page'    => $perPage,
+            'total_pages' => $totalPages,
         ]);
     }
 

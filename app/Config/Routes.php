@@ -55,6 +55,7 @@ $routes->group('admin', ['filter' => 'auth'], function ($routes) {
     $routes->post('perjalanan-dinas/peserta/delete/(:num)', 'Admin\PerjalananDinas::deletePeserta/$1');
     $routes->post('perjalanan-dinas/lunas/(:num)', 'Admin\PerjalananDinas::toggleLunas/$1');
     $routes->get('perjalanan-dinas/dana-taktis', 'Admin\PerjalananDinas::danaTaktis');
+    $routes->get('perjalanan-dinas/dana-taktis/list', 'Admin\PerjalananDinas::danaTaktisList');
     $routes->get('perjalanan-dinas/dana-taktis/data/(:num)', 'Admin\PerjalananDinas::danaTaktisData/$1');
     $routes->get('perjalanan-dinas/pegawai', 'Admin\PerjalananDinas::pegawaiList');
     $routes->post('perjalanan-dinas/pegawai', 'Admin\PerjalananDinas::pegawaiStore');

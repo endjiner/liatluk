@@ -113,13 +113,14 @@ $tahunOpsi = range($tahunSekarang, $tahunSekarang - 5);
           <th class="w-12 text-center">No</th>
           <th>Tanggal</th>
           <th>Kategori</th>
+          <th>Sumber</th>
           <th>Tipe</th>
           <th class="text-right">Nominal</th>
           <th class="w-28 text-center">Aksi</th>
         </tr>
       </thead>
       <tbody id="txn-tbody">
-        <tr><td colspan="7" class="text-center py-8 text-slate-500">Memuat data...</td></tr>
+        <tr><td colspan="8" class="text-center py-8 text-slate-500">Memuat data...</td></tr>
       </tbody>
     </table>
   </div>
@@ -494,7 +495,7 @@ function refreshTxn() {
   });
   if (currentPage) params.set('page', currentPage);
 
-  document.getElementById('txn-tbody').innerHTML = '<tr><td colspan="7" class="text-center py-8 text-slate-500">Memuat...</td></tr>';
+  document.getElementById('txn-tbody').innerHTML = '<tr><td colspan="8" class="text-center py-8 text-slate-500">Memuat...</td></tr>';
 
   fetch(BASE_URL + 'admin/keuangan/ajax?' + params.toString())
     .then(r => r.json())
@@ -506,14 +507,14 @@ function refreshTxn() {
       clearAllSelection();
     })
     .catch(() => {
-      document.getElementById('txn-tbody').innerHTML = '<tr><td colspan="7" class="text-center py-8 text-red-500">Gagal memuat data.</td></tr>';
+      document.getElementById('txn-tbody').innerHTML = '<tr><td colspan="8" class="text-center py-8 text-red-500">Gagal memuat data.</td></tr>';
     });
 }
 
 function renderTxn(rows) {
   const tbody = document.getElementById('txn-tbody');
   if (!rows.length) {
-    tbody.innerHTML = '<tr><td colspan="7" class="text-center py-8 text-slate-500">Tidak ada data yang cocok.</td></tr>';
+    tbody.innerHTML = '<tr><td colspan="8" class="text-center py-8 text-slate-500">Tidak ada data yang cocok.</td></tr>';
     return;
   }
   tbody.innerHTML = rows.map(r => {
@@ -534,6 +535,7 @@ function renderTxn(rows) {
       <td class="text-center text-slate-500">${r.nomor ?? '-'}</td>
       <td class="whitespace-nowrap">${dateFormatted}</td>
       <td class="truncate max-w-[180px]">${escapeHtml(r.kategori || '-')}</td>
+      <td class="truncate max-w-[150px]">${escapeHtml(r.sumber || r.tujuan || '-')}</td>
       <td>${badge}</td>
       <td class="text-right font-medium text-currency ${isP ? 'text-emerald-600' : 'text-red-600'}">Rp ${new Intl.NumberFormat('id-ID').format(Math.round(nominal))}</td>
       <td>

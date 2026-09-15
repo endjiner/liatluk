@@ -209,10 +209,6 @@
    "nip": null
   },
   {
-   "nama": "Alvindra",
-   "nip": null
-  },
-  {
    "nama": "Tia Agustiany",
    "nip": null
   },
@@ -8002,7 +7998,7 @@
      "hotel": null
     },
     {
-     "pegawai_idx": 52,
+     "pegawai_idx": 13,
      "nama_peserta": "Alvindra",
      "uang_harian": 410000.0,
      "meeting_fullboard": 0.0,
@@ -8486,7 +8482,7 @@
    "no_spm": null,
    "peserta": [
     {
-     "pegawai_idx": 53,
+     "pegawai_idx": 52,
      "nama_peserta": "Tia Agustiany, S.Si",
      "uang_harian": 2870000.0,
      "meeting_fullboard": 0.0,
@@ -9307,7 +9303,7 @@
      "hotel": null
     },
     {
-     "pegawai_idx": 54,
+     "pegawai_idx": 53,
      "nama_peserta": "M. Ibkar, SH. MM, C.HL,C.TMP,C.MTR",
      "uang_harian": 820000.0,
      "meeting_fullboard": 0.0,
@@ -9323,7 +9319,7 @@
      "hotel": null
     },
     {
-     "pegawai_idx": 55,
+     "pegawai_idx": 54,
      "nama_peserta": "Wahyu Nugraha, S.H",
      "uang_harian": 820000.0,
      "meeting_fullboard": 0.0,
@@ -9339,7 +9335,7 @@
      "hotel": null
     },
     {
-     "pegawai_idx": 56,
+     "pegawai_idx": 55,
      "nama_peserta": "Yudhi Firmansyah",
      "uang_harian": 820000.0,
      "meeting_fullboard": 0.0,
@@ -9355,7 +9351,7 @@
      "hotel": null
     },
     {
-     "pegawai_idx": 57,
+     "pegawai_idx": 56,
      "nama_peserta": "Nugroho Firdaus Akbar",
      "uang_harian": 410000.0,
      "meeting_fullboard": 0.0,
@@ -9371,7 +9367,7 @@
      "hotel": null
     },
     {
-     "pegawai_idx": 58,
+     "pegawai_idx": 57,
      "nama_peserta": "Rafif Apsani Febian, S.H",
      "uang_harian": 820000.0,
      "meeting_fullboard": 0.0,
@@ -10882,7 +10878,7 @@
    "no_spm": null,
    "peserta": [
     {
-     "pegawai_idx": 59,
+     "pegawai_idx": 58,
      "nama_peserta": "Dedi Afriyansyah",
      "uang_harian": 820000.0,
      "meeting_fullboard": 0.0,
@@ -11087,7 +11083,7 @@
    "no_spm": null,
    "peserta": [
     {
-     "pegawai_idx": 60,
+     "pegawai_idx": 59,
      "nama_peserta": "Netty Desi Margaretta M, S.E",
      "uang_harian": 0.0,
      "meeting_fullboard": 0.0,
@@ -11103,7 +11099,7 @@
      "hotel": null
     },
     {
-     "pegawai_idx": 61,
+     "pegawai_idx": 60,
      "nama_peserta": "Muchtar Ghanda Taruna, A.Md",
      "uang_harian": 0.0,
      "meeting_fullboard": 0.0,
@@ -11226,7 +11222,7 @@
    "no_spm": null,
    "peserta": [
     {
-     "pegawai_idx": 62,
+     "pegawai_idx": 61,
      "nama_peserta": "apt. Tiara Rani, S.Farm",
      "uang_harian": 0.0,
      "meeting_fullboard": 0.0,
@@ -11606,7 +11602,7 @@
    "no_spm": null,
    "peserta": [
     {
-     "pegawai_idx": 63,
+     "pegawai_idx": 62,
      "nama_peserta": "Alex Sander, S.Farm, Apt., M.H",
      "uang_harian": 820000.0,
      "meeting_fullboard": 0.0,
@@ -12078,7 +12074,7 @@
    "no_spm": null,
    "peserta": [
     {
-     "pegawai_idx": 64,
+     "pegawai_idx": 63,
      "nama_peserta": "Tri Astuti Rahmawati, M.Sc",
      "uang_harian": 1110000.0,
      "meeting_fullboard": 0.0,
@@ -12158,7 +12154,7 @@
    "no_spm": null,
    "peserta": [
     {
-     "pegawai_idx": 65,
+     "pegawai_idx": 64,
      "nama_peserta": "Nurleli, S.E",
      "uang_harian": 0.0,
      "meeting_fullboard": 0.0,
@@ -12174,7 +12170,7 @@
      "hotel": null
     },
     {
-     "pegawai_idx": 66,
+     "pegawai_idx": 65,
      "nama_peserta": "Zuria Mitra, S.AB",
      "uang_harian": 0.0,
      "meeting_fullboard": 0.0,
@@ -12199,7 +12195,7 @@
    "no_spm": null,
    "peserta": [
     {
-     "pegawai_idx": 67,
+     "pegawai_idx": 66,
      "nama_peserta": "Satriawan, dkk (10 Orang)",
      "uang_harian": 0.0,
      "meeting_fullboard": 0.0,
@@ -12290,7 +12286,7 @@
    "no_spm": null,
    "peserta": [
     {
-     "pegawai_idx": 68,
+     "pegawai_idx": 67,
      "nama_peserta": "Norman Jaya Hutabarat, S.E",
      "uang_harian": 410000.0,
      "meeting_fullboard": 0.0,
@@ -12340,7 +12336,7 @@
    "no_spm": null,
    "peserta": [
     {
-     "pegawai_idx": 68,
+     "pegawai_idx": 67,
      "nama_peserta": "Norman Jaya Hutabarat, S.E",
      "uang_harian": 0.0,
      "meeting_fullboard": 0.0,
@@ -13161,7 +13157,7 @@
    "no_spm": null,
    "peserta": [
     {
-     "pegawai_idx": 63,
+     "pegawai_idx": 62,
      "nama_peserta": "Alex Sander",
      "uang_harian": 492000.0,
      "meeting_fullboard": 0.0,
@@ -13187,7 +13183,7 @@
      }
     },
     {
-     "pegawai_idx": 69,
+     "pegawai_idx": 68,
      "nama_peserta": "Mardianto",
      "uang_harian": 492000.0,
      "meeting_fullboard": 0.0,
@@ -13326,7 +13322,7 @@
    "no_spm": null,
    "peserta": [
     {
-     "pegawai_idx": 63,
+     "pegawai_idx": 62,
      "nama_peserta": "Alex Sander",
      "uang_harian": 0.0,
      "meeting_fullboard": 0.0,
@@ -13608,7 +13604,7 @@
    "no_spm": null,
    "peserta": [
     {
-     "pegawai_idx": 70,
+     "pegawai_idx": 69,
      "nama_peserta": "Rohmania Apt",
      "uang_harian": 2870000.0,
      "meeting_fullboard": 0.0,
@@ -13643,7 +13639,7 @@
    "no_spm": null,
    "peserta": [
     {
-     "pegawai_idx": 71,
+     "pegawai_idx": 70,
      "nama_peserta": "Aditya Anugerah Marusaha Sitorus, S.Si",
      "uang_harian": 2870000.0,
      "meeting_fullboard": 0.0,
@@ -13920,7 +13916,7 @@
    "no_spm": null,
    "peserta": [
     {
-     "pegawai_idx": 72,
+     "pegawai_idx": 71,
      "nama_peserta": "Kafidul Ulum,S.TP",
      "uang_harian": 0.0,
      "meeting_fullboard": 0.0,
@@ -13978,7 +13974,7 @@
    "no_spm": null,
    "peserta": [
     {
-     "pegawai_idx": 63,
+     "pegawai_idx": 62,
      "nama_peserta": "Alex Sander",
      "uang_harian": 2120000.0,
      "meeting_fullboard": 0.0,
@@ -14025,7 +14021,7 @@
    "no_spm": null,
    "peserta": [
     {
-     "pegawai_idx": 63,
+     "pegawai_idx": 62,
      "nama_peserta": "Alex Sander",
      "uang_harian": 530000.0,
      "meeting_fullboard": 0.0,
@@ -14281,7 +14277,7 @@
    "no_spm": null,
    "peserta": [
     {
-     "pegawai_idx": 68,
+     "pegawai_idx": 67,
      "nama_peserta": "Norman Jaya Hutabarat, S.E",
      "uang_harian": 410000.0,
      "meeting_fullboard": 0.0,

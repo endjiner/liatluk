@@ -5,7 +5,10 @@
 /* ══════════════════════════════════════════════════════════════════════
    Komponen bersama (dipakai admin & publik). Nilai spacing/radius/shadow
    di sini sudah versi "refined" (lebih lega & modern) — bukan default.
+   Dibungkus @layer components supaya utility class Tailwind (mis. pl-8)
+   tetap bisa override properti yang sama di kelas-kelas ini.
    ══════════════════════════════════════════════════════════════════════ */
+@layer components {
 
 .btn { display: inline-flex; align-items: center; justify-content: center; gap: .5rem; border-radius: .625rem; padding: .625rem 1.25rem; font-size: .875rem; line-height: 1.25rem; font-weight: 500; transition: all .15s cubic-bezier(.4,0,.2,1); }
 .btn:focus { outline: 2px solid transparent; outline-offset: 2px; box-shadow: 0 0 0 2px #fff, 0 0 0 4px rgba(59,130,246,.5); }
@@ -130,3 +133,5 @@
 
 /* Heading — sedikit letter-spacing negatif biar judul terasa lebih tegas/rapi */
 h1 { letter-spacing: -.02em; }
+
+}
