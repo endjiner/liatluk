@@ -39,13 +39,19 @@
 .btn-ghost:hover:is(.dark *) { background-color: #1e293b; }
 
 /* ── Card ── */
-.card { border-radius: 1rem; border: 1px solid rgba(226,232,240,.6); background-color: #fff; box-shadow: 0 12px 32px -8px rgba(15,46,95,.10), 0 4px 12px -4px rgba(15,46,95,.05); }
+.card { position: relative; border-radius: 1rem; border: 1px solid rgba(226,232,240,.6); background-color: #fff; box-shadow: 0 12px 32px -8px rgba(15,46,95,.10), 0 4px 12px -4px rgba(15,46,95,.05); overflow: hidden; }
 .card:is(.dark *) { border-color: rgba(51,65,85,.6); background-color: #1e293b; }
-.card-body { padding: 1.5rem; }
-.card-header { display: flex; align-items: center; justify-content: space-between; border-bottom: 1px solid rgba(226,232,240,.6); padding: 1.125rem 1.5rem; }
-.card-header:is(.dark *) { border-color: rgba(51,65,85,.6); }
+/* Aksen tipis di atas kartu — sentuhan warna kecil supaya tidak terasa kartu putih polos semua */
+.card::before { content: ''; position: absolute; top: 0; left: 0; right: 0; height: 3px; background: linear-gradient(90deg, #1E5FBE, #FBBF24); }
+.card-body { padding: 1rem; }
+.card-header { display: flex; align-items: center; justify-content: space-between; gap: .75rem; border-bottom: 1px solid rgba(226,232,240,.6); background-color: rgba(248,250,252,.6); padding: .875rem 1rem; }
+.card-header:is(.dark *) { border-color: rgba(51,65,85,.6); background-color: rgba(15,23,42,.3); }
+@media (min-width: 640px) {
+  .card-body { padding: 1.5rem; }
+  .card-header { padding: 1.125rem 1.5rem; }
+}
 
-.kpi { border-radius: 1rem; border: 1px solid rgba(226,232,240,.6); background-color: #fff; box-shadow: 0 4px 12px -2px rgba(15,46,95,.08), 0 2px 4px -2px rgba(15,46,95,.04); display: flex; flex-direction: column; gap: .5rem; padding: 1.25rem; transition: box-shadow .15s cubic-bezier(.4,0,.2,1); }
+.kpi { border-radius: 1rem; border: 1px solid rgba(226,232,240,.6); background-color: #fff; box-shadow: 0 4px 12px -2px rgba(15,46,95,.08), 0 2px 4px -2px rgba(15,46,95,.04); display: flex; flex-direction: column; gap: .375rem; padding: 1.25rem; transition: box-shadow .15s cubic-bezier(.4,0,.2,1); }
 .kpi:is(.dark *) { border-color: rgba(51,65,85,.6); background-color: #1e293b; }
 .kpi:hover { box-shadow: 0 12px 32px -8px rgba(15,46,95,.14), 0 4px 12px -4px rgba(15,46,95,.06); }
 .kpi-label { display: flex; align-items: center; gap: .375rem; font-size: .75rem; line-height: 1rem; font-weight: 500; text-transform: uppercase; letter-spacing: .025em; color: #64748b; }
@@ -106,7 +112,7 @@
 .modal-footer:is(.dark *) { border-color: #334155; background-color: rgba(15,23,42,.4); }
 
 /* ── Segment control ── */
-.segment { display: inline-flex; border-radius: .5rem; background-color: #f1f5f9; padding: .125rem; }
+.segment { display: inline-flex; border-radius: .625rem; background-color: #eaf0fb; padding: .1875rem; }
 .segment:is(.dark *) { background-color: #1e293b; }
 .segment-btn { border-radius: .375rem; padding: .25rem .75rem; font-size: .75rem; line-height: 1rem; font-weight: 500; color: #475569; transition: color .15s, background-color .15s; }
 .segment-btn:hover { color: #0f172a; }
@@ -130,6 +136,9 @@
 
 /* Chart.js canvas cap — dipakai dashboard admin & publik supaya chart tidak melar tinggi */
 .chart-canvas { max-height: 280px; }
+/* Pie/donut tidak butuh setinggi line chart — dipasangkan dengan items-start di baris grid-nya
+   supaya kartunya sendiri juga tidak ikut melar mengikuti tinggi kartu chart tren di sebelahnya. */
+.chart-canvas-compact { max-height: 220px; max-width: 220px; }
 
 /* Heading — sedikit letter-spacing negatif biar judul terasa lebih tegas/rapi */
 h1 { letter-spacing: -.02em; }

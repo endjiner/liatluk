@@ -22,29 +22,29 @@ $namaBulan = [1=>'Januari',2=>'Februari',3=>'Maret',4=>'April',5=>'Mei',6=>'Juni
 <div class="max-w-7xl mx-auto px-4 lg:px-6 py-6 space-y-6">
 
   <!-- KPI Cards -->
-  <div class="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-3">
-    <!-- Saldo -->
-    <div class="kpi">
+  <div class="grid grid-cols-2 md:grid-cols-3 gap-2.5 sm:gap-3">
+    <!-- Saldo: featured/hero stat, tinted to stand out from the two secondary figures -->
+    <div class="kpi p-3 sm:p-5 col-span-2 md:col-span-1 bg-primary-50/70 dark:bg-primary-900/20 border-primary-100 dark:border-primary-800/60">
       <div class="kpi-label"><i data-lucide="wallet" class="w-4 h-4"></i> Saldo Kas</div>
-      <div class="kpi-value text-primary-700 dark:text-primary-300 text-currency">
+      <div class="kpi-value text-lg sm:text-2xl text-primary-700 dark:text-primary-300 text-currency">
         Rp <?= number_format($saldoAkhir, 0, ',', '.') ?>
       </div>
       <div class="text-xs text-slate-500 dark:text-slate-400">Selisih total pemasukan dan pengeluaran</div>
     </div>
 
     <!-- Pemasukan with period picker -->
-    <div class="kpi" data-kpi="pemasukan">
-      <div class="kpi-label"><i data-lucide="trending-up" class="w-4 h-4 text-emerald-600"></i> Total Pemasukan</div>
-      <div class="kpi-value text-emerald-700 dark:text-emerald-400 text-currency" id="kpi-pemasukan-value">
+    <div class="kpi p-3 sm:p-5" data-kpi="pemasukan">
+      <div class="kpi-label"><i data-lucide="trending-up" class="w-4 h-4 text-emerald-600"></i> <span class="truncate">Total Pemasukan</span></div>
+      <div class="kpi-value text-lg sm:text-2xl text-emerald-700 dark:text-emerald-400 text-currency" id="kpi-pemasukan-value">
         Rp <?= number_format($totalPemasukan, 0, ',', '.') ?>
       </div>
       <?= view('public/_partials/kpi_period_picker', ['id' => 'pemasukan']) ?>
     </div>
 
     <!-- Pengeluaran with period picker -->
-    <div class="kpi" data-kpi="pengeluaran">
-      <div class="kpi-label"><i data-lucide="trending-down" class="w-4 h-4 text-red-600"></i> Total Pengeluaran</div>
-      <div class="kpi-value text-red-700 dark:text-red-400 text-currency" id="kpi-pengeluaran-value">
+    <div class="kpi p-3 sm:p-5" data-kpi="pengeluaran">
+      <div class="kpi-label"><i data-lucide="trending-down" class="w-4 h-4 text-red-600"></i> <span class="truncate">Total Pengeluaran</span></div>
+      <div class="kpi-value text-lg sm:text-2xl text-red-700 dark:text-red-400 text-currency" id="kpi-pengeluaran-value">
         Rp <?= number_format($totalPengeluaran, 0, ',', '.') ?>
       </div>
       <?= view('public/_partials/kpi_period_picker', ['id' => 'pengeluaran']) ?>
@@ -52,7 +52,7 @@ $namaBulan = [1=>'Januari',2=>'Februari',3=>'Maret',4=>'April',5=>'Mei',6=>'Juni
   </div>
 
   <!-- Charts -->
-  <div class="grid grid-cols-1 lg:grid-cols-3 gap-4">
+  <div class="grid grid-cols-1 lg:grid-cols-3 gap-4 items-start">
     <div class="card lg:col-span-2">
       <div class="card-header">
         <h3 class="text-sm font-semibold text-slate-700 dark:text-slate-200">Tren Keuangan Bulanan</h3>
@@ -71,8 +71,8 @@ $namaBulan = [1=>'Januari',2=>'Februari',3=>'Maret',4=>'April',5=>'Mei',6=>'Juni
       <div class="card-header">
         <h3 class="text-sm font-semibold text-slate-700 dark:text-slate-200">Kategori Pengeluaran</h3>
       </div>
-      <div class="card-body">
-        <canvas id="chart-kategori" class="chart-canvas"></canvas>
+      <div class="card-body flex items-center justify-center">
+        <canvas id="chart-kategori" class="chart-canvas chart-canvas-compact"></canvas>
         <div id="chart-kategori-empty" class="hidden flex-col items-center justify-center text-center text-slate-400 dark:text-slate-500 py-10">
           <i data-lucide="pie-chart" class="w-8 h-8 mb-2 opacity-40"></i>
           <p class="text-sm">Belum ada data pengeluaran.</p>
@@ -116,15 +116,15 @@ $namaBulan = [1=>'Januari',2=>'Februari',3=>'Maret',4=>'April',5=>'Mei',6=>'Juni
   <?php endif; ?>
 
   <!-- Tab: Transaksi Keuangan / Perjalanan Dinas / Dana Taktis -->
-  <div class="segment flex-wrap">
-    <button type="button" id="tab-btn-transaksi" class="segment-btn active flex items-center gap-1.5" onclick="aktifkanTab('transaksi')">
-      <i data-lucide="list" class="w-3.5 h-3.5"></i> <span class="hidden xs:inline">Daftar </span>Transaksi
+  <div class="segment w-full">
+    <button type="button" id="tab-btn-transaksi" class="segment-btn active flex-1 flex items-center justify-center gap-1.5" onclick="aktifkanTab('transaksi')">
+      <i data-lucide="list" class="w-3.5 h-3.5 shrink-0"></i> <span class="truncate">Transaksi</span>
     </button>
-    <button type="button" id="tab-btn-perjadin" class="segment-btn flex items-center gap-1.5" onclick="aktifkanTab('perjadin')">
-      <i data-lucide="plane" class="w-3.5 h-3.5"></i> Perjalanan Dinas
+    <button type="button" id="tab-btn-perjadin" class="segment-btn flex-1 flex items-center justify-center gap-1.5" onclick="aktifkanTab('perjadin')">
+      <i data-lucide="plane" class="w-3.5 h-3.5 shrink-0"></i> <span class="truncate">Perjalanan Dinas</span>
     </button>
-    <button type="button" id="tab-btn-dana-taktis" class="segment-btn flex items-center gap-1.5" onclick="aktifkanTab('dana-taktis')">
-      <i data-lucide="piggy-bank" class="w-3.5 h-3.5"></i> Dana Taktis
+    <button type="button" id="tab-btn-dana-taktis" class="segment-btn flex-1 flex items-center justify-center gap-1.5" onclick="aktifkanTab('dana-taktis')">
+      <i data-lucide="piggy-bank" class="w-3.5 h-3.5 shrink-0"></i> <span class="truncate">Dana Taktis</span>
     </button>
   </div>
 

@@ -17,7 +17,7 @@
     })();
   </script>
 </head>
-<body class="min-h-screen flex flex-col bg-slate-50 dark:bg-slate-900">
+<body class="min-h-screen flex flex-col bg-gradient-to-b from-primary-50/60 via-slate-50 to-slate-50 dark:from-slate-900 dark:via-slate-900 dark:to-slate-900">
 
 <!-- Navbar -->
 <header class="sticky top-0 z-30 bg-white/95 dark:bg-slate-900/95 backdrop-blur border-b border-slate-200 dark:border-slate-800 shadow-soft">
@@ -36,12 +36,16 @@
         </div>
       </a>
 
-      <div class="flex items-center gap-1">
+      <div class="flex items-center gap-2">
         <button onclick="toggleTheme()" title="Ganti Tema"
                 class="p-2 rounded-lg text-slate-500 dark:text-slate-300 hover:bg-slate-100 dark:hover:bg-slate-800 transition">
           <i data-lucide="sun" class="w-5 h-5 hidden dark:inline"></i>
           <i data-lucide="moon" class="w-5 h-5 dark:hidden"></i>
         </button>
+        <a href="<?= base_url('login') ?>"
+           class="flex items-center gap-1.5 pl-2.5 pr-3 sm:pl-3 sm:pr-3.5 py-2 rounded-lg text-sm font-medium text-primary-700 dark:text-primary-300 bg-primary-50 dark:bg-primary-900/40 hover:bg-primary-100 dark:hover:bg-primary-900/70 border border-primary-100 dark:border-primary-800 transition">
+          <i data-lucide="log-in" class="w-4 h-4"></i> Masuk
+        </a>
       </div>
     </div>
   </div>
@@ -55,18 +59,12 @@
 <!-- Footer -->
 <footer class="bg-primary-900 text-slate-300 mt-8">
   <div class="max-w-7xl mx-auto px-4 lg:px-6 py-6">
-    <div class="flex items-center justify-between gap-4 text-xs">
-      <div class="flex items-center gap-3">
-        <img src="<?= base_url('assets/images/logo_bpom.png') ?>" alt="BBPOM di Pangkal Pinang" class="w-10 h-10 rounded-lg bg-white p-1 shrink-0">
-        <div>
-          <div class="text-sm font-semibold text-white">BBPOM di Pangkal Pinang</div>
-          <div>&copy; <?= date('Y') ?> Semua hak dilindungi.</div>
-        </div>
+    <div class="flex items-center gap-3 text-xs">
+      <img src="<?= base_url('assets/images/logo_bpom.png') ?>" alt="BBPOM di Pangkal Pinang" class="w-10 h-10 rounded-lg bg-white p-1 shrink-0">
+      <div>
+        <div class="text-sm font-semibold text-white">BBPOM di Pangkal Pinang</div>
+        <div>&copy; <?= date('Y') ?> Semua hak dilindungi.</div>
       </div>
-      <!-- Subtle admin login link (present but discreet) -->
-      <a href="<?= base_url('login') ?>" class="text-slate-500 hover:text-slate-300 transition inline-flex items-center gap-1" title="Login Admin">
-        <i data-lucide="lock" class="w-3 h-3"></i> Admin
-      </a>
     </div>
   </div>
 </footer>

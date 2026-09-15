@@ -21,6 +21,18 @@ module.exports = {
           900: '#0F2E5F',
           950: '#0A1F42',
         },
+        /* Aksen kedua (emas) — dipakai tipis-tipis (garis aksen, highlight) supaya palet tidak
+           monokrom biru+putih; selaras dengan lambang instansi pemerintah yang biasa memadukan
+           navy dengan emas. */
+        gold: {
+          50: '#FFFBEB',
+          100: '#FEF3C7',
+          200: '#FDE68A',
+          300: '#FCD34D',
+          400: '#FBBF24',
+          500: '#D97706',
+          600: '#B45309',
+        },
       },
     },
   },

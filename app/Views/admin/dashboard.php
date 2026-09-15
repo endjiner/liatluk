@@ -20,14 +20,14 @@ $tahunOpsi = range($tahunSekarang, $tahunSekarang - 5);
 </div>
 
 <!-- KPI Cards -->
-<div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-3 mb-6">
+<div class="grid grid-cols-2 lg:grid-cols-4 gap-2.5 sm:gap-3 mb-6">
 
   <!-- Saldo Akhir -->
-  <div class="kpi">
+  <div class="kpi p-3 sm:p-5">
     <div class="kpi-label">
-      <i data-lucide="wallet" class="w-4 h-4"></i> Saldo Akhir
+      <i data-lucide="wallet" class="w-4 h-4"></i> <span class="truncate">Saldo Akhir</span>
     </div>
-    <div class="kpi-value text-primary-700 dark:text-primary-300 text-currency">
+    <div class="kpi-value text-lg sm:text-2xl text-primary-700 dark:text-primary-300 text-currency">
       Rp <?= number_format($saldoAkhir, 0, ',', '.') ?>
     </div>
     <div class="text-xs text-slate-500 dark:text-slate-400">
@@ -36,26 +36,26 @@ $tahunOpsi = range($tahunSekarang, $tahunSekarang - 5);
   </div>
 
   <!-- Total Pemasukan dengan period picker -->
-  <div class="kpi" data-kpi="pemasukan">
+  <div class="kpi p-3 sm:p-5" data-kpi="pemasukan">
     <div class="flex items-start justify-between gap-2">
       <div class="kpi-label">
-        <i data-lucide="trending-up" class="w-4 h-4 text-emerald-600"></i> Total Pemasukan
+        <i data-lucide="trending-up" class="w-4 h-4 text-emerald-600"></i> <span class="truncate">Total Pemasukan</span>
       </div>
     </div>
-    <div class="kpi-value text-emerald-700 dark:text-emerald-400 text-currency" id="kpi-pemasukan-value">
+    <div class="kpi-value text-lg sm:text-2xl text-emerald-700 dark:text-emerald-400 text-currency" id="kpi-pemasukan-value">
       Rp <?= number_format($totalPemasukan, 0, ',', '.') ?>
     </div>
     <?= view('admin/_partials/kpi_period_picker', ['id' => 'pemasukan']) ?>
   </div>
 
   <!-- Total Pengeluaran dengan period picker -->
-  <div class="kpi" data-kpi="pengeluaran">
+  <div class="kpi p-3 sm:p-5" data-kpi="pengeluaran">
     <div class="flex items-start justify-between gap-2">
       <div class="kpi-label">
-        <i data-lucide="trending-down" class="w-4 h-4 text-red-600"></i> Total Pengeluaran
+        <i data-lucide="trending-down" class="w-4 h-4 text-red-600"></i> <span class="truncate">Total Pengeluaran</span>
       </div>
     </div>
-    <div class="kpi-value text-red-700 dark:text-red-400 text-currency" id="kpi-pengeluaran-value">
+    <div class="kpi-value text-lg sm:text-2xl text-red-700 dark:text-red-400 text-currency" id="kpi-pengeluaran-value">
       Rp <?= number_format($totalPengeluaran, 0, ',', '.') ?>
     </div>
     <?= view('admin/_partials/kpi_period_picker', ['id' => 'pengeluaran']) ?>
@@ -63,11 +63,11 @@ $tahunOpsi = range($tahunSekarang, $tahunSekarang - 5);
 
   <!-- Saldo Bulan Ini -->
   <?php $selisihBulanIni = $pemasukanBulanIni - $pengeluaranBulanIni; ?>
-  <div class="kpi">
+  <div class="kpi p-3 sm:p-5">
     <div class="kpi-label">
-      <i data-lucide="calendar-clock" class="w-4 h-4"></i> Saldo Bulan Ini
+      <i data-lucide="calendar-clock" class="w-4 h-4"></i> <span class="truncate">Saldo Bulan Ini</span>
     </div>
-    <div class="kpi-value <?= $selisihBulanIni >= 0 ? 'text-emerald-700 dark:text-emerald-400' : 'text-red-700 dark:text-red-400' ?> text-currency">
+    <div class="kpi-value text-lg sm:text-2xl <?= $selisihBulanIni >= 0 ? 'text-emerald-700 dark:text-emerald-400' : 'text-red-700 dark:text-red-400' ?> text-currency">
       Rp <?= number_format(abs($selisihBulanIni), 0, ',', '.') ?>
     </div>
     <div class="text-xs text-slate-500 dark:text-slate-400">
@@ -91,13 +91,13 @@ $tahunOpsi = range($tahunSekarang, $tahunSekarang - 5);
   }
 ?>
 <?php if (!empty($extraCards)): ?>
-<div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3 mb-6">
+<div class="grid grid-cols-2 lg:grid-cols-3 gap-2.5 sm:gap-3 mb-6">
   <?php foreach ($extraCards as $c): ?>
-  <div class="kpi">
+  <div class="kpi p-3 sm:p-5">
     <div class="kpi-label">
-      <i data-lucide="<?= $c['icon'] ?>" class="w-4 h-4 text-<?= $c['color'] ?>-600"></i> <?= $c['label'] ?>
+      <i data-lucide="<?= $c['icon'] ?>" class="w-4 h-4 text-<?= $c['color'] ?>-600"></i> <span class="truncate"><?= $c['label'] ?></span>
     </div>
-    <div class="kpi-value text-<?= $c['color'] ?>-700 dark:text-<?= $c['color'] ?>-400 text-currency">
+    <div class="kpi-value text-lg sm:text-2xl text-<?= $c['color'] ?>-700 dark:text-<?= $c['color'] ?>-400 text-currency">
       Rp <?= number_format($c['value'], 0, ',', '.') ?>
     </div>
     <div class="text-xs text-slate-500 dark:text-slate-400">
@@ -109,7 +109,7 @@ $tahunOpsi = range($tahunSekarang, $tahunSekarang - 5);
 <?php endif; ?>
 
 <!-- Charts -->
-<div class="grid grid-cols-1 lg:grid-cols-3 gap-4 mb-6">
+<div class="grid grid-cols-1 lg:grid-cols-3 gap-4 mb-6 items-start">
   <div class="card lg:col-span-2">
     <div class="card-header">
       <h3 class="text-sm font-semibold text-slate-700 dark:text-slate-200">Arus Kas Bulanan</h3>
@@ -128,8 +128,8 @@ $tahunOpsi = range($tahunSekarang, $tahunSekarang - 5);
     <div class="card-header">
       <h3 class="text-sm font-semibold text-slate-700 dark:text-slate-200">Kategori Pengeluaran</h3>
     </div>
-    <div class="card-body">
-      <canvas id="chart-kategori" class="chart-canvas"></canvas>
+    <div class="card-body flex items-center justify-center">
+      <canvas id="chart-kategori" class="chart-canvas chart-canvas-compact"></canvas>
       <div id="chart-kategori-empty" class="hidden flex-col items-center justify-center text-center text-slate-400 dark:text-slate-500 py-10">
         <i data-lucide="pie-chart" class="w-8 h-8 mb-2 opacity-40"></i>
         <p class="text-sm">Belum ada data pengeluaran.</p>
