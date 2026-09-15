@@ -100,6 +100,31 @@ class ReconcileSetoranTaktis extends BaseCommand
     }
 
     /**
+     * Untuk baris yang gagal cocok — cari SEMUA pegawai yang punya minimal satu kata yang
+     * sama dengan nama sumber (longgar, tidak seperti resolvePegawaiUnik yang butuh SEMUA
+     * kata cocok). Ini cuma petunjuk diagnostik yang ditampilkan ke user, TIDAK PERNAH dipakai
+     * untuk menautkan otomatis — supaya user bisa lihat sendiri kenapa gagal (mis. ada 2+
+     * pegawai bernama "Agus", atau ejaannya beda seperti "Ronny" vs "Rony").
+     */
+    private function cariKemungkinanPegawai(string $sumberNormal, array $semuaPegawai): array
+    {
+        $kataSumber = array_values(array_filter(explode(' ', $sumberNormal)));
+        if (empty($kataSumber)) return [];
+
+        $kemungkinan = [];
+        foreach ($semuaPegawai as $pg) {
+            $kataPegawai = explode(' ', $pg['_nama_normal']);
+            foreach ($kataSumber as $kata) {
+                if (strlen($kata) >= 3 && in_array($kata, $kataPegawai, true)) {
+                    $kemungkinan[] = $pg['nama'];
+                    break;
+                }
+            }
+        }
+        return $kemungkinan;
+    }
+
+    /**
      * Sebagian sumber di data nyata jelas BUKAN nama satu orang tertentu — kalau dipaksa
      * dicocokkan lewat nama+nominal, berisiko salah tautkan (mis. nominal gabungan banyak
      * orang yang kebetulan sama dengan dana_taktis satu peserta). Baris begini dikeluarkan
@@ -301,22 +326,28 @@ class ReconcileSetoranTaktis extends BaseCommand
         CLI::newLine();
 
         CLI::write('--- AMBIGU, dilewati (lebih dari 1 kandidat — tinjau & tautkan manual): ' . count($ambigu) . ' ---', 'yellow');
+        CLI::write('  Petunjuk: setoran biasanya dibayar SETELAH trip terjadi, jadi kandidat dengan tanggal');
+        CLI::write('  trip tepat sebelum tanggal setoran biasanya yang paling mungkin.');
         foreach ($ambigu as $m) {
             $daftarKandidat = implode(', ', array_map(
-                static fn($p) => '#' . $p['id'] . ' (trip #' . $p['perjalanan_dinas_id'] . ')',
+                static fn($p) => '#' . $p['id'] . ' (trip #' . $p['perjalanan_dinas_id'] . ', tgl trip ' . $p['tanggal_surat_tugas'] . ')',
                 $m['kandidat']
             ));
             CLI::write(sprintf(
-                '  Pemasukan #%d [%s, Rp%s] -> kandidat: %s',
+                '  Pemasukan #%d [%s, Rp%s, disetor %s] -> kandidat: %s',
                 $m['pemasukan']['id'],
                 $m['pemasukan']['sumber'],
                 number_format((float) $m['pemasukan']['jumlah'], 0, ',', '.'),
+                $m['pemasukan']['tanggal'],
                 $daftarKandidat
             ));
         }
         CLI::newLine();
 
         CLI::write('--- TIDAK ADA KANDIDAT (ada nama, tapi nama+nominal tidak cocok dengan peserta manapun): ' . count($tidakCocok) . ' ---', 'red');
+        CLI::write('  "Kemungkinan terkait" di bawah HANYA petunjuk (tidak pernah ditautkan otomatis) — kalau muncul');
+        CLI::write('  lebih dari 1 nama, berarti ada beberapa pegawai dengan kata nama yang sama (makanya tidak bisa');
+        CLI::write('  ditautkan otomatis); kalau kosong, kemungkinan cuma beda ejaan atau memang bukan pegawai aktif.');
         foreach (array_slice($tidakCocok, 0, 50) as $pm) {
             CLI::write(sprintf(
                 '  Pemasukan #%d [%s, Rp%s, %s]',
@@ -325,6 +356,12 @@ class ReconcileSetoranTaktis extends BaseCommand
                 number_format((float) $pm['jumlah'], 0, ',', '.'),
                 $pm['tanggal']
             ));
+            if (!empty($pm['sumber'])) {
+                $kemungkinan = $this->cariKemungkinanPegawai($this->normalisasiNama($pm['sumber']), $semuaPegawai);
+                if (!empty($kemungkinan)) {
+                    CLI::write('    Kemungkinan terkait: ' . implode(', ', $kemungkinan));
+                }
+            }
         }
         if (count($tidakCocok) > 50) {
             CLI::write('  ... dan ' . (count($tidakCocok) - 50) . ' baris lain.');
