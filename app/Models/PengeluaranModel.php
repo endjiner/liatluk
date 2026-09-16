@@ -65,6 +65,24 @@ class PengeluaranModel extends Model
         return $builder->findAll();
     }
 
+    /** Pencarian kategori/tujuan/keterangan — query PENDEK (<3 huruf) sengaja DIBATASI ke
+     *  tujuan saja (field paling mirip "nama/identitas"). Kalau semua field ikut dicari
+     *  untuk query sependek 2 huruf, kata umum yang muncul di banyak kategori/keterangan
+     *  bisa bikin hasilnya cocok ke hampir semua baris — pencarian jadi terasa tidak
+     *  menyaring apa-apa. Query 3+ huruf tetap dicari di semua field. */
+    private function applyPencarian($builder, ?string $search)
+    {
+        if (empty($search)) return $builder;
+        if (mb_strlen($search) < 3) {
+            return $builder->like('tujuan', $search);
+        }
+        return $builder->groupStart()
+            ->like('kategori', $search)
+            ->orLike('tujuan', $search)
+            ->orLike('keterangan', $search)
+            ->groupEnd();
+    }
+
     public function getFiltered($filters = [], $limit = 10, $offset = 0)
     {
         $builder = $this;
@@ -72,13 +90,7 @@ class PengeluaranModel extends Model
             $builder = $builder->whereIn('kategori', $filters['kategori']);
         }
         $builder = $this->applyPeriode($builder, $filters['bulan'] ?? null, $filters['tahun'] ?? null);
-        if (!empty($filters['search'])) {
-            $builder = $builder->groupStart()
-                ->like('kategori', $filters['search'])
-                ->orLike('tujuan', $filters['search'])
-                ->orLike('keterangan', $filters['search'])
-                ->groupEnd();
-        }
+        $builder = $this->applyPencarian($builder, $filters['search'] ?? null);
         return $builder->orderBy('tanggal', 'DESC')->orderBy('id', 'DESC')->findAll($limit, $offset);
     }
 
@@ -89,13 +101,7 @@ class PengeluaranModel extends Model
             $builder->whereIn('kategori', $filters['kategori']);
         }
         $this->applyPeriode($builder, $filters['bulan'] ?? null, $filters['tahun'] ?? null);
-        if (!empty($filters['search'])) {
-            $builder->groupStart()
-                ->like('kategori', $filters['search'])
-                ->orLike('tujuan', $filters['search'])
-                ->orLike('keterangan', $filters['search'])
-                ->groupEnd();
-        }
+        $this->applyPencarian($builder, $filters['search'] ?? null);
         return $builder->countAllResults();
     }
 

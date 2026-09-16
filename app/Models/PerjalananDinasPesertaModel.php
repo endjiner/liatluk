@@ -213,14 +213,28 @@ class PerjalananDinasPesertaModel extends Model
         if (!empty($filters['bulan'])) {
             $builder->where('MONTH(perjalanan_dinas.tanggal_surat_tugas)', (int)$filters['bulan']);
         }
-        if (!empty($filters['search'])) {
-            $builder->groupStart()
-                ->like('perjalanan_dinas_peserta.nama_peserta', $filters['search'])
-                ->orLike('perjalanan_dinas.maksud', $filters['search'])
-                ->orLike('perjalanan_dinas.no_surat_tugas', $filters['search'])
-                ->groupEnd();
-        }
+        $this->applyPencarian($builder, $filters['search'] ?? null, ['perjalanan_dinas.maksud', 'perjalanan_dinas.no_surat_tugas']);
         return $builder;
+    }
+
+    /** Pencarian nama/maksud/dll — untuk query PENDEK (<3 huruf) sengaja DIBATASI ke
+     *  nama_peserta saja, tidak ikut mencari di field lain. Kalau semua field ikut dicari
+     *  untuk query sependek "Al", hasilnya jadi cocok ke HAMPIR SEMUA baris (bukan cuma
+     *  yang namanya diawali "Al") karena kata umum seperti "Perjalanan"/"Lokal" yang
+     *  muncul di hampir setiap maksud trip SAMA-SAMA mengandung substring "al" — jadi
+     *  pencarian nama pendek terasa "tidak menyaring apa-apa" padahal sebenarnya cocok
+     *  ke field yang salah. Query 3+ huruf jauh lebih jarang kebetulan begitu, jadi tetap
+     *  dicari di semua field seperti biasa. */
+    private function applyPencarian($builder, ?string $search, array $fieldLain): void
+    {
+        if (empty($search)) return;
+        if (mb_strlen($search) < 3) {
+            $builder->like('perjalanan_dinas_peserta.nama_peserta', $search);
+            return;
+        }
+        $builder->groupStart()->like('perjalanan_dinas_peserta.nama_peserta', $search);
+        foreach ($fieldLain as $f) $builder->orLike($f, $search);
+        $builder->groupEnd();
     }
 
     /** Daftar Dana Taktis per peserta-per-trip, dipaginasi & difilter — bukan rumus baru,
@@ -258,14 +272,7 @@ class PerjalananDinasPesertaModel extends Model
         if (!empty($filters['bulan'])) {
             $builder->where('MONTH(perjalanan_dinas.tanggal_surat_tugas)', (int)$filters['bulan']);
         }
-        if (!empty($filters['search'])) {
-            $builder->groupStart()
-                ->like('perjalanan_dinas_peserta.nama_peserta', $filters['search'])
-                ->orLike('perjalanan_dinas.maksud', $filters['search'])
-                ->orLike('perjalanan_dinas.no_surat_tugas', $filters['search'])
-                ->orLike('perjalanan_dinas.kode_mak', $filters['search'])
-                ->groupEnd();
-        }
+        $this->applyPencarian($builder, $filters['search'] ?? null, ['perjalanan_dinas.maksud', 'perjalanan_dinas.no_surat_tugas', 'perjalanan_dinas.kode_mak']);
         return $builder;
     }
 
