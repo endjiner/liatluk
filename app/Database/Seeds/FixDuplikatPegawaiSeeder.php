@@ -27,8 +27,9 @@ class FixDuplikatPegawaiSeeder extends Seeder
     /** [nama duplikat => nama kanonik yang benar/paling lengkap] */
     private const ALIAS = [
         'Alvindra' => 'Alvindra Pratama',
-        'Ika Kartika' => 'Ika Kartika, S.T.P',
-        'Alex Sander' => 'Alex Sander, S.Farm, Apt., M.H',
+        'Muchtar Ganda Taruna' => 'Muchtar Ghanda Taruna',
+        'Rizki Arfiyanti' => 'Rizki Afriyanti',
+        'sony' => 'Sony Lawrensia',
     ];
 
     public function run()
