@@ -734,8 +734,12 @@ let filterDebouncePerjadin = null;
 let halamanPerjadinSaatIni = 1;
 function jadwalkanMuatDaftarPerjadin() {
   clearTimeout(filterDebouncePerjadin);
-  filterDebouncePerjadin = setTimeout(() => muatDaftarTripPerjadin(1), 400);
+  filterDebouncePerjadin = setTimeout(() => muatDaftarTripPerjadin(1), 200);
 }
+// Nomor urut request — kalau user ketik cepat, respons yang lebih lama (mis. dari huruf
+// pertama) bisa balik BELAKANGAN dari respons huruf terakhir dan menimpa hasil yang lebih
+// baru dengan yang basi. Cuma respons dari request PALING TERAKHIR yang boleh dirender.
+let tripPerjadinRequestSeq = 0;
 async function muatDaftarTripPerjadin(page) {
   halamanPerjadinSaatIni = page || halamanPerjadinSaatIni || 1;
   const params = new URLSearchParams();
@@ -752,9 +756,12 @@ async function muatDaftarTripPerjadin(page) {
   params.set('page', halamanPerjadinSaatIni);
 
   const tbody = document.getElementById('pd-tbody-perjadin');
+  const seq = ++tripPerjadinRequestSeq;
+  tbody.innerHTML = '<tr><td colspan="10" class="text-center py-8 text-slate-500">Memuat...</td></tr>';
   try {
     const res = await fetch(BASE_URL + 'perjalanan-dinas/ajax?' + params.toString());
     const json = await res.json();
+    if (seq !== tripPerjadinRequestSeq) return; // ada request lebih baru yang menyusul, respons ini basi
     if (!json.success) { tbody.innerHTML = '<tr><td colspan="10" class="text-center py-8 text-red-500">Gagal memuat data.</td></tr>'; return; }
     renderTripTablePerjadin(json.data);
     renderPaginasiHalaman(document.getElementById('pd-pagination-wrap-perjadin'), {
@@ -763,6 +770,7 @@ async function muatDaftarTripPerjadin(page) {
     });
     document.getElementById('pd-total-perjadin').textContent = new Intl.NumberFormat('id-ID').format(json.total);
   } catch (e) {
+    if (seq !== tripPerjadinRequestSeq) return;
     tbody.innerHTML = '<tr><td colspan="10" class="text-center py-8 text-red-500">Gagal memuat data.</td></tr>';
   }
 }
@@ -813,8 +821,12 @@ function renderTripTablePerjadin(rows) {
 let dtPubFilterDebounce = null;
 function dtPubJadwalkanMuat() {
   clearTimeout(dtPubFilterDebounce);
-  dtPubFilterDebounce = setTimeout(() => muatDaftarDanaTaktisPub(1), 400);
+  dtPubFilterDebounce = setTimeout(() => muatDaftarDanaTaktisPub(1), 200);
 }
+// Nomor urut request — kalau user ketik cepat, respons yang lebih lama (mis. dari huruf
+// pertama) bisa balik BELAKANGAN dari respons huruf terakhir dan menimpa hasil yang lebih
+// baru dengan yang basi. Cuma respons dari request PALING TERAKHIR yang boleh dirender.
+let dtPubRequestSeq = 0;
 async function muatDaftarDanaTaktisPub(page) {
   const params = new URLSearchParams();
   const search = document.getElementById('dt-filter-search-pub').value;
@@ -830,9 +842,12 @@ async function muatDaftarDanaTaktisPub(page) {
   params.set('page', page || 1);
 
   const tbody = document.getElementById('dt-tbody-pub');
+  const seq = ++dtPubRequestSeq;
+  tbody.innerHTML = '<tr><td colspan="5" class="text-center py-8 text-slate-500">Memuat...</td></tr>';
   try {
     const res = await fetch(BASE_URL + 'perjalanan-dinas/dana-taktis/ajax?' + params.toString());
     const json = await res.json();
+    if (seq !== dtPubRequestSeq) return; // ada request lebih baru yang menyusul, respons ini basi
     if (!json.success) { tbody.innerHTML = '<tr><td colspan="5" class="text-center py-8 text-red-500">Gagal memuat data.</td></tr>'; return; }
     renderDanaTaktisTablePub(json.data);
     renderPaginasiHalaman(document.getElementById('dt-pagination-wrap-pub'), {
@@ -841,6 +856,7 @@ async function muatDaftarDanaTaktisPub(page) {
     });
     document.getElementById('dt-total-pub').textContent = new Intl.NumberFormat('id-ID').format(json.total);
   } catch (e) {
+    if (seq !== dtPubRequestSeq) return;
     tbody.innerHTML = '<tr><td colspan="5" class="text-center py-8 text-red-500">Gagal memuat data.</td></tr>';
   }
 }

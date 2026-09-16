@@ -438,6 +438,10 @@ function escapeHtml(s) { return String(s).replace(/[&<>"']/g, m => ({ '&':'&amp;
    berarti "biarkan backend pilih default" — yaitu halaman TERAKHIR (transaksi terbaru). */
 let currentPage = null;
 
+// Nomor urut request — kalau user ketik cepat, respons yang lebih lama (mis. dari huruf
+// pertama) bisa balik BELAKANGAN dari respons huruf terakhir dan menimpa hasil yang lebih
+// baru dengan yang basi. Cuma respons dari request PALING TERAKHIR yang boleh dirender.
+let txnRequestSeq = 0;
 function refreshTxn() {
   const showP  = document.getElementById('filter-pemasukan').checked;
   const showE  = document.getElementById('filter-pengeluaran').checked;
@@ -454,11 +458,13 @@ function refreshTxn() {
   });
   if (currentPage) params.set('page', currentPage);
 
+  const seq = ++txnRequestSeq;
   document.getElementById('txn-tbody').innerHTML = '<tr><td colspan="8" class="text-center py-8 text-slate-500">Memuat...</td></tr>';
 
   fetch(BASE_URL + 'admin/keuangan/ajax?' + params.toString())
     .then(r => r.json())
     .then(data => {
+      if (seq !== txnRequestSeq) return; // ada request lebih baru yang menyusul, respons ini basi
       currentPage = data.page || 1;
       renderTxn(data.data || []);
       document.getElementById('txn-total').textContent = new Intl.NumberFormat('id-ID').format(data.total || 0);
@@ -466,6 +472,7 @@ function refreshTxn() {
       clearAllSelection();
     })
     .catch(() => {
+      if (seq !== txnRequestSeq) return;
       document.getElementById('txn-tbody').innerHTML = '<tr><td colspan="8" class="text-center py-8 text-red-500">Gagal memuat data.</td></tr>';
     });
 }
@@ -567,7 +574,7 @@ window.gotoPage = gotoPage;
 let filterTimer;
 function scheduleFilterReset() {
   clearTimeout(filterTimer);
-  filterTimer = setTimeout(() => { currentPage = null; refreshTxn(); }, 300);
+  filterTimer = setTimeout(() => { currentPage = null; refreshTxn(); }, 200);
 }
 ['filter-pemasukan','filter-pengeluaran','filter-bulan','filter-tahun','filter-perpage'].forEach(id => {
   document.getElementById(id).addEventListener('change', scheduleFilterReset);

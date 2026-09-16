@@ -177,9 +177,14 @@ const escapeHtmlDt = (s) => String(s ?? '').replace(/[&<>"']/g, m => ({ '&':'&am
 let dtFilterDebounce = null;
 function dtJadwalkanMuat() {
   clearTimeout(dtFilterDebounce);
-  dtFilterDebounce = setTimeout(() => muatDaftarDanaTaktis(1), 400);
+  dtFilterDebounce = setTimeout(() => muatDaftarDanaTaktis(1), 200);
 }
 window.dtJadwalkanMuat = dtJadwalkanMuat;
+
+// Nomor urut request — kalau user ketik cepat, respons yang lebih lama (mis. dari huruf
+// pertama) bisa balik BELAKANGAN dari respons huruf terakhir dan menimpa hasil yang lebih
+// baru dengan yang basi. Cuma respons dari request PALING TERAKHIR yang boleh dirender.
+let dtRequestSeq = 0;
 
 async function muatDaftarDanaTaktis(page) {
   const params = new URLSearchParams();
@@ -196,9 +201,12 @@ async function muatDaftarDanaTaktis(page) {
   params.set('page', page || 1);
 
   const tbody = document.getElementById('dt-tbody');
+  const seq = ++dtRequestSeq;
+  tbody.innerHTML = '<tr><td colspan="6" class="text-center py-8 text-slate-500">Memuat...</td></tr>';
   try {
     const res = await fetch(API_DT + '/dana-taktis/list?' + params.toString());
     const json = await res.json();
+    if (seq !== dtRequestSeq) return; // ada request lebih baru yang menyusul, respons ini basi
     if (!json.success) { tbody.innerHTML = '<tr><td colspan="6" class="text-center py-8 text-red-500">Gagal memuat data.</td></tr>'; return; }
     renderDanaTaktisTable(json.data);
     renderPaginasiHalaman(document.getElementById('dt-pagination-wrap'), {
@@ -207,6 +215,7 @@ async function muatDaftarDanaTaktis(page) {
     });
     document.getElementById('dt-total').textContent = new Intl.NumberFormat('id-ID').format(json.total);
   } catch (e) {
+    if (seq !== dtRequestSeq) return;
     tbody.innerHTML = '<tr><td colspan="6" class="text-center py-8 text-red-500">Gagal memuat data.</td></tr>';
   }
 }

@@ -317,9 +317,14 @@ let halamanTripSaatIni = 1;
 let currentRows = [];
 function jadwalkanMuatDaftar() {
   clearTimeout(filterDebounceTimer);
-  filterDebounceTimer = setTimeout(() => muatDaftarTrip(1), 400);
+  filterDebounceTimer = setTimeout(() => muatDaftarTrip(1), 200);
 }
 window.jadwalkanMuatDaftar = jadwalkanMuatDaftar;
+
+// Nomor urut request — kalau user ketik cepat, respons yang lebih lama (mis. dari huruf
+// pertama) bisa balik BELAKANGAN dari respons huruf terakhir dan menimpa hasil yang lebih
+// baru dengan yang basi. Cuma respons dari request PALING TERAKHIR yang boleh dirender.
+let tripRequestSeq = 0;
 
 async function muatDaftarTrip(page) {
   halamanTripSaatIni = page || halamanTripSaatIni || 1;
@@ -337,9 +342,12 @@ async function muatDaftarTrip(page) {
   params.set('page', halamanTripSaatIni);
 
   const tbody = document.getElementById('pd-tbody-perjadin');
+  const seq = ++tripRequestSeq;
+  tbody.innerHTML = '<tr><td colspan="11" class="text-center py-8 text-slate-500">Memuat...</td></tr>';
   try {
     const res = await fetch(API + '/ajax?' + params.toString());
     const json = await res.json();
+    if (seq !== tripRequestSeq) return; // ada request lebih baru yang menyusul, respons ini basi
     if (!json.success) { tbody.innerHTML = '<tr><td colspan="11" class="text-center py-8 text-red-500">Gagal memuat data.</td></tr>'; return; }
     renderTripTable(json.data);
     renderPaginasiHalaman(document.getElementById('pd-pagination-wrap-perjadin'), {
@@ -348,6 +356,7 @@ async function muatDaftarTrip(page) {
     });
     document.getElementById('pd-total-perjadin').textContent = new Intl.NumberFormat('id-ID').format(json.total);
   } catch (e) {
+    if (seq !== tripRequestSeq) return;
     tbody.innerHTML = '<tr><td colspan="11" class="text-center py-8 text-red-500">Gagal memuat data.</td></tr>';
   }
 }
