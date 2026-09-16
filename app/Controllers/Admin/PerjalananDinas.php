@@ -63,15 +63,13 @@ class PerjalananDinas extends BaseController
         ];
     }
 
-    public function index(): string
+    /**
+     * Perjalanan Dinas sekarang jadi tab di admin/dashboard, bukan halaman tersendiri —
+     * redirect supaya tautan/bookmark lama tetap jalan.
+     */
+    public function index()
     {
-        $notifCount = $this->notifikasiModel->countUnread();
-
-        return view('admin/perjalanan_dinas', [
-            'notifCount'  => $notifCount,
-            'pegawaiList' => $this->pegawaiModel->getAktifList(),
-            'tahunList'   => $this->tripModel->getAvailableYears(),
-        ]);
+        return redirect()->to(base_url('admin/dashboard#perjadin'));
     }
 
     /** Dipanggil via fetch() dari filter/search/pagination di halaman index — tabel datar
@@ -299,12 +297,13 @@ class PerjalananDinas extends BaseController
 
     // ── Rekap Dana Taktis per pegawai ──────────────────────────────────────────────
 
-    public function danaTaktis(): string
+    /**
+     * Dana Taktis sekarang jadi tab di admin/dashboard, bukan halaman tersendiri —
+     * redirect supaya tautan/bookmark lama tetap jalan.
+     */
+    public function danaTaktis()
     {
-        return view('admin/dana_taktis', [
-            'notifCount'  => $this->notifikasiModel->countUnread(),
-            'pegawaiList' => $this->pegawaiModel->getAktifList(),
-        ]);
+        return redirect()->to(base_url('admin/dashboard#dana-taktis'));
     }
 
     /** Daftar Dana Taktis per peserta-per-trip, dipaginasi & difilter — dipakai di kartu

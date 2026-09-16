@@ -9,7 +9,8 @@ use App\Models\RencanaPemasukanModel;
 use App\Models\RencanaPengeluaranModel;
 use App\Models\PengaturanModel;
 use App\Models\NotifikasiModel;
-use App\Models\PerjalananDinasPesertaModel;
+use App\Models\PerjalananDinasModel;
+use App\Models\PegawaiModel;
 
 class Dashboard extends BaseController
 {
@@ -60,16 +61,6 @@ class Dashboard extends BaseController
         usort($rencanaAktif, fn($a, $b) => strtotime($a['tanggal_rencana']) - strtotime($b['tanggal_rencana']));
         $rencanaAktif = array_slice($rencanaAktif, 0, 5);
 
-        // Transaksi terbaru (gabungan)
-        $pemasukansRecent  = $pemasukanModel->orderBy('created_at', 'DESC')->findAll(5);
-        $pengeluaransRecent = $pengeluaranModel->orderBy('created_at', 'DESC')->findAll(5);
-        $transaksiRecent = array_merge(
-            array_map(fn($r) => array_merge($r, ['tipe' => 'pemasukan']), $pemasukansRecent),
-            array_map(fn($r) => array_merge($r, ['tipe' => 'pengeluaran']), $pengeluaransRecent)
-        );
-        usort($transaksiRecent, fn($a, $b) => strtotime($b['created_at']) - strtotime($a['created_at']));
-        $transaksiRecent = array_slice($transaksiRecent, 0, 5);
-
         // Notifikasi
         $notifCount = $notifikasiModel->countUnread();
 
@@ -100,12 +91,12 @@ class Dashboard extends BaseController
             'chartPengeluaran'    => json_encode($chartPengeluaran),
             'pieData'             => json_encode($pieData),
             'rencanaAktif'        => $rencanaAktif,
-            'transaksiRecent'     => $transaksiRecent,
-            'danaTaktisBelumDibayar' => array_slice((new PerjalananDinasPesertaModel())->getAllBelumDibayar(), 0, 5),
             'danaBelumDiterima'   => $danaBelumDiterima,
             'totalRencanaPemasukan'   => $totalRencanaPemasukan,
             'totalRencanaPengeluaran' => $totalRencanaPengeluaran,
             'notifCount'          => $notifCount,
+            'pegawaiList'         => (new PegawaiModel())->getAktifList(),
+            'tahunListPerjadin'   => (new PerjalananDinasModel())->getAvailableYears(),
         ]);
     }
 

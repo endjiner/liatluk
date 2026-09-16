@@ -1,16 +1,3 @@
-<?= $this->extend('layouts/admin') ?>
-<?= $this->section('content') ?>
-
-<div class="mb-8 flex flex-wrap items-center justify-between gap-4">
-  <div>
-    <h1 class="text-xl lg:text-2xl font-bold text-slate-800 dark:text-slate-100">Dana Taktis</h1>
-    <p class="text-sm text-slate-500 dark:text-slate-400 mt-1">Rekap setoran Dana Taktis (10% Uang Harian) per pegawai</p>
-  </div>
-  <a href="<?= base_url('admin/perjalanan-dinas') ?>" class="btn btn-outline btn-sm">
-    <?= iconsax('arrow-left', '') ?> <span class="hidden sm:inline">Perjalanan Dinas</span>
-  </a>
-</div>
-
 <div class="card mb-4">
   <div class="card-header">
     <h3 class="text-sm font-semibold text-slate-700 dark:text-slate-200">
@@ -168,10 +155,8 @@
   Pilih nama pegawai di atas untuk melihat rekap Dana Taktis-nya.
 </div></div>
 
-<?= $this->endSection() ?>
-
-<?= $this->section('scripts') ?>
 <script>
+(function() {
 const BASE = '<?= base_url() ?>';
 const API_DT = BASE + 'admin/perjalanan-dinas';
 const rupiah = (n) => 'Rp ' + new Intl.NumberFormat('id-ID').format(Math.round(parseFloat(n) || 0));
@@ -183,6 +168,7 @@ function dtJadwalkanMuat() {
   clearTimeout(dtFilterDebounce);
   dtFilterDebounce = setTimeout(() => muatDaftarDanaTaktis(1), 400);
 }
+window.dtJadwalkanMuat = dtJadwalkanMuat;
 
 async function muatDaftarDanaTaktis(page) {
   const params = new URLSearchParams();
@@ -213,6 +199,7 @@ async function muatDaftarDanaTaktis(page) {
     tbody.innerHTML = '<tr><td colspan="6" class="text-center py-8 text-red-500">Gagal memuat data.</td></tr>';
   }
 }
+window.muatDaftarDanaTaktis = muatDaftarDanaTaktis;
 
 function renderDanaTaktisTable(rows) {
   const tbody = document.getElementById('dt-tbody');
@@ -244,6 +231,8 @@ function dtBukaModalLunas(pesertaId) {
   document.getElementById('dt-lunas-tanggal').value = new Date().toISOString().slice(0, 10);
   openModal('modal-lunas-dt');
 }
+window.dtBukaModalLunas = dtBukaModalLunas;
+
 async function dtKonfirmasiLunas() {
   const id = document.getElementById('dt-lunas-peserta-id').value;
   const fd = new FormData();
@@ -254,17 +243,19 @@ async function dtKonfirmasiLunas() {
   if (json.success) { showToast(json.message, 'success'); closeModal('modal-lunas-dt'); muatDaftarDanaTaktis(); }
   else showToast(json.message || 'Gagal', 'error');
 }
-async function dtBatalkanLunas(pesertaId) {
-  if (!confirm('Batalkan status lunas? Pemasukan otomatis yang sudah tercatat akan ikut dihapus.')) return;
-  const fd = new FormData();
-  fd.append('aksi', 'batal');
-  const res = await fetch(API_DT + '/lunas/' + pesertaId, { method: 'POST', body: fd });
-  const json = await res.json();
-  if (json.success) { showToast(json.message, 'success'); muatDaftarDanaTaktis(); }
-  else showToast(json.message || 'Gagal', 'error');
-}
+window.dtKonfirmasiLunas = dtKonfirmasiLunas;
 
-document.addEventListener('DOMContentLoaded', () => { muatDaftarDanaTaktis(1); });
+function dtBatalkanLunas(pesertaId) {
+  tampilkanKonfirmasi('Batalkan status lunas? Pemasukan otomatis yang sudah tercatat akan ikut dihapus.', async () => {
+    const fd = new FormData();
+    fd.append('aksi', 'batal');
+    const res = await fetch(API_DT + '/lunas/' + pesertaId, { method: 'POST', body: fd });
+    const json = await res.json();
+    if (json.success) { showToast(json.message, 'success'); muatDaftarDanaTaktis(); }
+    else showToast(json.message || 'Gagal', 'error');
+  });
+}
+window.dtBatalkanLunas = dtBatalkanLunas;
 
 async function muatRekap() {
   const id = document.getElementById('pegawai-select').value;
@@ -306,5 +297,6 @@ async function muatRekap() {
     tbody.appendChild(tr);
   });
 }
+window.muatRekap = muatRekap;
+})();
 </script>
-<?= $this->endSection() ?>

@@ -25,9 +25,7 @@
   <?php
     $navLinks = [
       ['url' => 'admin',           'label' => 'Dashboard',        'icon' => 'category2', 'match' => ['admin', 'admin/dashboard']],
-      ['url' => 'admin/keuangan',  'label' => 'Data Keuangan',    'icon' => 'dollar-circle', 'match' => ['keuangan']],
       ['url' => 'admin/rencana',   'label' => 'Rencana Keuangan', 'icon' => 'calendar-tick', 'match' => ['rencana']],
-      ['url' => 'admin/perjalanan-dinas', 'label' => 'Perjalanan Dinas', 'icon' => 'airplane', 'match' => ['perjalanan-dinas']],
       ['url' => 'admin/laporan',   'label' => 'Laporan',          'icon' => 'document-text', 'match' => ['laporan']],
     ];
     $isNavActive = function ($nl) {
@@ -199,6 +197,28 @@
         <a href="<?= base_url('logout') ?>" class="btn btn-danger">
           <?= iconsax('logout', '') ?> Ya, Keluar
         </a>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- ═══════════ MODAL: KONFIRMASI UMUM (dipakai lintas halaman via tampilkanKonfirmasi()) ═══════════ -->
+<div id="modal-konfirmasi" class="hidden">
+  <div class="modal-backdrop" onclick="closeModal('modal-konfirmasi')"></div>
+  <div class="modal-container">
+    <div class="modal-box modal-box-sm">
+      <div class="modal-header">
+        <div class="flex items-start gap-3">
+          <div class="w-10 h-10 shrink-0 rounded-full bg-amber-100 dark:bg-amber-900/40 text-amber-600 dark:text-amber-400 flex items-center justify-center">
+            <?= iconsax('warning-2', 'w-5 h-5') ?>
+          </div>
+          <div><h3 class="text-base font-semibold text-slate-800 dark:text-slate-100">Konfirmasi</h3></div>
+        </div>
+      </div>
+      <div class="modal-body"><p class="text-sm text-slate-600 dark:text-slate-300" id="konfirmasi-text">Yakin ingin melanjutkan?</p></div>
+      <div class="modal-footer">
+        <button type="button" class="btn btn-ghost" onclick="closeModal('modal-konfirmasi')">Batal</button>
+        <button type="button" class="btn btn-primary" id="btn-konfirmasi-ya">Ya, Lanjutkan</button>
       </div>
     </div>
   </div>
@@ -473,6 +493,15 @@ window.openModal = openModal;
 window.closeModal = closeModal;
 window.openPopup = openPopup;
 window.closePopup = closePopup;
+
+/* ── Konfirmasi umum (reusable, ganti native confirm() browser) ── */
+function tampilkanKonfirmasi(pesan, aksi) {
+  document.getElementById('konfirmasi-text').textContent = pesan;
+  const btn = document.getElementById('btn-konfirmasi-ya');
+  btn.onclick = async function() { closeModal('modal-konfirmasi'); await aksi(); };
+  openModal('modal-konfirmasi');
+}
+window.tampilkanKonfirmasi = tampilkanKonfirmasi;
 
 function openMainDrawer() {
   document.getElementById('main-input-drawer')?.classList.remove('hidden');

@@ -45,16 +45,12 @@ class DataKeuangan extends BaseController
     }
 
     /**
-     * Halaman Data Keuangan: tabelnya sendiri sepenuhnya dimuat lewat AJAX (ajaxList()),
-     * jadi di sini cukup render shell halaman + notifCount.
+     * Data Keuangan sekarang jadi tab "Transaksi" di admin/dashboard, bukan halaman
+     * tersendiri — redirect supaya tautan/bookmark lama tetap jalan.
      */
-    public function index(): string
+    public function index()
     {
-        $notifCount = $this->notifikasiModel->countUnread();
-
-        return view('admin/data_keuangan', [
-            'notifCount' => $notifCount,
-        ]);
+        return redirect()->to(base_url('admin/dashboard'));
     }
 
     /**

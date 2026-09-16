@@ -1,30 +1,19 @@
-<?= $this->extend('layouts/admin') ?>
-<?= $this->section('content') ?>
 <?php $namaBulan = ['', 'Januari', 'Februari', 'Maret', 'April', 'Mei', 'Juni', 'Juli', 'Agustus', 'September', 'Oktober', 'November', 'Desember']; ?>
 
-<div class="mb-8 flex flex-wrap items-center justify-between gap-4">
-  <div>
-    <h1 class="text-xl lg:text-2xl font-bold text-slate-800 dark:text-slate-100">Perjalanan Dinas</h1>
-    <p class="text-sm text-slate-500 dark:text-slate-400 mt-1">Rekap SPJ &amp; setoran Dana Taktis (10% Uang Harian) per perjalanan dinas</p>
-  </div>
-  <div class="flex flex-wrap items-center gap-2">
-    <a href="<?= base_url('admin/perjalanan-dinas/dana-taktis') ?>" class="btn btn-outline btn-sm">
-      <?= iconsax('moneys', '') ?> <span class="hidden sm:inline">Dana Taktis</span>
-    </a>
-    <button class="btn btn-outline btn-sm" onclick="bukaModalPegawai()">
-      <?= iconsax('people', '') ?> <span class="hidden sm:inline">Kelola Pegawai</span>
-    </button>
-    <button class="btn btn-success btn-sm" onclick="bukaModalTrip()">
-      <?= iconsax('add', '') ?> <span class="hidden sm:inline">Perjalanan Dinas</span>
-    </button>
-  </div>
+<div class="mb-3 flex items-center justify-end gap-2">
+  <button class="btn btn-outline btn-sm" onclick="bukaModalPegawai()">
+    <?= iconsax('people', '') ?> <span class="hidden sm:inline">Kelola Pegawai</span>
+  </button>
+  <button class="btn btn-success btn-sm" onclick="bukaModalTrip()">
+    <?= iconsax('add', '') ?> <span class="hidden sm:inline">Perjalanan Dinas</span>
+  </button>
 </div>
 
 <!-- Filter -->
 <div class="card mb-4">
   <div class="card-header">
     <h3 class="text-sm font-semibold text-slate-700 dark:text-slate-200">Daftar Perjalanan Dinas</h3>
-    <span class="text-xs text-slate-500">Total: <span id="pd-total">-</span></span>
+    <span class="text-xs text-slate-500">Total: <span id="pd-total-perjadin">-</span></span>
   </div>
   <div class="p-3 border-b border-slate-200 dark:border-slate-700 bg-slate-50 dark:bg-slate-900/40">
     <div class="flex flex-wrap items-center gap-2">
@@ -32,29 +21,29 @@
         <span class="absolute inset-y-0 left-3 flex items-center text-slate-400">
           <?= iconsax('search-normal-1', 'w-3.5 h-3.5') ?>
         </span>
-        <input type="text" id="filter-search" oninput="jadwalkanMuatDaftar()" placeholder="Nama, maksud, no surat tugas, MAK..." class="form-control form-control-sm pl-8">
+        <input type="text" id="filter-search-perjadin" oninput="jadwalkanMuatDaftar()" placeholder="Nama, maksud, no surat tugas, MAK..." class="form-control form-control-sm pl-8">
       </div>
-      <select id="filter-status" onchange="muatDaftarTrip(1)" class="form-control form-control-sm w-auto">
+      <select id="filter-status-perjadin" onchange="muatDaftarTrip(1)" class="form-control form-control-sm w-auto">
         <option value="">Semua Status</option>
         <option value="belum">Belum Lunas</option>
         <option value="lunas">Lunas</option>
       </select>
-      <select id="filter-bulan" onchange="muatDaftarTrip(1)" class="form-control form-control-sm w-auto">
+      <select id="filter-bulan-perjadin" onchange="muatDaftarTrip(1)" class="form-control form-control-sm w-auto">
         <option value="">Semua Bulan</option>
         <?php for ($b = 1; $b <= 12; $b++): ?>
         <option value="<?= $b ?>"><?= $namaBulan[$b] ?></option>
         <?php endfor; ?>
       </select>
-      <select id="filter-tahun" onchange="muatDaftarTrip(1)" class="form-control form-control-sm w-auto">
+      <select id="filter-tahun-perjadin" onchange="muatDaftarTrip(1)" class="form-control form-control-sm w-auto">
         <option value="">Semua Tahun</option>
-        <?php $tahunSaatIni = (int)date('Y'); $daftarTahun = $tahunList; if (!in_array($tahunSaatIni, $daftarTahun)) $daftarTahun[] = $tahunSaatIni; rsort($daftarTahun); ?>
+        <?php $tahunSaatIni = (int)date('Y'); $daftarTahun = $tahunListPerjadin; if (!in_array($tahunSaatIni, $daftarTahun)) $daftarTahun[] = $tahunSaatIni; rsort($daftarTahun); ?>
         <?php foreach ($daftarTahun as $th): ?>
         <option value="<?= $th ?>"><?= $th ?></option>
         <?php endforeach; ?>
       </select>
       <div class="flex items-center gap-1.5 pl-3 border-l border-slate-200 dark:border-slate-700">
         <span class="text-xs text-slate-600 dark:text-slate-400">Tampilkan</span>
-        <select id="filter-per-page" onchange="muatDaftarTrip(1)" class="form-control form-control-sm w-auto">
+        <select id="filter-per-page-perjadin" onchange="muatDaftarTrip(1)" class="form-control form-control-sm w-auto">
           <option value="10" selected>10</option>
           <option value="25">25</option>
           <option value="50">50</option>
@@ -85,13 +74,13 @@
           <th class="text-right">Hotel</th>
         </tr>
       </thead>
-      <tbody id="pd-tbody">
+      <tbody id="pd-tbody-perjadin">
         <tr><td colspan="11" class="text-center py-8 text-slate-500">Memuat data...</td></tr>
       </tbody>
     </table>
   </div>
 
-  <div id="pd-pagination-wrap" class="flex items-center justify-between gap-3 p-3 border-t border-slate-200 dark:border-slate-700 flex-wrap"></div>
+  <div id="pd-pagination-wrap-perjadin" class="flex items-center justify-between gap-3 p-3 border-t border-slate-200 dark:border-slate-700 flex-wrap"></div>
 </div>
 
 <!-- Modal Tambah/Edit Perjalanan Dinas -->
@@ -279,32 +268,8 @@
   </div>
 </div>
 
-<!-- Modal Konfirmasi -->
-<div id="modal-konfirmasi" class="hidden">
-  <div class="modal-backdrop" onclick="closeModal('modal-konfirmasi')"></div>
-  <div class="modal-container">
-    <div class="modal-box modal-box-sm">
-      <div class="modal-header">
-        <div class="flex items-start gap-3">
-          <div class="w-10 h-10 shrink-0 rounded-full bg-amber-100 dark:bg-amber-900/40 text-amber-600 dark:text-amber-400 flex items-center justify-center">
-            <?= iconsax('warning-2', 'w-5 h-5') ?>
-          </div>
-          <div><h3 class="text-base font-semibold text-slate-800 dark:text-slate-100">Konfirmasi</h3></div>
-        </div>
-      </div>
-      <div class="modal-body"><p class="text-sm text-slate-600 dark:text-slate-300" id="konfirmasi-text">Yakin ingin melanjutkan?</p></div>
-      <div class="modal-footer">
-        <button class="btn btn-ghost" onclick="closeModal('modal-konfirmasi')">Batal</button>
-        <button class="btn btn-danger" id="btn-konfirmasi-ya">Ya, Lanjutkan</button>
-      </div>
-    </div>
-  </div>
-</div>
-
-<?= $this->endSection() ?>
-
-<?= $this->section('scripts') ?>
 <script>
+(function() {
 const BASE = '<?= base_url() ?>';
 const API  = BASE + 'admin/perjalanan-dinas';
 let tiketIdx = 0;
@@ -319,14 +284,16 @@ function jadwalkanMuatDaftar() {
   clearTimeout(filterDebounceTimer);
   filterDebounceTimer = setTimeout(() => muatDaftarTrip(1), 400);
 }
+window.jadwalkanMuatDaftar = jadwalkanMuatDaftar;
+
 async function muatDaftarTrip(page) {
   halamanTripSaatIni = page || halamanTripSaatIni || 1;
   const params = new URLSearchParams();
-  const tahun = document.getElementById('filter-tahun').value;
-  const bulan = document.getElementById('filter-bulan').value;
-  const status = document.getElementById('filter-status').value;
-  const search = document.getElementById('filter-search').value;
-  const perPage = document.getElementById('filter-per-page').value;
+  const tahun = document.getElementById('filter-tahun-perjadin').value;
+  const bulan = document.getElementById('filter-bulan-perjadin').value;
+  const status = document.getElementById('filter-status-perjadin').value;
+  const search = document.getElementById('filter-search-perjadin').value;
+  const perPage = document.getElementById('filter-per-page-perjadin').value;
   if (tahun) params.set('tahun', tahun);
   if (bulan) params.set('bulan', bulan);
   if (status) params.set('status', status);
@@ -334,29 +301,29 @@ async function muatDaftarTrip(page) {
   if (perPage) params.set('per_page', perPage);
   params.set('page', halamanTripSaatIni);
 
-  const tbody = document.getElementById('pd-tbody');
+  const tbody = document.getElementById('pd-tbody-perjadin');
   try {
     const res = await fetch(API + '/ajax?' + params.toString());
     const json = await res.json();
     if (!json.success) { tbody.innerHTML = '<tr><td colspan="11" class="text-center py-8 text-red-500">Gagal memuat data.</td></tr>'; return; }
     renderTripTable(json.data);
-    renderPaginasiHalaman(document.getElementById('pd-pagination-wrap'), {
+    renderPaginasiHalaman(document.getElementById('pd-pagination-wrap-perjadin'), {
       total: json.total, perPage: json.per_page, page: json.page,
       itemLabel: 'peserta', onPageChange: muatDaftarTrip,
     });
-    document.getElementById('pd-total').textContent = new Intl.NumberFormat('id-ID').format(json.total);
-    history.replaceState(null, '', BASE + 'admin/perjalanan-dinas' + (params.toString() ? '?' + params.toString() : ''));
+    document.getElementById('pd-total-perjadin').textContent = new Intl.NumberFormat('id-ID').format(json.total);
   } catch (e) {
     tbody.innerHTML = '<tr><td colspan="11" class="text-center py-8 text-red-500">Gagal memuat data.</td></tr>';
   }
 }
+window.muatDaftarTrip = muatDaftarTrip;
 
 /** Tabel datar 1 baris = 1 peserta. Kolom "No"/"Perjalanan Dinas" (+ aksi trip) hanya
  *  ditampilkan pada baris pertama tiap trip (baris-baris berikutnya dari trip yang sama
  *  dikosongkan) supaya trip dengan banyak peserta tidak mengulang info yang sama. */
 function renderTripTable(rows) {
   currentRows = rows;
-  const tbody = document.getElementById('pd-tbody');
+  const tbody = document.getElementById('pd-tbody-perjadin');
   if (!rows.length) {
     tbody.innerHTML = '<tr><td colspan="11" class="text-center py-8 text-slate-500"><img src="https://img.icons8.com/3d-fluency/64/empty-box.png" alt="" class="w-10 h-10 mx-auto mb-2 opacity-80"><br>Tidak ada data yang cocok.</td></tr>';
     return;
@@ -418,16 +385,9 @@ function editTripByIdx(idx) {
   const r = currentRows[idx];
   editTrip({ id: r.perjalanan_dinas_id, maksud: r.maksud, tanggal_surat_tugas: r.tanggal_surat_tugas, no_surat_tugas: r.no_surat_tugas, kode_mak: r.kode_mak, no_spm: r.no_spm });
 }
+window.editTripByIdx = editTripByIdx;
 function editPesertaByIdx(idx) { editPeserta(currentRows[idx]); }
-
-document.addEventListener('DOMContentLoaded', () => { muatDaftarTrip(1); });
-
-function tampilkanKonfirmasi(pesan, aksi) {
-  document.getElementById('konfirmasi-text').textContent = pesan;
-  const btn = document.getElementById('btn-konfirmasi-ya');
-  btn.onclick = async function() { closeModal('modal-konfirmasi'); await aksi(); };
-  openModal('modal-konfirmasi');
-}
+window.editPesertaByIdx = editPesertaByIdx;
 
 // ── Trip (header) ──────────────────────────────────────────────────────────────
 
@@ -437,6 +397,8 @@ function bukaModalTrip() {
   document.getElementById('trip-modal-title').innerHTML = iconsax('airplane', 'w-5 h-5 text-primary-600') + ' Perjalanan Dinas Baru';
   openModal('modal-trip');
 }
+window.bukaModalTrip = bukaModalTrip;
+
 function editTrip(trip) {
   document.getElementById('trip-id').value = trip.id;
   document.getElementById('trip-maksud').value = trip.maksud;
@@ -456,6 +418,7 @@ async function submitTrip(e) {
   if (json.success) { showToast(json.message, 'success'); closeModal('modal-trip'); setTimeout(muatDaftarTrip, 800); }
   else showToast(json.message || 'Gagal menyimpan', 'error');
 }
+window.submitTrip = submitTrip;
 function hapusTrip(id) {
   tampilkanKonfirmasi('Hapus perjalanan dinas ini beserta seluruh peserta, tiket, dan hotelnya? Setoran Dana Taktis yang sudah lunas juga akan dibatalkan.', async () => {
     const res = await fetch(API + '/delete/' + id, { method: 'POST' });
@@ -464,6 +427,7 @@ function hapusTrip(id) {
     else showToast(json.message || 'Gagal menghapus', 'error');
   });
 }
+window.hapusTrip = hapusTrip;
 
 // ── Peserta (+ tiket & hotel) ────────────────────────────────────────────────────
 
@@ -481,6 +445,7 @@ function bukaModalPeserta(tripId) {
   document.getElementById('peserta-modal-title').innerHTML = iconsax('user-add', 'w-5 h-5 text-primary-600') + ' Tambah Peserta';
   openModal('modal-peserta');
 }
+window.bukaModalPeserta = bukaModalPeserta;
 
 function tambahBarisTiket(data) {
   const tpl = document.getElementById('tiket-row-template').innerHTML.replaceAll('__IDX__', tiketIdx++);
@@ -500,6 +465,7 @@ function tambahBarisTiket(data) {
   }
   document.getElementById('tiket-rows').appendChild(row);
 }
+window.tambahBarisTiket = tambahBarisTiket;
 
 function editPeserta(p) {
   kosongkanFormPeserta();
@@ -538,6 +504,7 @@ async function submitPeserta(e) {
   if (json.success) { showToast(json.message, 'success'); closeModal('modal-peserta'); setTimeout(muatDaftarTrip, 800); }
   else showToast(json.message || 'Gagal menyimpan', 'error');
 }
+window.submitPeserta = submitPeserta;
 
 function hapusPeserta(id) {
   tampilkanKonfirmasi('Hapus peserta ini beserta tiket & hotelnya?', async () => {
@@ -547,6 +514,7 @@ function hapusPeserta(id) {
     else showToast(json.message || 'Gagal menghapus', 'error');
   });
 }
+window.hapusPeserta = hapusPeserta;
 
 /** Estimasi Total SPJ & Dana Taktis di sisi klien — cuma preview, angka final selalu dihitung ulang di server (recalculate()) saat disimpan. */
 function hitungPreviewPeserta() {
@@ -560,6 +528,7 @@ function hitungPreviewPeserta() {
   document.getElementById('preview-total-spj').textContent = 'Rp ' + new Intl.NumberFormat('id-ID').format(total);
   document.getElementById('preview-dana-taktis').textContent = 'Rp ' + new Intl.NumberFormat('id-ID').format(danaTaktis);
 }
+window.hitungPreviewPeserta = hitungPreviewPeserta;
 
 // ── Status Lunas ─────────────────────────────────────────────────────────────────
 
@@ -568,6 +537,8 @@ function bukaModalLunas(pesertaId) {
   document.getElementById('lunas-tanggal').value = new Date().toISOString().slice(0, 10);
   openModal('modal-lunas');
 }
+window.bukaModalLunas = bukaModalLunas;
+
 async function konfirmasiLunas() {
   const id = document.getElementById('lunas-peserta-id').value;
   const fd = new FormData();
@@ -578,6 +549,8 @@ async function konfirmasiLunas() {
   if (json.success) { showToast(json.message, 'success'); closeModal('modal-lunas'); setTimeout(muatDaftarTrip, 800); }
   else showToast(json.message || 'Gagal', 'error');
 }
+window.konfirmasiLunas = konfirmasiLunas;
+
 function batalkanLunas(pesertaId) {
   tampilkanKonfirmasi('Batalkan status lunas? Pemasukan otomatis yang sudah tercatat akan ikut dihapus.', async () => {
     const fd = new FormData();
@@ -588,6 +561,7 @@ function batalkanLunas(pesertaId) {
     else showToast(json.message || 'Gagal', 'error');
   });
 }
+window.batalkanLunas = batalkanLunas;
 
 // ── Master Data Pegawai ──────────────────────────────────────────────────────────
 
@@ -610,6 +584,8 @@ function bukaModalPegawai() {
   openModal('modal-pegawai');
   muatDaftarPegawai();
 }
+window.bukaModalPegawai = bukaModalPegawai;
+
 async function tambahPegawai(e) {
   e.preventDefault();
   const fd = new FormData();
@@ -625,11 +601,15 @@ async function tambahPegawai(e) {
     await segarkanOpsiPegawai();
   } else showToast(json.message || 'Gagal', 'error');
 }
+window.tambahPegawai = tambahPegawai;
+
 async function nonaktifkanPegawai(id) {
   const res = await fetch(API + '/pegawai/delete/' + id, { method: 'POST' });
   const json = await res.json();
   if (json.success) { showToast(json.message, 'success'); await muatDaftarPegawai(); await segarkanOpsiPegawai(); }
 }
+window.nonaktifkanPegawai = nonaktifkanPegawai;
+
 async function segarkanOpsiPegawai() {
   const res = await fetch(API + '/pegawai');
   const json = await res.json();
@@ -641,5 +621,5 @@ async function segarkanOpsiPegawai() {
     sel.value = current;
   });
 }
+})();
 </script>
-<?= $this->endSection() ?>

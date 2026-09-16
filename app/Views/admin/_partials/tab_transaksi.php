@@ -1,29 +1,16 @@
-<?= $this->extend('layouts/admin') ?>
-<?= $this->section('content') ?>
-
 <?php
 $namaBulan = [1=>'Januari',2=>'Februari',3=>'Maret',4=>'April',5=>'Mei',6=>'Juni',7=>'Juli',8=>'Agustus',9=>'September',10=>'Oktober',11=>'November',12=>'Desember'];
 $tahunSekarang = (int)date('Y');
 $tahunOpsi = range($tahunSekarang, $tahunSekarang - 5);
 ?>
 
-<!-- Header -->
-<div class="mb-8 flex flex-wrap items-center justify-between gap-4">
-  <div>
-    <h1 class="text-xl lg:text-2xl font-bold text-slate-800 dark:text-slate-100">Data Keuangan</h1>
-    <p class="text-sm text-slate-500 dark:text-slate-400 mt-1">Kelola pemasukan & pengeluaran</p>
-  </div>
-  <div class="flex flex-wrap items-center gap-2">
-    <button onclick="openModal('modal-import')" class="btn btn-outline btn-sm">
-      <?= iconsax('document-upload', '') ?> <span class="hidden sm:inline">Import CSV</span>
-    </button>
-    <button onclick="openExportMenu()" class="btn btn-outline btn-sm">
-      <?= iconsax('document-download', '') ?> <span class="hidden sm:inline">Export</span>
-    </button>
-    <button onclick="openMainDrawer()" class="btn btn-primary btn-sm">
-      <?= iconsax('add', '') ?> <span class="hidden sm:inline">Input Baru</span>
-    </button>
-  </div>
+<div class="mb-3 flex items-center justify-end gap-2">
+  <button onclick="openModal('modal-import')" class="btn btn-outline btn-sm">
+    <?= iconsax('document-upload', '') ?> <span class="hidden sm:inline">Import CSV</span>
+  </button>
+  <button onclick="openExportMenu()" class="btn btn-outline btn-sm">
+    <?= iconsax('document-download', '') ?> <span class="hidden sm:inline">Export</span>
+  </button>
 </div>
 
 <!-- Bulk action bar -->
@@ -131,8 +118,6 @@ $tahunOpsi = range($tahunSekarang, $tahunSekarang - 5);
   <!-- Pagination -->
   <div id="pagination-wrap" class="flex items-center justify-between gap-3 p-3 border-t border-slate-200 dark:border-slate-700 flex-wrap"></div>
 </div>
-
-
 
 <!-- ═══════ MODAL: EDIT PEMASUKAN ═══════ -->
 <div id="modal-edit-pemasukan" class="hidden">
@@ -320,32 +305,6 @@ $tahunOpsi = range($tahunSekarang, $tahunSekarang - 5);
   </div>
 </div>
 
-<!-- ═══════ MODAL: KONFIRMASI UMUM ═══════ -->
-<div id="modal-konfirmasi" class="hidden">
-  <div class="modal-backdrop" onclick="closeModal('modal-konfirmasi')"></div>
-  <div class="modal-container">
-    <div class="modal-box modal-box-sm">
-      <div class="modal-header">
-        <div class="flex items-start gap-3">
-          <div class="w-10 h-10 shrink-0 rounded-full bg-emerald-100 dark:bg-emerald-900/40 text-emerald-600 dark:text-emerald-400 flex items-center justify-center">
-            <?= iconsax('tick-circle', 'w-5 h-5') ?>
-          </div>
-          <div>
-            <h3 class="text-base font-semibold text-slate-800 dark:text-slate-100" id="konfirmasi-title">Konfirmasi</h3>
-          </div>
-        </div>
-      </div>
-      <div class="modal-body">
-        <p class="text-sm text-slate-600 dark:text-slate-300" id="konfirmasi-text">Yakin ingin melanjutkan?</p>
-      </div>
-      <div class="modal-footer">
-        <button type="button" class="btn btn-ghost" onclick="closeModal('modal-konfirmasi')">Batal</button>
-        <button type="button" class="btn btn-primary" id="btn-konfirmasi-ya">Ya, Lanjutkan</button>
-      </div>
-    </div>
-  </div>
-</div>
-
 <!-- ═══════ MODAL: BULK HAPUS ═══════ -->
 <div id="modal-bulk-hapus" class="hidden">
   <div class="modal-backdrop" onclick="closeModal('modal-bulk-hapus')"></div>
@@ -439,15 +398,12 @@ $tahunOpsi = range($tahunSekarang, $tahunSekarang - 5);
   </div>
 </div>
 
-<?= $this->endSection() ?>
-
-<?= $this->section('scripts') ?>
 <script>
+(function() {
 const BASE_URL = '<?= base_url() ?>';
 
 /* ── Helpers ── */
 function openExportMenu() { openModal('modal-export'); }
-function bulanNama(m) { return ['','Jan','Feb','Mar','Apr','Mei','Jun','Jul','Ags','Sep','Okt','Nov','Des'][m] || ''; }
 function fmtRp(v) { return 'Rp ' + new Intl.NumberFormat('id-ID').format(Math.round(parseFloat(v) || 0)); }
 function fmtDate(s) { if (!s) return '-'; const d = new Date(s); return d.toLocaleDateString('id-ID', { day: '2-digit', month: 'long', year: 'numeric' }); }
 function statusBadge(s) {
@@ -513,6 +469,7 @@ function refreshTxn() {
       document.getElementById('txn-tbody').innerHTML = '<tr><td colspan="8" class="text-center py-8 text-red-500">Gagal memuat data.</td></tr>';
     });
 }
+window.refreshTxn = refreshTxn;
 
 function renderTxn(rows) {
   const tbody = document.getElementById('txn-tbody');
@@ -617,8 +574,6 @@ function scheduleFilterReset() {
 });
 document.getElementById('filter-search').addEventListener('input', scheduleFilterReset);
 
-document.addEventListener('DOMContentLoaded', () => { refreshTxn(); });
-
 /* ── Detail modal ── */
 function showDetailRow(row) {
   const isP = row.tipe === 'pemasukan';
@@ -659,6 +614,7 @@ function showDetailRow(row) {
   }
   openModal('modal-detail');
 }
+window.showDetailRow = showDetailRow;
 
 /* ── Edit Pemasukan ── */
 function editPemasukan(row) {
@@ -681,6 +637,7 @@ function editPemasukan(row) {
   }
   openModal('modal-edit-pemasukan');
 }
+window.editPemasukan = editPemasukan;
 
 async function submitEditPemasukan(e) {
   e.preventDefault();
@@ -691,6 +648,7 @@ async function submitEditPemasukan(e) {
   if (json.success) { showToast(json.message, 'success'); closeModal('modal-edit-pemasukan'); setTimeout(() => location.reload(), 800); }
   else showToast(json.message || 'Gagal update', 'error');
 }
+window.submitEditPemasukan = submitEditPemasukan;
 
 /* ── Edit Pengeluaran ── */
 function editPengeluaran(row) {
@@ -709,6 +667,7 @@ function editPengeluaran(row) {
   }
   openModal('modal-edit-pengeluaran');
 }
+window.editPengeluaran = editPengeluaran;
 
 async function submitEditPengeluaran(e) {
   e.preventDefault();
@@ -719,16 +678,10 @@ async function submitEditPengeluaran(e) {
   if (json.success) { showToast(json.message, 'success'); closeModal('modal-edit-pengeluaran'); setTimeout(() => location.reload(), 800); }
   else showToast(json.message || 'Gagal update', 'error');
 }
+window.submitEditPengeluaran = submitEditPengeluaran;
 
 /* ── Delete (single) ── */
 let pendingDelete = null;
-/* ── Konfirmasi umum (reusable, ganti native confirm() browser) ── */
-function tampilkanKonfirmasi(pesan, aksi) {
-  document.getElementById('konfirmasi-text').textContent = pesan;
-  const btn = document.getElementById('btn-konfirmasi-ya');
-  btn.onclick = async function() { closeModal('modal-konfirmasi'); await aksi(); };
-  openModal('modal-konfirmasi');
-}
 
 /* ── Tandai Selesai (shortcut: sebagian/belum diterima -> lunas sekaligus) ── */
 function tandaiSelesai(id, jumlah) {
@@ -742,9 +695,13 @@ function tandaiSelesai(id, jumlah) {
     else showToast(json.message || 'Gagal menandai selesai', 'error');
   });
 }
+window.tandaiSelesai = tandaiSelesai;
 
 function deletePemasukan(id)   { pendingDelete = BASE_URL + 'admin/keuangan/pemasukan/delete/' + id;   openModal('modal-hapus'); }
 function deletePengeluaran(id) { pendingDelete = BASE_URL + 'admin/keuangan/pengeluaran/delete/' + id; openModal('modal-hapus'); }
+window.deletePemasukan = deletePemasukan;
+window.deletePengeluaran = deletePengeluaran;
+
 document.getElementById('btn-confirm-hapus').onclick = async function() {
   if (!pendingDelete) return;
   const res = await fetch(pendingDelete, { method: 'POST' });
@@ -769,6 +726,7 @@ function onRowCheck(cb) {
   cb.closest('tr')?.classList.toggle('selected', cb.checked);
   updateBulkBar();
 }
+window.onRowCheck = onRowCheck;
 
 function getSelectedIds() {
   const p = Array.from(document.querySelectorAll('.row-checkbox-pemasukan:checked')).map(cb => cb.closest('tr').dataset.id);
@@ -790,6 +748,7 @@ function clearAllSelection() {
   if (master) master.checked = false;
   updateBulkBar();
 }
+window.clearAllSelection = clearAllSelection;
 
 document.getElementById('btn-confirm-bulk-hapus').onclick = async function() {
   const { pemasukan, pengeluaran } = getSelectedIds();
@@ -812,5 +771,9 @@ async function submitImport(e) {
   if (json.success) { showToast(json.message, 'success'); closeModal('modal-import'); setTimeout(() => location.reload(), 800); }
   else showToast(json.message || 'Gagal import', 'error');
 }
+window.submitImport = submitImport;
+window.openExportMenu = openExportMenu;
+
+document.addEventListener('DOMContentLoaded', () => { refreshTxn(); });
+})();
 </script>
-<?= $this->endSection() ?>

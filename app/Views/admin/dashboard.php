@@ -138,98 +138,64 @@ $tahunOpsi = range($tahunSekarang, $tahunSekarang - 5);
   </div>
 </div>
 
-<!-- Recent + Rencana -->
-<div class="grid grid-cols-1 lg:grid-cols-2 gap-4">
-  <div class="card">
-    <div class="card-header">
-      <h3 class="text-sm font-semibold text-slate-700 dark:text-slate-200">Transaksi Terbaru</h3>
-      <a href="<?= base_url('admin/keuangan') ?>" class="text-xs text-primary-600 dark:text-primary-400 hover:underline">Lihat semua</a>
-    </div>
-    <div class="overflow-x-auto">
-      <table class="table">
-        <thead>
-          <tr><th>Tanggal</th><th>Kategori</th><th>Tipe</th><th class="text-right">Nominal</th></tr>
-        </thead>
-        <tbody>
-        <?php if (empty($transaksiRecent)): ?>
-          <tr><td colspan="4" class="text-center py-6 text-slate-500">Belum ada transaksi.</td></tr>
-        <?php else: foreach ($transaksiRecent as $t): ?>
-          <tr>
-            <td><?= date('d M Y', strtotime($t['tanggal'])) ?></td>
-            <td class="truncate max-w-[200px]"><?= esc($t['kategori']) ?></td>
-            <td>
-              <?php if ($t['tipe'] === 'pemasukan'): ?>
-                <span class="badge badge-success"><?= iconsax('trend-up', 'w-3 h-3') ?> Pemasukan</span>
-              <?php else: ?>
-                <span class="badge badge-danger"><?= iconsax('trend-down', 'w-3 h-3') ?> Pengeluaran</span>
-              <?php endif; ?>
-            </td>
-            <td class="text-right font-medium text-currency <?= $t['tipe'] === 'pemasukan' ? 'text-emerald-600' : 'text-red-600' ?>">
-              Rp <?= number_format($t['jumlah'], 0, ',', '.') ?>
-            </td>
-          </tr>
-        <?php endforeach; endif; ?>
-        </tbody>
-      </table>
-    </div>
+<!-- Rencana ringkas -->
+<?php if (!empty($rencanaAktif)): ?>
+<div class="card mb-6">
+  <div class="card-header">
+    <h3 class="text-sm font-semibold text-slate-700 dark:text-slate-200 flex items-center gap-2">
+      <?= iconsax('calendar-tick', 'w-4 h-4 text-primary-600') ?> Rencana Keuangan Aktif
+    </h3>
+    <a href="<?= base_url('admin/rencana') ?>" class="text-xs text-primary-600 dark:text-primary-400 hover:underline">Lihat semua</a>
   </div>
+  <div class="overflow-x-auto">
+    <table class="table">
+      <thead>
+        <tr><th>Tanggal Rencana</th><th>Kategori</th><th>Tipe</th><th class="text-right">Nominal</th></tr>
+      </thead>
+      <tbody>
+        <?php foreach ($rencanaAktif as $r): ?>
+        <tr>
+          <td class="whitespace-nowrap"><?= date('d M Y', strtotime($r['tanggal_rencana'])) ?></td>
+          <td><?= esc($r['kategori']) ?></td>
+          <td>
+            <?php if ($r['tipe'] === 'pemasukan'): ?>
+              <span class="badge badge-info">Pemasukan</span>
+            <?php else: ?>
+              <span class="badge badge-warning">Pengeluaran</span>
+            <?php endif; ?>
+          </td>
+          <td class="text-right font-medium text-currency">Rp <?= number_format($r['jumlah_rencana'], 0, ',', '.') ?></td>
+        </tr>
+        <?php endforeach; ?>
+      </tbody>
+    </table>
+  </div>
+</div>
+<?php endif; ?>
 
-  <div class="card">
-    <div class="card-header">
-      <h3 class="text-sm font-semibold text-slate-700 dark:text-slate-200">Rencana Mendatang</h3>
-      <a href="<?= base_url('admin/rencana') ?>" class="text-xs text-primary-600 dark:text-primary-400 hover:underline">Lihat semua</a>
-    </div>
-    <div class="overflow-x-auto">
-      <table class="table">
-        <thead>
-          <tr><th>Tanggal</th><th>Kategori</th><th>Tipe</th><th class="text-right">Nominal</th></tr>
-        </thead>
-        <tbody>
-        <?php if (empty($rencanaAktif)): ?>
-          <tr><td colspan="4" class="text-center py-6 text-slate-500">Belum ada rencana aktif.</td></tr>
-        <?php else: foreach ($rencanaAktif as $r): ?>
-          <tr>
-            <td><?= date('d M Y', strtotime($r['tanggal_rencana'])) ?></td>
-            <td class="truncate max-w-[200px]"><?= esc($r['kategori']) ?></td>
-            <td>
-              <?php if ($r['tipe'] === 'pemasukan'): ?>
-                <span class="badge badge-info">Pemasukan</span>
-              <?php else: ?>
-                <span class="badge badge-warning">Pengeluaran</span>
-              <?php endif; ?>
-            </td>
-            <td class="text-right font-medium text-currency">Rp <?= number_format($r['jumlah_rencana'], 0, ',', '.') ?></td>
-          </tr>
-        <?php endforeach; endif; ?>
-        </tbody>
-      </table>
-    </div>
-  </div>
+<!-- Tab: Transaksi Keuangan / Perjalanan Dinas / Dana Taktis -->
+<div class="segment w-full">
+  <button type="button" id="tab-btn-transaksi" class="segment-btn active flex-1 flex items-center justify-center gap-1.5" onclick="aktifkanTab('transaksi')">
+    <?= iconsax('receipt-item', 'w-3.5 h-3.5 shrink-0') ?> <span class="truncate">Transaksi</span>
+  </button>
+  <button type="button" id="tab-btn-perjadin" class="segment-btn flex-1 flex items-center justify-center gap-1.5" onclick="aktifkanTab('perjadin')">
+    <?= iconsax('airplane', 'w-3.5 h-3.5 shrink-0') ?> <span class="truncate">Perjalanan Dinas</span>
+  </button>
+  <button type="button" id="tab-btn-dana-taktis" class="segment-btn flex-1 flex items-center justify-center gap-1.5" onclick="aktifkanTab('dana-taktis')">
+    <?= iconsax('moneys', 'w-3.5 h-3.5 shrink-0') ?> <span class="truncate">Dana Taktis</span>
+  </button>
+</div>
 
-  <div class="card">
-    <div class="card-header">
-      <h3 class="text-sm font-semibold text-slate-700 dark:text-slate-200">Dana Taktis Belum Dibayar</h3>
-      <a href="<?= base_url('admin/perjalanan-dinas/dana-taktis') ?>" class="text-xs text-primary-600 dark:text-primary-400 hover:underline">Lihat semua</a>
-    </div>
-    <div class="overflow-x-auto">
-      <table class="table">
-        <thead>
-          <tr><th>Nama Pegawai</th><th>Perjalanan Dinas</th><th class="text-right">Dana Taktis</th></tr>
-        </thead>
-        <tbody>
-        <?php if (empty($danaTaktisBelumDibayar)): ?>
-          <tr><td colspan="3" class="text-center py-6 text-slate-500">Semua setoran Dana Taktis sudah lunas.</td></tr>
-        <?php else: foreach ($danaTaktisBelumDibayar as $dt): ?>
-          <tr>
-            <td class="font-medium text-slate-700 dark:text-slate-200"><?= esc($dt['nama_peserta']) ?></td>
-            <td class="truncate max-w-[220px]" title="<?= esc($dt['maksud']) ?>"><?= esc($dt['maksud']) ?></td>
-            <td class="text-right font-medium text-currency text-amber-600">Rp <?= number_format($dt['dana_taktis'], 0, ',', '.') ?></td>
-          </tr>
-        <?php endforeach; endif; ?>
-        </tbody>
-      </table>
-    </div>
-  </div>
+<div id="panel-transaksi" class="mt-4">
+  <?= $this->include('admin/_partials/tab_transaksi') ?>
+</div>
+
+<div id="panel-perjadin" class="mt-4 hidden">
+  <?= $this->include('admin/_partials/tab_perjadin') ?>
+</div>
+
+<div id="panel-dana-taktis" class="mt-4 hidden">
+  <?= $this->include('admin/_partials/tab_dana_taktis') ?>
 </div>
 
 <?= $this->endSection() ?>
@@ -374,5 +340,29 @@ document.addEventListener('DOMContentLoaded', () => {
     }
   }
 })();
+
+/* ── Tab: Transaksi Keuangan / Perjalanan Dinas / Dana Taktis ── */
+let perjadinSudahDimuat = false;
+let danaTaktisSudahDimuat = false;
+function aktifkanTab(nama) {
+  ['transaksi', 'perjadin', 'dana-taktis'].forEach(n => {
+    document.getElementById('panel-' + n).classList.toggle('hidden', n !== nama);
+    document.getElementById('tab-btn-' + n).classList.toggle('active', n === nama);
+  });
+  if (nama === 'perjadin' && !perjadinSudahDimuat) {
+    perjadinSudahDimuat = true;
+    muatDaftarTrip(1);
+  }
+  if (nama === 'dana-taktis' && !danaTaktisSudahDimuat) {
+    danaTaktisSudahDimuat = true;
+    muatDaftarDanaTaktis(1);
+  }
+}
+window.aktifkanTab = aktifkanTab;
+
+document.addEventListener('DOMContentLoaded', () => {
+  if (location.hash === '#perjadin') aktifkanTab('perjadin');
+  else if (location.hash === '#dana-taktis') aktifkanTab('dana-taktis');
+});
 </script>
 <?= $this->endSection() ?>
