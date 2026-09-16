@@ -10,6 +10,7 @@ use App\Models\RencanaPengeluaranModel;
 use App\Models\PengaturanModel;
 use App\Models\NotifikasiModel;
 use App\Models\PerjalananDinasModel;
+use App\Models\PerjalananDinasPesertaModel;
 use App\Models\PegawaiModel;
 
 class Dashboard extends BaseController
@@ -52,6 +53,7 @@ class Dashboard extends BaseController
         $danaBelumDiterima = $pemasukanModel->getTotalBelumDiterima();
         $totalRencanaPemasukan = $rencanaPemasukan->getTotalRencana();
         $totalRencanaPengeluaran = $rencanaPengeluaran->getTotalRencana();
+        $danaTaktisBelumDisetor = (new PerjalananDinasPesertaModel())->getBelumDibayarSummary();
 
         // Rencana aktif mendatang
         $rencanaAktif = array_merge(
@@ -94,6 +96,7 @@ class Dashboard extends BaseController
             'danaBelumDiterima'   => $danaBelumDiterima,
             'totalRencanaPemasukan'   => $totalRencanaPemasukan,
             'totalRencanaPengeluaran' => $totalRencanaPengeluaran,
+            'danaTaktisBelumDisetor'  => $danaTaktisBelumDisetor,
             'notifCount'          => $notifCount,
             'pegawaiList'         => (new PegawaiModel())->getAktifList(),
             'tahunListPerjadin'   => (new PerjalananDinasModel())->getAvailableYears(),

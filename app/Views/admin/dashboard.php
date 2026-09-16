@@ -89,6 +89,9 @@ $tahunOpsi = range($tahunSekarang, $tahunSekarang - 5);
   if ($totalRencanaPengeluaran > 0) {
     $extraCards[] = ['icon' => 'budget', 'color' => 'primary', 'label' => 'Rencana Pengeluaran', 'value' => $totalRencanaPengeluaran, 'caption' => 'Total rencana pengeluaran aktif'];
   }
+  if ($danaTaktisBelumDisetor['total'] > 0) {
+    $extraCards[] = ['icon' => 'high-priority', 'color' => 'amber', 'label' => 'Dana Taktis Belum Disetor', 'value' => $danaTaktisBelumDisetor['total'], 'caption' => $danaTaktisBelumDisetor['jumlah'] . ' setoran perjalanan dinas belum lunas'];
+  }
 ?>
 <?php if (!empty($extraCards)): ?>
 <div class="grid grid-cols-2 lg:grid-cols-3 gap-2.5 sm:gap-3 mb-6">
