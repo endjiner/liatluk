@@ -7,7 +7,7 @@
     <p class="text-sm text-slate-500 dark:text-slate-400 mt-1">Riwayat notifikasi sistem</p>
   </div>
   <button onclick="markAllReadPage()" class="btn btn-outline btn-sm">
-    <i data-lucide="check-check"></i> <span class="hidden sm:inline">Tandai Semua Dibaca</span>
+    <?= iconsax('tick-circle', '') ?> <span class="hidden sm:inline">Tandai Semua Dibaca</span>
   </button>
 </div>
 
@@ -46,7 +46,7 @@
 <div class="card">
   <div class="card-header">
     <h3 class="text-sm font-semibold text-slate-700 dark:text-slate-200 flex items-center gap-2">
-      <i data-lucide="bell" class="w-4 h-4"></i> Daftar Notifikasi
+      <?= iconsax('notification', 'w-4 h-4') ?> Daftar Notifikasi
     </h3>
     <span class="text-xs text-slate-500"><?= $total ?> notifikasi</span>
   </div>
@@ -57,7 +57,7 @@
       Tidak ada notifikasi pada periode &amp; jenis yang dipilih
     </div>
     <?php else:
-      $kategoriIcon  = ['pemasukan' => 'arrow-down-left', 'pengeluaran' => 'arrow-up-right', 'rencana' => 'calendar-clock', 'sistem' => 'settings'];
+      $kategoriIcon  = ['pemasukan' => 'arrow-circle-down-2', 'pengeluaran' => 'trend-up', 'rencana' => 'calendar', 'sistem' => 'setting-2'];
       $kategoriBadge = ['pemasukan' => 'badge-success', 'pengeluaran' => 'badge-danger', 'rencana' => 'badge-warning', 'sistem' => 'badge-muted'];
       $kategoriLabel = ['pemasukan' => 'Pemasukan', 'pengeluaran' => 'Pengeluaran', 'rencana' => 'Rencana', 'sistem' => 'Sistem'];
     ?>
@@ -65,7 +65,7 @@
     <div id="notif-row-<?= $n['id'] ?>" onclick="markReadPage(<?= $n['id'] ?>)"
          class="flex items-start gap-3 px-4 py-3 border-b border-slate-100 dark:border-slate-700 last:border-b-0 cursor-pointer hover:bg-slate-50 dark:hover:bg-slate-700/50 <?= $n['is_read'] == 0 ? 'bg-primary-50/40 dark:bg-primary-900/20' : '' ?>">
       <div class="badge <?= $kategoriBadge[$n['kategori']] ?? 'badge-muted' ?> w-8 h-8 rounded-full justify-center shrink-0 p-0">
-        <i data-lucide="<?= $kategoriIcon[$n['kategori']] ?? 'bell' ?>" class="w-4 h-4"></i>
+        <?= iconsax($kategoriIcon[$n['kategori']] ?? 'notification', 'w-4 h-4') ?>
       </div>
       <div class="flex-1 min-w-0">
         <div class="text-sm text-slate-800 dark:text-slate-100"><?= esc($n['pesan']) ?></div>

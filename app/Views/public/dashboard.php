@@ -27,7 +27,7 @@ $namaBulan = [1=>'Januari',2=>'Februari',3=>'Maret',4=>'April',5=>'Mei',6=>'Juni
   <!-- KPI Cards -->
   <div class="grid grid-cols-2 md:grid-cols-3 gap-2.5 sm:gap-3">
     <!-- Saldo: featured/hero stat, tinted to stand out from the two secondary figures -->
-    <div class="kpi p-3 sm:p-5 col-span-2 md:col-span-1 bg-primary-50/70 dark:bg-primary-900/20 border-primary-100 dark:border-primary-800/60">
+    <div class="kpi p-3 sm:p-5 col-span-2 md:col-span-1 bg-primary-50/70 dark:bg-primary-900/20">
       <div class="kpi-label"><img src="<?= icons8('wallet') ?>" alt="" class="w-5 h-5"> Saldo Kas</div>
       <div class="kpi-value text-lg sm:text-2xl text-primary-700 dark:text-primary-300 text-currency">
         Rp <?= number_format($saldoAkhir, 0, ',', '.') ?>
@@ -89,7 +89,7 @@ $namaBulan = [1=>'Januari',2=>'Februari',3=>'Maret',4=>'April',5=>'Mei',6=>'Juni
   <div class="card">
     <div class="card-header">
       <h3 class="text-sm font-semibold text-slate-700 dark:text-slate-200 flex items-center gap-2">
-        <i data-lucide="calendar-clock" class="w-4 h-4 text-primary-600"></i> Rencana Keuangan Aktif
+        <?= iconsax('calendar-tick', 'w-4 h-4 text-primary-600') ?> Rencana Keuangan Aktif
       </h3>
     </div>
     <div class="overflow-x-auto">
@@ -136,7 +136,7 @@ $namaBulan = [1=>'Januari',2=>'Februari',3=>'Maret',4=>'April',5=>'Mei',6=>'Juni
   <div class="card">
     <div class="card-header">
       <h3 class="text-sm font-semibold text-slate-700 dark:text-slate-200 flex items-center gap-2">
-        <i data-lucide="list" class="w-4 h-4"></i> Daftar Transaksi
+        <?= iconsax('task-square', 'w-4 h-4') ?> Daftar Transaksi
       </h3>
       <span class="text-xs text-slate-500">Total: <span id="txn-total">-</span></span>
     </div>
@@ -159,7 +159,7 @@ $namaBulan = [1=>'Januari',2=>'Februari',3=>'Maret',4=>'April',5=>'Mei',6=>'Juni
         <!-- Search -->
         <div class="relative flex-1 min-w-[160px] max-w-xs">
           <span class="absolute inset-y-0 left-3 flex items-center text-slate-400">
-            <i data-lucide="search" class="w-3.5 h-3.5"></i>
+            <?= iconsax('search-normal-1', 'w-3.5 h-3.5') ?>
           </span>
           <input type="text" id="filter-search" placeholder="Cari kategori/keterangan..."
                  class="form-control form-control-sm pl-8">
@@ -196,7 +196,7 @@ $namaBulan = [1=>'Januari',2=>'Februari',3=>'Maret',4=>'April',5=>'Mei',6=>'Juni
     </div>
 
     <div class="sm:hidden flex items-center gap-1.5 px-3 py-1.5 text-[11px] text-slate-400 dark:text-slate-500 border-t border-slate-100 dark:border-slate-800">
-      <i data-lucide="move-horizontal" class="w-3 h-3"></i> Geser tabel untuk melihat kolom lainnya
+      <?= iconsax('arrow-swap-horizontal', 'w-3 h-3') ?> Geser tabel untuk melihat kolom lainnya
     </div>
     <div class="overflow-x-auto">
       <table class="table">
@@ -234,7 +234,7 @@ $namaBulan = [1=>'Januari',2=>'Februari',3=>'Maret',4=>'April',5=>'Mei',6=>'Juni
         <div class="flex flex-wrap items-center gap-2">
           <div class="relative flex-1 min-w-[160px] max-w-xs">
             <span class="absolute inset-y-0 left-3 flex items-center text-slate-400">
-              <i data-lucide="search" class="w-3.5 h-3.5"></i>
+              <?= iconsax('search-normal-1', 'w-3.5 h-3.5') ?>
             </span>
             <input type="text" id="filter-search-perjadin" oninput="jadwalkanMuatDaftarPerjadin()" placeholder="Nama, maksud, no surat tugas..." class="form-control form-control-sm pl-8">
           </div>
@@ -270,7 +270,7 @@ $namaBulan = [1=>'Januari',2=>'Februari',3=>'Maret',4=>'April',5=>'Mei',6=>'Juni
       </div>
 
       <div class="sm:hidden flex items-center gap-1.5 px-3 py-1.5 text-[11px] text-slate-400 dark:text-slate-500 border-t border-slate-100 dark:border-slate-800">
-        <i data-lucide="move-horizontal" class="w-3 h-3"></i> Geser tabel untuk melihat kolom lainnya
+        <?= iconsax('arrow-swap-horizontal', 'w-3 h-3') ?> Geser tabel untuk melihat kolom lainnya
       </div>
       <div class="overflow-x-auto">
         <table class="table">
@@ -310,7 +310,7 @@ $namaBulan = [1=>'Januari',2=>'Februari',3=>'Maret',4=>'April',5=>'Mei',6=>'Juni
         <div class="flex flex-wrap items-center gap-2">
           <div class="relative flex-1 min-w-[160px] max-w-xs">
             <span class="absolute inset-y-0 left-3 flex items-center text-slate-400">
-              <i data-lucide="search" class="w-3.5 h-3.5"></i>
+              <?= iconsax('search-normal-1', 'w-3.5 h-3.5') ?>
             </span>
             <input type="text" id="dt-filter-search-pub" oninput="dtPubJadwalkanMuat()" placeholder="Nama, maksud, no surat tugas..." class="form-control form-control-sm pl-8">
           </div>
@@ -346,7 +346,7 @@ $namaBulan = [1=>'Januari',2=>'Februari',3=>'Maret',4=>'April',5=>'Mei',6=>'Juni
       </div>
 
       <div class="sm:hidden flex items-center gap-1.5 px-3 py-1.5 text-[11px] text-slate-400 dark:text-slate-500 border-t border-slate-100 dark:border-slate-800">
-        <i data-lucide="move-horizontal" class="w-3 h-3"></i> Geser tabel untuk melihat kolom lainnya
+        <?= iconsax('arrow-swap-horizontal', 'w-3 h-3') ?> Geser tabel untuk melihat kolom lainnya
       </div>
       <div class="overflow-x-auto">
         <table class="table">
@@ -378,10 +378,10 @@ $namaBulan = [1=>'Januari',2=>'Februari',3=>'Maret',4=>'April',5=>'Mei',6=>'Juni
     <div class="modal-box modal-box-lg">
       <div class="modal-header">
         <div>
-          <h3 class="modal-title"><i data-lucide="file-text" class="w-5 h-5 text-primary-600"></i> Detail Transaksi</h3>
+          <h3 class="modal-title"><?= iconsax('document-text', 'w-5 h-5 text-primary-600') ?> Detail Transaksi</h3>
           <p class="text-sm text-slate-500 dark:text-slate-400 mt-0.5" id="detail-subtitle-pub"></p>
         </div>
-        <button class="btn btn-ghost btn-icon" onclick="closeDetailModal()"><i data-lucide="x"></i></button>
+        <button class="btn btn-ghost btn-icon" onclick="closeDetailModal()"><?= iconsax('close-circle', '') ?></button>
       </div>
       <div class="modal-body">
         <dl class="grid grid-cols-1 md:grid-cols-2 gap-x-6 gap-y-3 text-sm" id="detail-list-pub"></dl>
@@ -560,8 +560,8 @@ function renderTxn(rows) {
     const nominal = isP ? (parseFloat(r.jumlah_diterima) || parseFloat(r.jumlah)) : parseFloat(r.jumlah);
     const dateFormatted = new Date(r.tanggal).toLocaleDateString('id-ID', { day: '2-digit', month: 'short', year: 'numeric' });
     const badge = isP
-      ? '<span class="badge badge-success"><i data-lucide="arrow-up-right" class="w-3 h-3"></i>Pemasukan</span>'
-      : '<span class="badge badge-danger"><i data-lucide="arrow-down-right" class="w-3 h-3"></i>Pengeluaran</span>';
+      ? '<span class="badge badge-success">' + iconsax('trend-up', 'w-3 h-3') + 'Pemasukan</span>'
+      : '<span class="badge badge-danger">' + iconsax('trend-down', 'w-3 h-3') + 'Pengeluaran</span>';
     return `<tr>
       <td class="text-center text-slate-500">${r.nomor ?? '-'}</td>
       <td class="whitespace-nowrap">${dateFormatted}</td>
@@ -571,12 +571,11 @@ function renderTxn(rows) {
       <td class="text-right font-medium text-currency ${isP ? 'text-emerald-600' : 'text-red-600'}">Rp ${new Intl.NumberFormat('id-ID').format(Math.round(nominal))}</td>
       <td class="text-center">
         <button onclick='showDetailPub(${JSON.stringify(r).replace(/'/g, "&#39;")})' class="p-1.5 rounded hover:bg-slate-100 dark:hover:bg-slate-700 text-slate-500 hover:text-primary-600" title="Detail">
-          <i data-lucide="eye" class="w-4 h-4"></i>
+          ${iconsax('eye', 'w-4 h-4')}
         </button>
       </td>
     </tr>`;
   }).join('');
-  lucide.createIcons({ props: { search: tbody } });
 }
 
 function renderPagination(total, perPage, page) {
@@ -663,7 +662,7 @@ function buktiHTML(url, filename) {
   }
   if (ext === 'pdf') {
     return `<a href="${url}" target="_blank" class="inline-flex items-center gap-2 px-4 py-3 rounded-lg border border-slate-200 hover:border-primary-500 hover:bg-primary-50/50 transition">
-              <i data-lucide="file-text" class="w-8 h-8 text-red-600"></i>
+              ${iconsax('document-text', 'w-8 h-8 text-red-600')}
               <div><div class="font-medium text-sm">${escapeHtml(filename)}</div><div class="text-xs text-primary-600">Klik untuk buka PDF</div></div>
             </a>`;
   }
@@ -706,7 +705,6 @@ function showDetailPub(row) {
   }
 
   document.getElementById('modal-detail-txn').classList.remove('hidden');
-  lucide.createIcons({ props: { search: document.getElementById('modal-detail-txn') } });
 }
 window.showDetailPub = showDetailPub;
 function closeDetailModal() { document.getElementById('modal-detail-txn').classList.add('hidden'); }
@@ -728,7 +726,6 @@ function aktifkanTab(nama) {
     danaTaktisSudahDimuat = true;
     muatDaftarDanaTaktisPub(1);
   }
-  lucide.createIcons();
 }
 
 /* ── Perjalanan Dinas (tabel datar 1 baris = 1 peserta, filter & pagination via AJAX) ── */

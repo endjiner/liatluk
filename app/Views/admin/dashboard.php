@@ -15,7 +15,7 @@ $tahunOpsi = range($tahunSekarang, $tahunSekarang - 5);
     <p class="text-sm text-slate-500 dark:text-slate-400 mt-1">Ringkasan pengelolaan keuangan internal</p>
   </div>
   <button onclick="openMainDrawer()" class="btn btn-primary">
-    <i data-lucide="plus"></i> <span class="hidden sm:inline">Input Baru</span>
+    <?= iconsax('add', '') ?> <span class="hidden sm:inline">Input Baru</span>
   </button>
 </div>
 
@@ -159,9 +159,9 @@ $tahunOpsi = range($tahunSekarang, $tahunSekarang - 5);
             <td class="truncate max-w-[200px]"><?= esc($t['kategori']) ?></td>
             <td>
               <?php if ($t['tipe'] === 'pemasukan'): ?>
-                <span class="badge badge-success"><i data-lucide="arrow-up-right" class="w-3 h-3"></i> Pemasukan</span>
+                <span class="badge badge-success"><?= iconsax('trend-up', 'w-3 h-3') ?> Pemasukan</span>
               <?php else: ?>
-                <span class="badge badge-danger"><i data-lucide="arrow-down-right" class="w-3 h-3"></i> Pengeluaran</span>
+                <span class="badge badge-danger"><?= iconsax('trend-down', 'w-3 h-3') ?> Pengeluaran</span>
               <?php endif; ?>
             </td>
             <td class="text-right font-medium text-currency <?= $t['tipe'] === 'pemasukan' ? 'text-emerald-600' : 'text-red-600' ?>">

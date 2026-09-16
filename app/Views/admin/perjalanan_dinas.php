@@ -9,13 +9,13 @@
   </div>
   <div class="flex flex-wrap items-center gap-2">
     <a href="<?= base_url('admin/perjalanan-dinas/dana-taktis') ?>" class="btn btn-outline btn-sm">
-      <i data-lucide="piggy-bank"></i> <span class="hidden sm:inline">Dana Taktis</span>
+      <?= iconsax('moneys', '') ?> <span class="hidden sm:inline">Dana Taktis</span>
     </a>
     <button class="btn btn-outline btn-sm" onclick="bukaModalPegawai()">
-      <i data-lucide="users"></i> <span class="hidden sm:inline">Kelola Pegawai</span>
+      <?= iconsax('people', '') ?> <span class="hidden sm:inline">Kelola Pegawai</span>
     </button>
     <button class="btn btn-success btn-sm" onclick="bukaModalTrip()">
-      <i data-lucide="plus"></i> <span class="hidden sm:inline">Perjalanan Dinas</span>
+      <?= iconsax('add', '') ?> <span class="hidden sm:inline">Perjalanan Dinas</span>
     </button>
   </div>
 </div>
@@ -30,7 +30,7 @@
     <div class="flex flex-wrap items-center gap-2">
       <div class="relative flex-1 min-w-[160px] max-w-xs">
         <span class="absolute inset-y-0 left-3 flex items-center text-slate-400">
-          <i data-lucide="search" class="w-3.5 h-3.5"></i>
+          <?= iconsax('search-normal-1', 'w-3.5 h-3.5') ?>
         </span>
         <input type="text" id="filter-search" oninput="jadwalkanMuatDaftar()" placeholder="Nama, maksud, no surat tugas, MAK..." class="form-control form-control-sm pl-8">
       </div>
@@ -66,7 +66,7 @@
   </div>
 
   <div class="sm:hidden flex items-center gap-1.5 px-3 py-1.5 text-[11px] text-slate-400 dark:text-slate-500 border-t border-slate-100 dark:border-slate-800">
-    <i data-lucide="move-horizontal" class="w-3 h-3"></i> Geser tabel untuk melihat kolom lainnya
+    <?= iconsax('arrow-swap-horizontal', 'w-3 h-3') ?> Geser tabel untuk melihat kolom lainnya
   </div>
   <div class="overflow-x-auto">
     <table class="table">
@@ -100,8 +100,8 @@
   <div class="modal-container">
     <div class="modal-box">
       <div class="modal-header">
-        <div><h3 class="modal-title" id="trip-modal-title"><i data-lucide="plane" class="w-5 h-5 text-primary-600"></i> Perjalanan Dinas Baru</h3></div>
-        <button class="btn btn-ghost btn-icon" onclick="closeModal('modal-trip')"><i data-lucide="x"></i></button>
+        <div><h3 class="modal-title" id="trip-modal-title"><?= iconsax('airplane', 'w-5 h-5 text-primary-600') ?> Perjalanan Dinas Baru</h3></div>
+        <button class="btn btn-ghost btn-icon" onclick="closeModal('modal-trip')"><?= iconsax('close-circle', '') ?></button>
       </div>
       <form id="form-trip" onsubmit="submitTrip(event)">
         <input type="hidden" id="trip-id">
@@ -121,7 +121,7 @@
         </div>
         <div class="modal-footer">
           <button type="button" class="btn btn-ghost" onclick="closeModal('modal-trip')">Batal</button>
-          <button type="submit" class="btn btn-primary"><i data-lucide="save"></i> Simpan</button>
+          <button type="submit" class="btn btn-primary"><?= iconsax('save-2', '') ?> Simpan</button>
         </div>
       </form>
     </div>
@@ -134,8 +134,8 @@
   <div class="modal-container">
     <div class="modal-box modal-box-lg" style="max-width:52rem">
       <div class="modal-header">
-        <div><h3 class="modal-title" id="peserta-modal-title"><i data-lucide="user-plus" class="w-5 h-5 text-primary-600"></i> Tambah Peserta</h3></div>
-        <button class="btn btn-ghost btn-icon" onclick="closeModal('modal-peserta')"><i data-lucide="x"></i></button>
+        <div><h3 class="modal-title" id="peserta-modal-title"><?= iconsax('user-add', 'w-5 h-5 text-primary-600') ?> Tambah Peserta</h3></div>
+        <button class="btn btn-ghost btn-icon" onclick="closeModal('modal-peserta')"><?= iconsax('close-circle', '') ?></button>
       </div>
       <form id="form-peserta" onsubmit="submitPeserta(event)">
         <input type="hidden" id="peserta-id">
@@ -151,7 +151,7 @@
                 <option value="<?= $pg['id'] ?>"><?= esc($pg['nama']) ?><?= $pg['nip'] ? ' — ' . esc($pg['nip']) : '' ?></option>
                 <?php endforeach; ?>
               </select>
-              <button type="button" class="btn btn-outline btn-sm shrink-0" onclick="bukaModalPegawai()" title="Tambah pegawai baru"><i data-lucide="plus"></i></button>
+              <button type="button" class="btn btn-outline btn-sm shrink-0" onclick="bukaModalPegawai()" title="Tambah pegawai baru"><?= iconsax('add', '') ?></button>
             </div>
           </div>
 
@@ -173,7 +173,7 @@
           <div>
             <div class="flex items-center justify-between mb-2">
               <label class="form-label mb-0">Tiket Pesawat</label>
-              <button type="button" class="btn btn-outline btn-sm" onclick="tambahBarisTiket()"><i data-lucide="plus"></i> Tambah Tiket</button>
+              <button type="button" class="btn btn-outline btn-sm" onclick="tambahBarisTiket()"><?= iconsax('add', '') ?> Tambah Tiket</button>
             </div>
             <div id="tiket-rows" class="space-y-2"></div>
           </div>
@@ -202,7 +202,7 @@
         </div>
         <div class="modal-footer">
           <button type="button" class="btn btn-ghost" onclick="closeModal('modal-peserta')">Batal</button>
-          <button type="submit" class="btn btn-primary"><i data-lucide="save"></i> Simpan Peserta</button>
+          <button type="submit" class="btn btn-primary"><?= iconsax('save-2', '') ?> Simpan Peserta</button>
         </div>
       </form>
     </div>
@@ -233,8 +233,8 @@
   <div class="modal-container">
     <div class="modal-box modal-box-sm">
       <div class="modal-header">
-        <div><h3 class="modal-title"><i data-lucide="check-circle-2" class="w-5 h-5 text-emerald-600"></i> Tandai Lunas</h3></div>
-        <button class="btn btn-ghost btn-icon" onclick="closeModal('modal-lunas')"><i data-lucide="x"></i></button>
+        <div><h3 class="modal-title"><?= iconsax('tick-circle', 'w-5 h-5 text-emerald-600') ?> Tandai Lunas</h3></div>
+        <button class="btn btn-ghost btn-icon" onclick="closeModal('modal-lunas')"><?= iconsax('close-circle', '') ?></button>
       </div>
       <div class="modal-body">
         <input type="hidden" id="lunas-peserta-id">
@@ -244,7 +244,7 @@
       </div>
       <div class="modal-footer">
         <button class="btn btn-ghost" onclick="closeModal('modal-lunas')">Batal</button>
-        <button class="btn btn-success" onclick="konfirmasiLunas()"><i data-lucide="check"></i> Tandai Lunas</button>
+        <button class="btn btn-success" onclick="konfirmasiLunas()"><?= iconsax('check', '') ?> Tandai Lunas</button>
       </div>
     </div>
   </div>
@@ -256,14 +256,14 @@
   <div class="modal-container">
     <div class="modal-box">
       <div class="modal-header">
-        <div><h3 class="modal-title"><i data-lucide="users" class="w-5 h-5 text-primary-600"></i> Kelola Data Pegawai</h3></div>
-        <button class="btn btn-ghost btn-icon" onclick="closeModal('modal-pegawai')"><i data-lucide="x"></i></button>
+        <div><h3 class="modal-title"><?= iconsax('people', 'w-5 h-5 text-primary-600') ?> Kelola Data Pegawai</h3></div>
+        <button class="btn btn-ghost btn-icon" onclick="closeModal('modal-pegawai')"><?= iconsax('close-circle', '') ?></button>
       </div>
       <div class="modal-body">
         <form onsubmit="tambahPegawai(event)" class="flex flex-wrap gap-2 mb-4">
           <input type="text" id="pegawai-baru-nama" class="form-control form-control-sm flex-1 min-w-[140px]" placeholder="Nama pegawai" required>
           <input type="text" id="pegawai-baru-nip" class="form-control form-control-sm flex-1 min-w-[140px]" placeholder="NIP (opsional)">
-          <button type="submit" class="btn btn-primary btn-sm"><i data-lucide="plus"></i> Tambah</button>
+          <button type="submit" class="btn btn-primary btn-sm"><?= iconsax('add', '') ?> Tambah</button>
         </form>
         <div class="overflow-x-auto" style="max-height:50vh;overflow-y:auto">
           <table class="table">
@@ -287,7 +287,7 @@
       <div class="modal-header">
         <div class="flex items-start gap-3">
           <div class="w-10 h-10 shrink-0 rounded-full bg-amber-100 dark:bg-amber-900/40 text-amber-600 dark:text-amber-400 flex items-center justify-center">
-            <i data-lucide="alert-triangle" class="w-5 h-5"></i>
+            <?= iconsax('warning-2', 'w-5 h-5') ?>
           </div>
           <div><h3 class="text-base font-semibold text-slate-800 dark:text-slate-100">Konfirmasi</h3></div>
         </div>
@@ -376,7 +376,7 @@ function renderTripTable(rows) {
       : '<span class="badge badge-warning">Belum Lunas</span>';
     const aksiLunas = r.status_lunas === 'lunas'
       ? `<button type="button" class="block text-[11px] text-slate-400 hover:text-red-600 mt-0.5" onclick="batalkanLunas(${r.id})">batalkan</button>`
-      : `<button type="button" class="mt-1 p-1 rounded bg-emerald-600 hover:bg-emerald-700 text-white" onclick="bukaModalLunas(${r.id})" title="Tandai Lunas"><i data-lucide="check" class="w-3.5 h-3.5"></i></button>`;
+      : `<button type="button" class="mt-1 p-1 rounded bg-emerald-600 hover:bg-emerald-700 text-white" onclick="bukaModalLunas(${r.id})" title="Tandai Lunas">${iconsax('check', 'w-3.5 h-3.5')}</button>`;
 
     const selTrip = tripBaru ? `
       <td class="align-top font-semibold text-slate-500 dark:text-slate-400">${noTrip}</td>
@@ -387,9 +387,9 @@ function renderTripTable(rows) {
             <p class="text-xs text-slate-500 dark:text-slate-400 mt-0.5">${escapeHtml(r.no_surat_tugas || '-')} &middot; ${tgl}</p>
           </div>
           <div class="flex items-center gap-0.5 shrink-0">
-            <button type="button" class="p-1 rounded hover:bg-slate-100 dark:hover:bg-slate-700 text-slate-400 hover:text-primary-600" title="Tambah peserta" onclick="bukaModalPeserta(${r.perjalanan_dinas_id})"><i data-lucide="user-plus" class="w-3.5 h-3.5"></i></button>
-            <button type="button" class="p-1 rounded hover:bg-slate-100 dark:hover:bg-slate-700 text-slate-400 hover:text-primary-600" title="Edit perjalanan dinas" onclick="editTripByIdx(${idx})"><i data-lucide="pencil" class="w-3.5 h-3.5"></i></button>
-            <button type="button" class="p-1 rounded hover:bg-red-50 dark:hover:bg-red-900/30 text-slate-400 hover:text-red-600" title="Hapus perjalanan dinas" onclick="hapusTrip(${r.perjalanan_dinas_id})"><i data-lucide="trash-2" class="w-3.5 h-3.5"></i></button>
+            <button type="button" class="p-1 rounded hover:bg-slate-100 dark:hover:bg-slate-700 text-slate-400 hover:text-primary-600" title="Tambah peserta" onclick="bukaModalPeserta(${r.perjalanan_dinas_id})">${iconsax('user-add', 'w-3.5 h-3.5')}</button>
+            <button type="button" class="p-1 rounded hover:bg-slate-100 dark:hover:bg-slate-700 text-slate-400 hover:text-primary-600" title="Edit perjalanan dinas" onclick="editTripByIdx(${idx})">${iconsax('edit-2', 'w-3.5 h-3.5')}</button>
+            <button type="button" class="p-1 rounded hover:bg-red-50 dark:hover:bg-red-900/30 text-slate-400 hover:text-red-600" title="Hapus perjalanan dinas" onclick="hapusTrip(${r.perjalanan_dinas_id})">${iconsax('trash', 'w-3.5 h-3.5')}</button>
           </div>
         </div>
       </td>` : `<td></td><td></td>`;
@@ -403,8 +403,8 @@ function renderTripTable(rows) {
       <td class="whitespace-nowrap">${statusBadge}${aksiLunas}</td>
       <td class="text-center">
         <div class="flex items-center justify-center gap-1">
-          <button type="button" class="p-1.5 rounded hover:bg-slate-100 dark:hover:bg-slate-700 text-slate-500 hover:text-primary-600" title="Edit peserta" onclick="editPesertaByIdx(${idx})"><i data-lucide="pencil" class="w-4 h-4"></i></button>
-          <button type="button" class="p-1.5 rounded hover:bg-red-50 dark:hover:bg-red-900/30 text-slate-500 hover:text-red-600" title="Hapus peserta" onclick="hapusPeserta(${r.id})"><i data-lucide="trash-2" class="w-4 h-4"></i></button>
+          <button type="button" class="p-1.5 rounded hover:bg-slate-100 dark:hover:bg-slate-700 text-slate-500 hover:text-primary-600" title="Edit peserta" onclick="editPesertaByIdx(${idx})">${iconsax('edit-2', 'w-4 h-4')}</button>
+          <button type="button" class="p-1.5 rounded hover:bg-red-50 dark:hover:bg-red-900/30 text-slate-500 hover:text-red-600" title="Hapus peserta" onclick="hapusPeserta(${r.id})">${iconsax('trash', 'w-4 h-4')}</button>
         </div>
       </td>
       <td class="text-right text-currency">${biayaLain > 0 ? rupiah(biayaLain) : '-'}</td>
@@ -412,10 +412,6 @@ function renderTripTable(rows) {
       <td class="text-right text-currency">${r.hotel ? (escapeHtml(r.hotel.nama_hotel || 'Hotel') + '<br><span class="text-xs">' + rupiah(totalHotel) + '</span>') : '-'}</td>
     </tr>`;
   }).join('');
-  // Dijaga dengan window.lucide: kalau ikon gagal dimuat (mis. CDN diblokir), baris data yang
-  // sudah berhasil di-fetch tetap tampil, tidak ikut ditelan oleh catch() pemanggilnya sebagai
-  // "gagal memuat data".
-  if (window.lucide) lucide.createIcons({ props: { search: tbody } });
 }
 
 function editTripByIdx(idx) {
@@ -438,9 +434,8 @@ function tampilkanKonfirmasi(pesan, aksi) {
 function bukaModalTrip() {
   document.getElementById('form-trip').reset();
   document.getElementById('trip-id').value = '';
-  document.getElementById('trip-modal-title').innerHTML = '<i data-lucide="plane" class="w-5 h-5 text-primary-600"></i> Perjalanan Dinas Baru';
+  document.getElementById('trip-modal-title').innerHTML = iconsax('airplane', 'w-5 h-5 text-primary-600') + ' Perjalanan Dinas Baru';
   openModal('modal-trip');
-  lucide.createIcons({ props: { search: document.getElementById('modal-trip') } });
 }
 function editTrip(trip) {
   document.getElementById('trip-id').value = trip.id;
@@ -449,9 +444,8 @@ function editTrip(trip) {
   document.getElementById('trip-no-surat').value = trip.no_surat_tugas || '';
   document.getElementById('trip-kode-mak').value = trip.kode_mak || '';
   document.getElementById('trip-no-spm').value = trip.no_spm || '';
-  document.getElementById('trip-modal-title').innerHTML = '<i data-lucide="pencil" class="w-5 h-5 text-primary-600"></i> Edit Perjalanan Dinas';
+  document.getElementById('trip-modal-title').innerHTML = iconsax('edit-2', 'w-5 h-5 text-primary-600') + ' Edit Perjalanan Dinas';
   openModal('modal-trip');
-  lucide.createIcons({ props: { search: document.getElementById('modal-trip') } });
 }
 async function submitTrip(e) {
   e.preventDefault();
@@ -484,9 +478,8 @@ function kosongkanFormPeserta() {
 function bukaModalPeserta(tripId) {
   kosongkanFormPeserta();
   document.getElementById('peserta-trip-id').value = tripId;
-  document.getElementById('peserta-modal-title').innerHTML = '<i data-lucide="user-plus" class="w-5 h-5 text-primary-600"></i> Tambah Peserta';
+  document.getElementById('peserta-modal-title').innerHTML = iconsax('user-add', 'w-5 h-5 text-primary-600') + ' Tambah Peserta';
   openModal('modal-peserta');
-  lucide.createIcons({ props: { search: document.getElementById('modal-peserta') } });
 }
 
 function tambahBarisTiket(data) {
@@ -531,10 +524,9 @@ function editPeserta(p) {
     setRupiahValue(document.querySelector('[name="hotel[total_bill]"]'), p.hotel.total_bill);
     setRupiahValue(document.querySelector('[name="hotel[total_biaya_30persen]"]'), p.hotel.total_biaya_30persen);
   }
-  document.getElementById('peserta-modal-title').innerHTML = '<i data-lucide="pencil" class="w-5 h-5 text-primary-600"></i> Edit Peserta: ' + p.nama_peserta;
+  document.getElementById('peserta-modal-title').innerHTML = iconsax('edit-2', 'w-5 h-5 text-primary-600') + ' Edit Peserta: ' + p.nama_peserta;
   hitungPreviewPeserta();
   openModal('modal-peserta');
-  lucide.createIcons({ props: { search: document.getElementById('modal-peserta') } });
 }
 
 async function submitPeserta(e) {
@@ -609,11 +601,10 @@ async function muatDaftarPegawai() {
     tr.innerHTML = `<td>${pg.nama}</td><td>${pg.nip || '-'}</td>` +
       `<td>${pg.aktif == 1 ? '<span class="badge badge-success">Aktif</span>' : '<span class="badge badge-muted">Nonaktif</span>'}</td>` +
       `<td class="text-center">` +
-      (pg.aktif == 1 ? `<button type="button" class="p-1.5 rounded hover:bg-red-50 dark:hover:bg-red-900/30 text-slate-500 hover:text-red-600" onclick="nonaktifkanPegawai(${pg.id})" title="Nonaktifkan"><i data-lucide="user-x" class="w-4 h-4"></i></button>` : '') +
+      (pg.aktif == 1 ? `<button type="button" class="p-1.5 rounded hover:bg-red-50 dark:hover:bg-red-900/30 text-slate-500 hover:text-red-600" onclick="nonaktifkanPegawai(${pg.id})" title="Nonaktifkan">${iconsax('user-remove', 'w-4 h-4')}</button>` : '') +
       `</td>`;
     tbody.appendChild(tr);
   });
-  lucide.createIcons({ props: { search: tbody } });
 }
 function bukaModalPegawai() {
   openModal('modal-pegawai');

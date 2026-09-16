@@ -9,7 +9,6 @@
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
   <link rel="stylesheet" href="<?= base_url('assets/css/tailwind.css') ?>">
-  <script src="https://unpkg.com/lucide@latest"></script>
   <script>
     (function() {
       const saved = localStorage.getItem('theme') || 'light';
@@ -39,12 +38,12 @@
       <div class="flex items-center gap-2">
         <button onclick="toggleTheme()" title="Ganti Tema"
                 class="p-2 rounded-lg text-slate-500 dark:text-slate-300 hover:bg-slate-100 dark:hover:bg-slate-800 transition">
-          <i data-lucide="sun" class="w-5 h-5 hidden dark:inline"></i>
-          <i data-lucide="moon" class="w-5 h-5 dark:hidden"></i>
+          <?= iconsax('sun-1', 'w-5 h-5 hidden dark:inline') ?>
+          <?= iconsax('moon', 'w-5 h-5 dark:hidden') ?>
         </button>
         <a href="<?= base_url('login') ?>"
            class="flex items-center gap-1.5 pl-2.5 pr-3 sm:pl-3 sm:pr-3.5 py-2 rounded-lg text-sm font-medium text-primary-700 dark:text-primary-300 bg-primary-50 dark:bg-primary-900/40 hover:bg-primary-100 dark:hover:bg-primary-900/70 border border-primary-100 dark:border-primary-800 transition">
-          <i data-lucide="log-in" class="w-4 h-4"></i> Masuk
+          <?= iconsax('login', 'w-4 h-4') ?> Masuk
         </a>
       </div>
     </div>
@@ -71,10 +70,11 @@
 
 <!-- Scroll to top/bottom -->
 <button id="scroll-fab" onclick="scrollFabClick()" title="Scroll" class="scroll-fab bg-primary-600 text-white hover:bg-primary-700 hidden">
-  <i data-lucide="arrow-down" id="scroll-fab-icon" class="w-5 h-5"></i>
+  <?= iconsax('arrow-down', 'w-5 h-5', 'scroll-fab-icon') ?>
 </button>
 
 <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+<script src="<?= base_url('assets/js/icons.js') ?>"></script>
 <script src="<?= base_url('assets/js/pagination.js') ?>"></script>
 <script>
 function toggleTheme() {
@@ -98,8 +98,7 @@ function toggleTheme() {
     const atTop = window.scrollY < 150;
     if (atTop !== lastAtTop) {
       lastAtTop = atTop;
-      icon.setAttribute('data-lucide', atTop ? 'arrow-down' : 'arrow-up');
-      lucide.createIcons({ props: { search: fab } });
+      icon.innerHTML = ICONSAX_PATHS[atTop ? 'arrow-down' : 'arrow-up'];
     }
     ticking = false;
   }
@@ -117,8 +116,6 @@ function toggleTheme() {
   window.addEventListener('resize', onScroll);
   document.addEventListener('DOMContentLoaded', updateFab);
 })();
-
-document.addEventListener('DOMContentLoaded', () => { lucide.createIcons(); });
 </script>
 <?= $this->renderSection('scripts') ?>
 </body>

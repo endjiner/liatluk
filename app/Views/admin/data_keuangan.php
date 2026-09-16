@@ -15,13 +15,13 @@ $tahunOpsi = range($tahunSekarang, $tahunSekarang - 5);
   </div>
   <div class="flex flex-wrap items-center gap-2">
     <button onclick="openModal('modal-import')" class="btn btn-outline btn-sm">
-      <i data-lucide="upload"></i> <span class="hidden sm:inline">Import CSV</span>
+      <?= iconsax('document-upload', '') ?> <span class="hidden sm:inline">Import CSV</span>
     </button>
     <button onclick="openExportMenu()" class="btn btn-outline btn-sm">
-      <i data-lucide="download"></i> <span class="hidden sm:inline">Export</span>
+      <?= iconsax('document-download', '') ?> <span class="hidden sm:inline">Export</span>
     </button>
     <button onclick="openMainDrawer()" class="btn btn-primary btn-sm">
-      <i data-lucide="plus"></i> <span class="hidden sm:inline">Input Baru</span>
+      <?= iconsax('add', '') ?> <span class="hidden sm:inline">Input Baru</span>
     </button>
   </div>
 </div>
@@ -34,7 +34,7 @@ $tahunOpsi = range($tahunSekarang, $tahunSekarang - 5);
   <div class="flex items-center gap-2">
     <button type="button" onclick="clearAllSelection()" class="btn btn-ghost btn-sm">Batal</button>
     <button type="button" onclick="openModal('modal-bulk-hapus')" class="btn btn-danger btn-sm">
-      <i data-lucide="trash-2"></i> Hapus Terpilih
+      <?= iconsax('trash', '') ?> Hapus Terpilih
     </button>
   </div>
 </div>
@@ -43,7 +43,7 @@ $tahunOpsi = range($tahunSekarang, $tahunSekarang - 5);
 <div class="card">
   <div class="card-header">
     <h3 class="text-sm font-semibold text-slate-700 dark:text-slate-200 flex items-center gap-2">
-      <i data-lucide="list" class="w-4 h-4"></i> Daftar Transaksi
+      <?= iconsax('task-square', 'w-4 h-4') ?> Daftar Transaksi
     </h3>
     <span class="text-xs text-slate-500">Total: <span id="txn-total">-</span></span>
   </div>
@@ -66,7 +66,7 @@ $tahunOpsi = range($tahunSekarang, $tahunSekarang - 5);
       <!-- Search -->
       <div class="relative flex-1 min-w-[160px] max-w-xs">
         <span class="absolute inset-y-0 left-3 flex items-center text-slate-400">
-          <i data-lucide="search" class="w-3.5 h-3.5"></i>
+          <?= iconsax('search-normal-1', 'w-3.5 h-3.5') ?>
         </span>
         <input type="text" id="filter-search" placeholder="Cari kategori/keterangan..."
                class="form-control form-control-sm pl-8">
@@ -104,7 +104,7 @@ $tahunOpsi = range($tahunSekarang, $tahunSekarang - 5);
   </div>
 
   <div class="sm:hidden flex items-center gap-1.5 px-3 py-1.5 text-[11px] text-slate-400 dark:text-slate-500 border-t border-slate-100 dark:border-slate-800">
-    <i data-lucide="move-horizontal" class="w-3 h-3"></i> Geser tabel untuk melihat kolom lainnya
+    <?= iconsax('arrow-swap-horizontal', 'w-3 h-3') ?> Geser tabel untuk melihat kolom lainnya
   </div>
   <div class="overflow-x-auto">
     <table class="table">
@@ -141,9 +141,9 @@ $tahunOpsi = range($tahunSekarang, $tahunSekarang - 5);
     <div class="modal-box modal-box-lg">
       <div class="modal-header">
         <div>
-          <h3 class="modal-title"><i data-lucide="pencil" class="w-5 h-5 text-primary-600"></i> Edit Pemasukan</h3>
+          <h3 class="modal-title"><?= iconsax('edit-2', 'w-5 h-5 text-primary-600') ?> Edit Pemasukan</h3>
         </div>
-        <button class="btn btn-ghost btn-icon" onclick="closeModal('modal-edit-pemasukan')"><i data-lucide="x"></i></button>
+        <button class="btn btn-ghost btn-icon" onclick="closeModal('modal-edit-pemasukan')"><?= iconsax('close-circle', '') ?></button>
       </div>
       <form id="form-edit-pemasukan" onsubmit="submitEditPemasukan(event)" enctype="multipart/form-data">
         <div class="modal-body">
@@ -202,7 +202,7 @@ $tahunOpsi = range($tahunSekarang, $tahunSekarang - 5);
         </div>
         <div class="modal-footer">
           <button type="button" class="btn btn-ghost" onclick="closeModal('modal-edit-pemasukan')">Batal</button>
-          <button type="submit" class="btn btn-primary"><i data-lucide="save"></i> Simpan Perubahan</button>
+          <button type="submit" class="btn btn-primary"><?= iconsax('save-2', '') ?> Simpan Perubahan</button>
         </div>
       </form>
     </div>
@@ -215,8 +215,8 @@ $tahunOpsi = range($tahunSekarang, $tahunSekarang - 5);
   <div class="modal-container">
     <div class="modal-box modal-box-lg">
       <div class="modal-header">
-        <div><h3 class="modal-title"><i data-lucide="pencil" class="w-5 h-5 text-primary-600"></i> Edit Pengeluaran</h3></div>
-        <button class="btn btn-ghost btn-icon" onclick="closeModal('modal-edit-pengeluaran')"><i data-lucide="x"></i></button>
+        <div><h3 class="modal-title"><?= iconsax('edit-2', 'w-5 h-5 text-primary-600') ?> Edit Pengeluaran</h3></div>
+        <button class="btn btn-ghost btn-icon" onclick="closeModal('modal-edit-pengeluaran')"><?= iconsax('close-circle', '') ?></button>
       </div>
       <form id="form-edit-pengeluaran" onsubmit="submitEditPengeluaran(event)" enctype="multipart/form-data">
         <div class="modal-body">
@@ -259,7 +259,7 @@ $tahunOpsi = range($tahunSekarang, $tahunSekarang - 5);
         </div>
         <div class="modal-footer">
           <button type="button" class="btn btn-ghost" onclick="closeModal('modal-edit-pengeluaran')">Batal</button>
-          <button type="submit" class="btn btn-primary"><i data-lucide="save"></i> Simpan Perubahan</button>
+          <button type="submit" class="btn btn-primary"><?= iconsax('save-2', '') ?> Simpan Perubahan</button>
         </div>
       </form>
     </div>
@@ -273,10 +273,10 @@ $tahunOpsi = range($tahunSekarang, $tahunSekarang - 5);
     <div class="modal-box modal-box-lg">
       <div class="modal-header">
         <div>
-          <h3 class="modal-title"><i data-lucide="file-text" class="w-5 h-5 text-primary-600"></i> Detail Transaksi</h3>
+          <h3 class="modal-title"><?= iconsax('document-text', 'w-5 h-5 text-primary-600') ?> Detail Transaksi</h3>
           <p class="text-sm text-slate-500 dark:text-slate-400 mt-0.5" id="detail-subtitle"></p>
         </div>
-        <button class="btn btn-ghost btn-icon" onclick="closeModal('modal-detail')"><i data-lucide="x"></i></button>
+        <button class="btn btn-ghost btn-icon" onclick="closeModal('modal-detail')"><?= iconsax('close-circle', '') ?></button>
       </div>
       <div class="modal-body">
         <dl class="grid grid-cols-1 md:grid-cols-2 gap-x-6 gap-y-3 text-sm" id="detail-list"></dl>
@@ -297,7 +297,7 @@ $tahunOpsi = range($tahunSekarang, $tahunSekarang - 5);
       <div class="modal-header">
         <div class="flex items-start gap-3">
           <div class="w-10 h-10 shrink-0 rounded-full bg-red-100 dark:bg-red-900/40 text-red-600 dark:text-red-400 flex items-center justify-center">
-            <i data-lucide="alert-triangle" class="w-5 h-5"></i>
+            <?= iconsax('warning-2', 'w-5 h-5') ?>
           </div>
           <div>
             <h3 class="text-base font-semibold text-slate-800 dark:text-slate-100">Hapus Data?</h3>
@@ -313,7 +313,7 @@ $tahunOpsi = range($tahunSekarang, $tahunSekarang - 5);
       <div class="modal-footer">
         <button type="button" class="btn btn-ghost" onclick="closeModal('modal-hapus')">Batal</button>
         <button type="button" class="btn btn-danger" id="btn-confirm-hapus">
-          <i data-lucide="trash-2"></i> Ya, Hapus
+          <?= iconsax('trash', '') ?> Ya, Hapus
         </button>
       </div>
     </div>
@@ -328,7 +328,7 @@ $tahunOpsi = range($tahunSekarang, $tahunSekarang - 5);
       <div class="modal-header">
         <div class="flex items-start gap-3">
           <div class="w-10 h-10 shrink-0 rounded-full bg-emerald-100 dark:bg-emerald-900/40 text-emerald-600 dark:text-emerald-400 flex items-center justify-center">
-            <i data-lucide="check-check" class="w-5 h-5"></i>
+            <?= iconsax('tick-circle', 'w-5 h-5') ?>
           </div>
           <div>
             <h3 class="text-base font-semibold text-slate-800 dark:text-slate-100" id="konfirmasi-title">Konfirmasi</h3>
@@ -354,7 +354,7 @@ $tahunOpsi = range($tahunSekarang, $tahunSekarang - 5);
       <div class="modal-header">
         <div class="flex items-start gap-3">
           <div class="w-10 h-10 shrink-0 rounded-full bg-red-100 dark:bg-red-900/40 text-red-600 dark:text-red-400 flex items-center justify-center">
-            <i data-lucide="alert-triangle" class="w-5 h-5"></i>
+            <?= iconsax('warning-2', 'w-5 h-5') ?>
           </div>
           <div>
             <h3 class="text-base font-semibold text-slate-800 dark:text-slate-100">Hapus Data Terpilih?</h3>
@@ -370,7 +370,7 @@ $tahunOpsi = range($tahunSekarang, $tahunSekarang - 5);
       <div class="modal-footer">
         <button type="button" class="btn btn-ghost" onclick="closeModal('modal-bulk-hapus')">Batal</button>
         <button type="button" class="btn btn-danger" id="btn-confirm-bulk-hapus">
-          <i data-lucide="trash-2"></i> Ya, Hapus Semua
+          <?= iconsax('trash', '') ?> Ya, Hapus Semua
         </button>
       </div>
     </div>
@@ -383,8 +383,8 @@ $tahunOpsi = range($tahunSekarang, $tahunSekarang - 5);
   <div class="modal-container">
     <div class="modal-box modal-box-lg">
       <div class="modal-header">
-        <div><h3 class="modal-title"><i data-lucide="upload" class="w-5 h-5 text-primary-600"></i> Import CSV</h3></div>
-        <button class="btn btn-ghost btn-icon" onclick="closeModal('modal-import')"><i data-lucide="x"></i></button>
+        <div><h3 class="modal-title"><?= iconsax('document-upload', 'w-5 h-5 text-primary-600') ?> Import CSV</h3></div>
+        <button class="btn btn-ghost btn-icon" onclick="closeModal('modal-import')"><?= iconsax('close-circle', '') ?></button>
       </div>
       <form id="form-import" onsubmit="submitImport(event)" enctype="multipart/form-data">
         <input type="hidden" name="tipe" value="gabungan">
@@ -405,7 +405,7 @@ $tahunOpsi = range($tahunSekarang, $tahunSekarang - 5);
         </div>
         <div class="modal-footer">
           <button type="button" class="btn btn-ghost" onclick="closeModal('modal-import')">Batal</button>
-          <button type="submit" class="btn btn-primary"><i data-lucide="upload"></i> Proses</button>
+          <button type="submit" class="btn btn-primary"><?= iconsax('document-upload', '') ?> Proses</button>
         </div>
       </form>
     </div>
@@ -418,17 +418,17 @@ $tahunOpsi = range($tahunSekarang, $tahunSekarang - 5);
   <div class="modal-container">
     <div class="modal-box modal-box-sm">
       <div class="modal-header">
-        <div><h3 class="modal-title"><i data-lucide="download" class="w-5 h-5 text-primary-600"></i> Export Data</h3></div>
-        <button class="btn btn-ghost btn-icon" onclick="closeModal('modal-export')"><i data-lucide="x"></i></button>
+        <div><h3 class="modal-title"><?= iconsax('document-download', 'w-5 h-5 text-primary-600') ?> Export Data</h3></div>
+        <button class="btn btn-ghost btn-icon" onclick="closeModal('modal-export')"><?= iconsax('close-circle', '') ?></button>
       </div>
       <div class="modal-body">
         <p class="text-sm text-slate-600 dark:text-slate-300 mb-3">Pilih format export data gabungan (pemasukan &amp; pengeluaran).</p>
         <div class="space-y-2">
           <a href="<?= base_url('admin/laporan/export-excel') ?>" class="btn btn-outline w-full justify-start">
-            <i data-lucide="file-spreadsheet" class="text-emerald-600"></i> Export Excel
+            <?= iconsax('export-square', 'text-emerald-600') ?> Export Excel
           </a>
           <a href="<?= base_url('admin/laporan/export-pdf') ?>" class="btn btn-outline w-full justify-start">
-            <i data-lucide="file-text" class="text-red-600"></i> Export PDF
+            <?= iconsax('document-text', 'text-red-600') ?> Export PDF
           </a>
         </div>
       </div>
@@ -466,7 +466,7 @@ function buktiPreviewHTML(url, filename) {
   }
   if (ext === 'pdf') {
     return `<a href="${url}" target="_blank" class="inline-flex items-center gap-2 px-4 py-3 rounded-lg border border-slate-200 hover:border-primary-500 hover:bg-primary-50/50 dark:hover:bg-primary-900/20 transition">
-              <i data-lucide="file-text" class="w-8 h-8 text-red-600"></i>
+              ${iconsax('document-text', 'w-8 h-8 text-red-600')}
               <div>
                 <div class="font-medium text-sm">${filename}</div>
                 <div class="text-xs text-primary-600">Klik untuk buka PDF</div>
@@ -525,13 +525,13 @@ function renderTxn(rows) {
     const nominal = isP ? (parseFloat(r.jumlah_diterima) || parseFloat(r.jumlah)) : parseFloat(r.jumlah);
     const dateFormatted = new Date(r.tanggal).toLocaleDateString('id-ID', { day: '2-digit', month: 'short', year: 'numeric' });
     const badge = isP
-      ? '<span class="badge badge-success"><i data-lucide="arrow-up-right" class="w-3 h-3"></i>Pemasukan</span>'
-      : '<span class="badge badge-danger"><i data-lucide="arrow-down-right" class="w-3 h-3"></i>Pengeluaran</span>';
+      ? '<span class="badge badge-success">' + iconsax('trend-up', 'w-3 h-3') + 'Pemasukan</span>'
+      : '<span class="badge badge-danger">' + iconsax('trend-down', 'w-3 h-3') + 'Pengeluaran</span>';
     const rowJson = JSON.stringify(r).replace(/'/g, "&#39;");
     const editFn = isP ? 'editPemasukan' : 'editPengeluaran';
     const deleteFn = isP ? 'deletePemasukan' : 'deletePengeluaran';
     const selesaiBtn = (isP && (r.status_dana === 'sebagian' || r.status_dana === 'belum_diterima'))
-      ? `<button onclick="tandaiSelesai(${r.id}, ${r.jumlah})" title="Tandai Selesai/Lunas" class="p-1.5 rounded hover:bg-emerald-50 dark:hover:bg-emerald-900/30 text-slate-500 hover:text-emerald-600"><i data-lucide="check-check" class="w-4 h-4"></i></button>`
+      ? `<button onclick="tandaiSelesai(${r.id}, ${r.jumlah})" title="Tandai Selesai/Lunas" class="p-1.5 rounded hover:bg-emerald-50 dark:hover:bg-emerald-900/30 text-slate-500 hover:text-emerald-600">${iconsax('tick-circle', 'w-4 h-4')}</button>`
       : '';
     return `<tr data-id="${r.id}" data-type="${r.tipe}">
       <td><input type="checkbox" class="row-checkbox row-checkbox-${r.tipe} form-checkbox" onclick="onRowCheck(this)"></td>
@@ -543,15 +543,14 @@ function renderTxn(rows) {
       <td class="text-right font-medium text-currency ${isP ? 'text-emerald-600' : 'text-red-600'}">Rp ${new Intl.NumberFormat('id-ID').format(Math.round(nominal))}</td>
       <td>
         <div class="flex items-center justify-center gap-1">
-          <button onclick='showDetailRow(${rowJson})' title="Detail" class="p-1.5 rounded hover:bg-slate-100 dark:hover:bg-slate-700 text-slate-500 hover:text-primary-600"><i data-lucide="eye" class="w-4 h-4"></i></button>
-          <button onclick='${editFn}(${rowJson})' title="Edit" class="p-1.5 rounded hover:bg-slate-100 dark:hover:bg-slate-700 text-slate-500 hover:text-primary-600"><i data-lucide="pencil" class="w-4 h-4"></i></button>
+          <button onclick='showDetailRow(${rowJson})' title="Detail" class="p-1.5 rounded hover:bg-slate-100 dark:hover:bg-slate-700 text-slate-500 hover:text-primary-600">${iconsax('eye', 'w-4 h-4')}</button>
+          <button onclick='${editFn}(${rowJson})' title="Edit" class="p-1.5 rounded hover:bg-slate-100 dark:hover:bg-slate-700 text-slate-500 hover:text-primary-600">${iconsax('edit-2', 'w-4 h-4')}</button>
           ${selesaiBtn}
-          <button onclick="${deleteFn}(${r.id})" title="Hapus" class="p-1.5 rounded hover:bg-red-50 dark:hover:bg-red-900/30 text-slate-500 hover:text-red-600"><i data-lucide="trash-2" class="w-4 h-4"></i></button>
+          <button onclick="${deleteFn}(${r.id})" title="Hapus" class="p-1.5 rounded hover:bg-red-50 dark:hover:bg-red-900/30 text-slate-500 hover:text-red-600">${iconsax('trash', 'w-4 h-4')}</button>
         </div>
       </td>
     </tr>`;
   }).join('');
-  lucide.createIcons({ props: { search: tbody } });
 }
 
 function renderPagination(total, perPage, page) {
@@ -659,7 +658,6 @@ function showDetailRow(row) {
     buktiWrap.innerHTML = '';
   }
   openModal('modal-detail');
-  lucide.createIcons({ props: { search: document.getElementById('modal-detail') } });
 }
 
 /* ── Edit Pemasukan ── */
@@ -682,7 +680,6 @@ function editPemasukan(row) {
     prev.innerHTML = '<div class="text-xs text-slate-500">Belum ada bukti terlampir.</div>';
   }
   openModal('modal-edit-pemasukan');
-  lucide.createIcons({ props: { search: document.getElementById('modal-edit-pemasukan') } });
 }
 
 async function submitEditPemasukan(e) {
@@ -711,7 +708,6 @@ function editPengeluaran(row) {
     prev.innerHTML = '<div class="text-xs text-slate-500">Belum ada bukti terlampir.</div>';
   }
   openModal('modal-edit-pengeluaran');
-  lucide.createIcons({ props: { search: document.getElementById('modal-edit-pengeluaran') } });
 }
 
 async function submitEditPengeluaran(e) {

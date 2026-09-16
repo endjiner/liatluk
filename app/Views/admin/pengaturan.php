@@ -16,7 +16,7 @@
     <div class="card lg:col-span-2">
       <div class="card-header">
         <h3 class="text-sm font-semibold text-slate-700 dark:text-slate-200 flex items-center gap-2">
-          <i data-lucide="sliders" class="w-4 h-4 text-primary-600"></i> Parameter Keuangan &amp; Notifikasi
+          <?= iconsax('slider-horizontal', 'w-4 h-4 text-primary-600') ?> Parameter Keuangan &amp; Notifikasi
         </h3>
       </div>
       <div class="card-body space-y-6">
@@ -36,7 +36,7 @@
         <!-- Notifikasi -->
         <div>
           <h4 class="text-sm font-semibold text-slate-700 dark:text-slate-200 flex items-center gap-2 mb-3">
-            <i data-lucide="bell" class="w-4 h-4 text-amber-600"></i> Opsi Notifikasi Otomatis
+            <?= iconsax('notification', 'w-4 h-4 text-amber-600') ?> Opsi Notifikasi Otomatis
           </h4>
           <div class="space-y-2">
             <label class="flex items-start gap-3 p-3 rounded-lg border border-slate-200 dark:border-slate-700 cursor-pointer hover:bg-slate-50 dark:hover:bg-slate-700/50">
@@ -65,7 +65,7 @@
     <div class="card">
       <div class="card-header">
         <h3 class="text-sm font-semibold text-slate-700 dark:text-slate-200 flex items-center gap-2">
-          <i data-lucide="shield-check" class="w-4 h-4 text-primary-600"></i> Kredensial Administrator
+          <?= iconsax('shield-tick', 'w-4 h-4 text-primary-600') ?> Kredensial Administrator
         </h3>
       </div>
       <div class="card-body space-y-6">
@@ -83,7 +83,7 @@
             <button type="button" onclick="togglePasswordVisibility('input-password-baru', this)" tabindex="-1"
                     class="absolute inset-y-0 right-2 flex items-center px-2 text-slate-400 hover:text-slate-600 dark:hover:text-slate-200"
                     title="Tampilkan/Sembunyikan">
-              <i data-lucide="eye" class="w-4 h-4"></i>
+              <?= iconsax('eye', 'w-4 h-4') ?>
             </button>
           </div>
           <p class="form-hint">Perubahan kredensial memerlukan verifikasi password saat ini.</p>
@@ -95,7 +95,7 @@
 
   <div class="modal-footer mt-6 rounded-xl">
     <button type="submit" class="btn btn-primary">
-      <i data-lucide="save"></i> Simpan Pengaturan
+      <?= iconsax('save-2', '') ?> Simpan Pengaturan
     </button>
   </div>
 </form>
@@ -108,7 +108,7 @@
       <div class="modal-header">
         <div class="flex items-start gap-3">
           <div class="w-10 h-10 shrink-0 rounded-full bg-amber-100 dark:bg-amber-900/40 text-amber-600 dark:text-amber-400 flex items-center justify-center">
-            <i data-lucide="shield-alert" class="w-5 h-5"></i>
+            <?= iconsax('shield-security', 'w-5 h-5') ?>
           </div>
           <div>
             <h3 class="text-base font-semibold text-slate-800 dark:text-slate-100">Verifikasi Kredensial</h3>
@@ -127,7 +127,7 @@
                    placeholder="Masukkan password Anda" autocomplete="current-password">
             <button type="button" onclick="togglePasswordVisibility('verify-current-password', this)" tabindex="-1"
                     class="absolute inset-y-0 right-2 flex items-center px-2 text-slate-400 hover:text-slate-600">
-              <i data-lucide="eye" class="w-4 h-4"></i>
+              <?= iconsax('eye', 'w-4 h-4') ?>
             </button>
           </div>
         </div>
@@ -135,7 +135,7 @@
       <div class="modal-footer">
         <button type="button" class="btn btn-ghost" onclick="closeModal('modal-konfirmasi-kredensial')">Batal</button>
         <button type="button" class="btn btn-danger" onclick="konfirmasiPerubahanKredensial()">
-          <i data-lucide="check"></i> Konfirmasi
+          <?= iconsax('check', '') ?> Konfirmasi
         </button>
       </div>
     </div>

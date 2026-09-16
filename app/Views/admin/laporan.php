@@ -16,10 +16,10 @@
   ?>
   <div class="flex flex-wrap items-center gap-2">
     <a href="<?= base_url('admin/laporan/export-pdf?' . $qsExport) ?>" target="_blank" class="btn btn-outline btn-sm">
-      <i data-lucide="file-text" class="text-red-600"></i> Export PDF
+      <?= iconsax('document-text', 'text-red-600') ?> Export PDF
     </a>
     <a href="<?= base_url('admin/laporan/export-excel?' . $qsExport) ?>" class="btn btn-outline btn-sm">
-      <i data-lucide="file-spreadsheet" class="text-emerald-600"></i> Export Excel
+      <?= iconsax('export-square', 'text-emerald-600') ?> Export Excel
     </a>
   </div>
 </div>
@@ -35,7 +35,7 @@
       <label class="form-label">Bulan Sampai</label>
       <input type="month" name="bulan_sampai" class="form-control form-control-sm" value="<?= $bulanSampai ?>">
     </div>
-    <button type="submit" class="btn btn-primary btn-sm"><i data-lucide="filter"></i> Tampilkan</button>
+    <button type="submit" class="btn btn-primary btn-sm"><?= iconsax('filter', '') ?> Tampilkan</button>
     <div class="flex flex-wrap items-center gap-4 ml-auto pt-1">
       <label class="flex items-center gap-2 text-sm text-slate-600 dark:text-slate-300 cursor-pointer">
         <input type="checkbox" name="sertakan_perjadin" value="1" class="form-checkbox" <?= $sertakanPerjadin ? 'checked' : '' ?>>
@@ -51,7 +51,7 @@
 
 <?php if (!empty($periodeDipangkas)): ?>
 <div class="mb-4 flex items-center gap-2 px-3 py-2.5 rounded-lg bg-amber-50 border border-amber-200 text-amber-700 text-sm dark:bg-amber-900/30 dark:border-amber-800 dark:text-amber-300">
-  <i data-lucide="alert-triangle" class="w-4 h-4 shrink-0"></i>
+  <?= iconsax('warning-2', 'w-4 h-4 shrink-0') ?>
   <span>Rentang periode yang diminta terlalu lebar, dibatasi maksimal <?= $maxBulanPeriode ?> bulan (<?= (int) round($maxBulanPeriode / 12) ?> tahun) supaya laporan tetap cepat dibuat.</span>
 </div>
 <?php endif; ?>
@@ -59,19 +59,19 @@
 <!-- KPI Summary -->
 <div class="grid grid-cols-2 md:grid-cols-2 lg:grid-cols-4 gap-3 mb-6">
   <div class="kpi">
-    <div class="kpi-label"><i data-lucide="wallet" class="w-4 h-4"></i> Saldo Awal Periode</div>
+    <div class="kpi-label"><?= iconsax('wallet', 'w-4 h-4') ?> Saldo Awal Periode</div>
     <div class="kpi-value text-primary-700 dark:text-primary-300 text-currency">Rp <?= number_format($saldoAwal, 0, ',', '.') ?></div>
   </div>
   <div class="kpi">
-    <div class="kpi-label"><i data-lucide="trending-up" class="w-4 h-4 text-emerald-600"></i> Total Pemasukan</div>
+    <div class="kpi-label"><?= iconsax('trend-up', 'w-4 h-4 text-emerald-600') ?> Total Pemasukan</div>
     <div class="kpi-value text-emerald-700 dark:text-emerald-400 text-currency">Rp <?= number_format($totalPemasukan, 0, ',', '.') ?></div>
   </div>
   <div class="kpi">
-    <div class="kpi-label"><i data-lucide="trending-down" class="w-4 h-4 text-red-600"></i> Total Pengeluaran</div>
+    <div class="kpi-label"><?= iconsax('trend-down', 'w-4 h-4 text-red-600') ?> Total Pengeluaran</div>
     <div class="kpi-value text-red-700 dark:text-red-400 text-currency">Rp <?= number_format($totalPengeluaran, 0, ',', '.') ?></div>
   </div>
   <div class="kpi">
-    <div class="kpi-label"><i data-lucide="scale" class="w-4 h-4"></i> Saldo Akhir Periode</div>
+    <div class="kpi-label"><?= iconsax('wallet', 'w-4 h-4') ?> Saldo Akhir Periode</div>
     <div class="kpi-value <?= $saldoAkhir >= 0 ? 'text-emerald-700 dark:text-emerald-400' : 'text-red-700 dark:text-red-400' ?> text-currency">
       Rp <?= number_format($saldoAkhir, 0, ',', '.') ?>
     </div>
@@ -83,7 +83,7 @@
   <div class="card">
     <div class="card-header">
       <h3 class="text-sm font-semibold text-slate-700 dark:text-slate-200 flex items-center gap-2">
-        <i data-lucide="list-ordered" class="w-4 h-4 text-emerald-600"></i> Rekap Pemasukan per Kategori
+        <?= iconsax('task-square', 'w-4 h-4 text-emerald-600') ?> Rekap Pemasukan per Kategori
       </h3>
     </div>
     <div class="overflow-x-auto">
@@ -106,7 +106,7 @@
   <div class="card">
     <div class="card-header">
       <h3 class="text-sm font-semibold text-slate-700 dark:text-slate-200 flex items-center gap-2">
-        <i data-lucide="list-ordered" class="w-4 h-4 text-red-600"></i> Rekap Pengeluaran per Kategori
+        <?= iconsax('task-square', 'w-4 h-4 text-red-600') ?> Rekap Pengeluaran per Kategori
       </h3>
     </div>
     <div class="overflow-x-auto">
@@ -131,7 +131,7 @@
 <div class="card mt-4">
   <div class="card-header">
     <h3 class="text-sm font-semibold text-slate-700 dark:text-slate-200 flex items-center gap-2">
-      <i data-lucide="plane" class="w-4 h-4 text-primary-600"></i> Rincian Perjalanan Dinas Periode Ini
+      <?= iconsax('airplane', 'w-4 h-4 text-primary-600') ?> Rincian Perjalanan Dinas Periode Ini
     </h3>
   </div>
   <div class="overflow-x-auto">
@@ -167,7 +167,7 @@
 <div class="card mt-4">
   <div class="card-header">
     <h3 class="text-sm font-semibold text-slate-700 dark:text-slate-200 flex items-center gap-2">
-      <i data-lucide="wallet" class="w-4 h-4 text-primary-600"></i> Rincian Dana Taktis Periode Ini
+      <?= iconsax('wallet', 'w-4 h-4 text-primary-600') ?> Rincian Dana Taktis Periode Ini
     </h3>
   </div>
   <div class="overflow-x-auto">

@@ -8,10 +8,10 @@
   </div>
   <div class="flex flex-wrap items-center gap-2">
     <button class="btn btn-success btn-sm" onclick="openModal('modal-rp')">
-      <i data-lucide="plus"></i> <span class="hidden sm:inline">Rencana Pemasukan</span>
+      <?= iconsax('add', '') ?> <span class="hidden sm:inline">Rencana Pemasukan</span>
     </button>
     <button class="btn btn-danger btn-sm" onclick="openModal('modal-re')">
-      <i data-lucide="plus"></i> <span class="hidden sm:inline">Rencana Pengeluaran</span>
+      <?= iconsax('add', '') ?> <span class="hidden sm:inline">Rencana Pengeluaran</span>
     </button>
   </div>
 </div>
@@ -24,7 +24,7 @@
     <div class="card-body flex items-center justify-between gap-3 py-3 flex-wrap">
       <div class="flex items-center gap-3 min-w-0">
         <div class="w-9 h-9 rounded-full bg-emerald-100 dark:bg-emerald-900/40 text-emerald-600 dark:text-emerald-400 flex items-center justify-center shrink-0">
-          <i data-lucide="plane" class="w-4 h-4"></i>
+          <?= iconsax('airplane', 'w-4 h-4') ?>
         </div>
         <div class="min-w-0">
           <p class="text-xs text-slate-500 dark:text-slate-400">Setoran Dana Taktis (Perjalanan Dinas) belum dibayar &middot; <?= number_format($danaTaktisBelumDibayar['jumlah'], 0, ',', '.') ?> peserta</p>
@@ -32,7 +32,7 @@
         </div>
       </div>
       <a href="<?= base_url('admin/perjalanan-dinas/dana-taktis') ?>" class="btn btn-outline btn-sm shrink-0">
-        <span class="hidden sm:inline">Lihat Daftar</span> <i data-lucide="arrow-right"></i>
+        <span class="hidden sm:inline">Lihat Daftar</span> <?= iconsax('arrow-right', '') ?>
       </a>
     </div>
   </div>
@@ -40,7 +40,7 @@
   <div class="card">
     <div class="card-header">
       <h3 class="text-sm font-semibold text-slate-700 dark:text-slate-200 flex items-center gap-2">
-        <i data-lucide="arrow-up-right" class="w-4 h-4 text-emerald-600"></i> Rencana Pemasukan
+        <?= iconsax('trend-up', 'w-4 h-4 text-emerald-600') ?> Rencana Pemasukan
       </h3>
       <span class="text-xs text-slate-500">
         <?= $totalPemasukanAll > $limitRencana ? 'Menampilkan ' . count($rencanaPemasukan) . ' terbaru dari ' . $totalPemasukanAll : 'Total: ' . $totalPemasukanAll ?>
@@ -79,17 +79,17 @@
               <div class="flex items-center justify-center gap-1">
                 <button type="button" onclick="showDetailRencana(this)" data-row="<?= esc(json_encode($row), 'attr') ?>" data-tipe="pemasukan"
                         class="p-1.5 rounded hover:bg-slate-100 dark:hover:bg-slate-700 text-slate-500 hover:text-primary-600" title="Detail">
-                  <i data-lucide="eye" class="w-4 h-4"></i>
+                  <?= iconsax('eye', 'w-4 h-4') ?>
                 </button>
               <?php if ($row['status'] === 'aktif'): ?>
                 <button onclick="realisasiPemasukan(<?= $row['id'] ?>, <?= $sisaP ?>)"
                         class="btn btn-success btn-sm" title="Realisasi">
-                  <i data-lucide="check"></i> Realisasi
+                  <?= iconsax('check', '') ?> Realisasi
                 </button>
               <?php endif; ?>
                 <button onclick="deleteRencanaPemasukan(<?= $row['id'] ?>)"
                         class="p-1.5 rounded hover:bg-red-50 dark:hover:bg-red-900/30 text-slate-500 hover:text-red-600" title="Hapus">
-                  <i data-lucide="trash-2" class="w-4 h-4"></i>
+                  <?= iconsax('trash', 'w-4 h-4') ?>
                 </button>
               </div>
             </td>
@@ -105,7 +105,7 @@
   <div class="card">
     <div class="card-header">
       <h3 class="text-sm font-semibold text-slate-700 dark:text-slate-200 flex items-center gap-2">
-        <i data-lucide="arrow-down-right" class="w-4 h-4 text-red-600"></i> Rencana Pengeluaran
+        <?= iconsax('trend-down', 'w-4 h-4 text-red-600') ?> Rencana Pengeluaran
       </h3>
       <span class="text-xs text-slate-500">
         <?= $totalPengeluaranAll > $limitRencana ? 'Menampilkan ' . count($rencanaPengeluaran) . ' terbaru dari ' . $totalPengeluaranAll : 'Total: ' . $totalPengeluaranAll ?>
@@ -144,17 +144,17 @@
               <div class="flex items-center justify-center gap-1">
                 <button type="button" onclick="showDetailRencana(this)" data-row="<?= esc(json_encode($row), 'attr') ?>" data-tipe="pengeluaran"
                         class="p-1.5 rounded hover:bg-slate-100 dark:hover:bg-slate-700 text-slate-500 hover:text-primary-600" title="Detail">
-                  <i data-lucide="eye" class="w-4 h-4"></i>
+                  <?= iconsax('eye', 'w-4 h-4') ?>
                 </button>
               <?php if ($row['status'] === 'aktif'): ?>
                 <button onclick="realisasiPengeluaran(<?= $row['id'] ?>, <?= $sisaE ?>)"
                         class="btn btn-danger btn-sm" title="Realisasi">
-                  <i data-lucide="check"></i> Realisasi
+                  <?= iconsax('check', '') ?> Realisasi
                 </button>
               <?php endif; ?>
                 <button onclick="deleteRencanaPengeluaran(<?= $row['id'] ?>)"
                         class="p-1.5 rounded hover:bg-red-50 dark:hover:bg-red-900/30 text-slate-500 hover:text-red-600" title="Hapus">
-                  <i data-lucide="trash-2" class="w-4 h-4"></i>
+                  <?= iconsax('trash', 'w-4 h-4') ?>
                 </button>
               </div>
             </td>
@@ -172,8 +172,8 @@
   <div class="modal-container">
     <div class="modal-box">
       <div class="modal-header">
-        <div><h3 class="modal-title"><i data-lucide="plus" class="w-5 h-5 text-emerald-600"></i> Rencana Pemasukan Baru</h3></div>
-        <button class="btn btn-ghost btn-icon" onclick="closeModal('modal-rp')"><i data-lucide="x"></i></button>
+        <div><h3 class="modal-title"><?= iconsax('add', 'w-5 h-5 text-emerald-600') ?> Rencana Pemasukan Baru</h3></div>
+        <button class="btn btn-ghost btn-icon" onclick="closeModal('modal-rp')"><?= iconsax('close-circle', '') ?></button>
       </div>
       <form id="form-rp" onsubmit="submitRencanaPemasukan(event)">
         <div class="modal-body space-y-4">
@@ -197,7 +197,7 @@
             <label class="form-label">Bukti (Opsional)</label>
             <label class="block border-2 border-dashed border-slate-300 dark:border-slate-600 rounded-lg p-4 text-center cursor-pointer hover:border-primary-500 hover:bg-primary-50/50 dark:hover:bg-primary-900/20 transition">
               <input type="file" name="bukti" accept="image/*,.pdf" class="hidden">
-              <i data-lucide="upload-cloud" class="w-6 h-6 mx-auto text-slate-400"></i>
+              <?= iconsax('cloud-add', 'w-6 h-6 mx-auto text-slate-400') ?>
               <div class="text-sm text-slate-600 dark:text-slate-300 mt-1">Klik atau seret file</div>
               <div class="text-xs text-slate-500 mt-0.5">JPG, PNG, PDF &middot; Max 3MB</div>
             </label>
@@ -205,7 +205,7 @@
         </div>
         <div class="modal-footer">
           <button type="button" class="btn btn-ghost" onclick="closeModal('modal-rp')">Batal</button>
-          <button type="submit" class="btn btn-success"><i data-lucide="save"></i> Simpan Rencana</button>
+          <button type="submit" class="btn btn-success"><?= iconsax('save-2', '') ?> Simpan Rencana</button>
         </div>
       </form>
     </div>
@@ -218,8 +218,8 @@
   <div class="modal-container">
     <div class="modal-box">
       <div class="modal-header">
-        <div><h3 class="modal-title"><i data-lucide="plus" class="w-5 h-5 text-red-600"></i> Rencana Pengeluaran Baru</h3></div>
-        <button class="btn btn-ghost btn-icon" onclick="closeModal('modal-re')"><i data-lucide="x"></i></button>
+        <div><h3 class="modal-title"><?= iconsax('add', 'w-5 h-5 text-red-600') ?> Rencana Pengeluaran Baru</h3></div>
+        <button class="btn btn-ghost btn-icon" onclick="closeModal('modal-re')"><?= iconsax('close-circle', '') ?></button>
       </div>
       <form id="form-re" onsubmit="submitRencanaPengeluaran(event)">
         <div class="modal-body space-y-4">
@@ -243,7 +243,7 @@
             <label class="form-label">Bukti (Opsional)</label>
             <label class="block border-2 border-dashed border-slate-300 dark:border-slate-600 rounded-lg p-4 text-center cursor-pointer hover:border-primary-500 hover:bg-primary-50/50 dark:hover:bg-primary-900/20 transition">
               <input type="file" name="bukti" accept="image/*,.pdf" class="hidden">
-              <i data-lucide="upload-cloud" class="w-6 h-6 mx-auto text-slate-400"></i>
+              <?= iconsax('cloud-add', 'w-6 h-6 mx-auto text-slate-400') ?>
               <div class="text-sm text-slate-600 dark:text-slate-300 mt-1">Klik atau seret file</div>
               <div class="text-xs text-slate-500 mt-0.5">JPG, PNG, PDF &middot; Max 3MB</div>
             </label>
@@ -251,7 +251,7 @@
         </div>
         <div class="modal-footer">
           <button type="button" class="btn btn-ghost" onclick="closeModal('modal-re')">Batal</button>
-          <button type="submit" class="btn btn-danger"><i data-lucide="save"></i> Simpan Rencana</button>
+          <button type="submit" class="btn btn-danger"><?= iconsax('save-2', '') ?> Simpan Rencana</button>
         </div>
       </form>
     </div>
@@ -266,7 +266,7 @@
       <div class="modal-header">
         <div class="flex items-start gap-3">
           <div class="w-10 h-10 shrink-0 rounded-full bg-emerald-100 dark:bg-emerald-900/40 text-emerald-600 dark:text-emerald-400 flex items-center justify-center">
-            <i data-lucide="check-circle-2" class="w-5 h-5"></i>
+            <?= iconsax('tick-circle', 'w-5 h-5') ?>
           </div>
           <div>
             <h3 class="text-base font-semibold text-slate-800 dark:text-slate-100">Realisasi Pemasukan</h3>
@@ -295,7 +295,7 @@
       </div>
       <div class="modal-footer">
         <button class="btn btn-ghost" onclick="closeModal('modal-realisasi-p')">Batal</button>
-        <button class="btn btn-success" onclick="confirmRealisasiPemasukan()"><i data-lucide="check"></i> Realisasikan</button>
+        <button class="btn btn-success" onclick="confirmRealisasiPemasukan()"><?= iconsax('check', '') ?> Realisasikan</button>
       </div>
     </div>
   </div>
@@ -309,7 +309,7 @@
       <div class="modal-header">
         <div class="flex items-start gap-3">
           <div class="w-10 h-10 shrink-0 rounded-full bg-red-100 dark:bg-red-900/40 text-red-600 dark:text-red-400 flex items-center justify-center">
-            <i data-lucide="check-circle-2" class="w-5 h-5"></i>
+            <?= iconsax('tick-circle', 'w-5 h-5') ?>
           </div>
           <div>
             <h3 class="text-base font-semibold text-slate-800 dark:text-slate-100">Realisasi Pengeluaran</h3>
@@ -338,7 +338,7 @@
       </div>
       <div class="modal-footer">
         <button class="btn btn-ghost" onclick="closeModal('modal-realisasi-e')">Batal</button>
-        <button class="btn btn-danger" onclick="confirmRealisasiPengeluaran()"><i data-lucide="check"></i> Realisasikan</button>
+        <button class="btn btn-danger" onclick="confirmRealisasiPengeluaran()"><?= iconsax('check', '') ?> Realisasikan</button>
       </div>
     </div>
   </div>
@@ -350,8 +350,8 @@
   <div class="modal-container">
     <div class="modal-box modal-box-sm">
       <div class="modal-header">
-        <div><h3 class="modal-title" id="detail-rencana-title"><i data-lucide="file-text" class="w-5 h-5 text-primary-600"></i> Detail Rencana</h3></div>
-        <button class="btn btn-ghost btn-icon" onclick="closeModal('modal-detail-rencana')"><i data-lucide="x"></i></button>
+        <div><h3 class="modal-title" id="detail-rencana-title"><?= iconsax('document-text', 'w-5 h-5 text-primary-600') ?> Detail Rencana</h3></div>
+        <button class="btn btn-ghost btn-icon" onclick="closeModal('modal-detail-rencana')"><?= iconsax('close-circle', '') ?></button>
       </div>
       <div class="modal-body space-y-3">
         <div>
@@ -398,7 +398,7 @@
       <div class="modal-header">
         <div class="flex items-start gap-3">
           <div class="w-10 h-10 shrink-0 rounded-full bg-amber-100 dark:bg-amber-900/40 text-amber-600 dark:text-amber-400 flex items-center justify-center">
-            <i data-lucide="alert-triangle" class="w-5 h-5"></i>
+            <?= iconsax('warning-2', 'w-5 h-5') ?>
           </div>
           <div>
             <h3 class="text-base font-semibold text-slate-800 dark:text-slate-100" id="konfirmasi-title">Konfirmasi</h3>
@@ -445,7 +445,7 @@ function showDetailRencana(btn) {
   const tipe = btn.dataset.tipe;
   const aksen = tipe === 'pemasukan' ? 'text-emerald-600' : 'text-red-600';
   document.getElementById('detail-rencana-title').innerHTML =
-    '<i data-lucide="file-text" class="w-5 h-5 ' + aksen + '"></i> Detail Rencana ' + (tipe === 'pemasukan' ? 'Pemasukan' : 'Pengeluaran');
+    iconsax('document-text', 'w-5 h-5 ' + aksen) + ' Detail Rencana ' + (tipe === 'pemasukan' ? 'Pemasukan' : 'Pengeluaran');
   document.getElementById('detail-rencana-tanggal').textContent =
     new Date(row.tanggal_rencana).toLocaleDateString('id-ID', { day: 'numeric', month: 'long', year: 'numeric' });
   document.getElementById('detail-rencana-kategori').textContent = row.kategori;
@@ -465,12 +465,11 @@ function showDetailRencana(btn) {
   document.getElementById('detail-rencana-keterangan').textContent = row.keterangan || '-';
   const buktiEl = document.getElementById('detail-rencana-bukti');
   if (row.file_bukti) {
-    buktiEl.innerHTML = '<a href="' + BASE + 'uploads/bukti/' + row.file_bukti + '" target="_blank" class="inline-flex items-center gap-1 text-primary-600 hover:underline"><i data-lucide="paperclip" class="w-3.5 h-3.5"></i> Lihat bukti</a>';
+    buktiEl.innerHTML = '<a href="' + BASE + 'uploads/bukti/' + row.file_bukti + '" target="_blank" class="inline-flex items-center gap-1 text-primary-600 hover:underline">' + iconsax('paperclip-2', 'w-3.5 h-3.5') + ' Lihat bukti</a>';
   } else {
     buktiEl.textContent = 'Tidak ada bukti dilampirkan';
   }
   openModal('modal-detail-rencana');
-  lucide.createIcons({ props: { search: document.getElementById('modal-detail-rencana') } });
 }
 
 function tampilkanKonfirmasi(pesan, aksi) {

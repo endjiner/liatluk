@@ -7,7 +7,7 @@
     <p class="text-sm text-slate-500 dark:text-slate-400 mt-1">Rekap setoran Dana Taktis (10% Uang Harian) per pegawai</p>
   </div>
   <a href="<?= base_url('admin/perjalanan-dinas') ?>" class="btn btn-outline btn-sm">
-    <i data-lucide="arrow-left"></i> <span class="hidden sm:inline">Perjalanan Dinas</span>
+    <?= iconsax('arrow-left', '') ?> <span class="hidden sm:inline">Perjalanan Dinas</span>
   </a>
 </div>
 
@@ -23,7 +23,7 @@
     <div class="flex flex-wrap items-center gap-2">
       <div class="relative flex-1 min-w-[160px] max-w-xs">
         <span class="absolute inset-y-0 left-3 flex items-center text-slate-400">
-          <i data-lucide="search" class="w-3.5 h-3.5"></i>
+          <?= iconsax('search-normal-1', 'w-3.5 h-3.5') ?>
         </span>
         <input type="text" id="dt-filter-search" oninput="dtJadwalkanMuat()" placeholder="Cari nama / maksud perjalanan..." class="form-control form-control-sm pl-8">
       </div>
@@ -59,7 +59,7 @@
   </div>
 
   <div class="sm:hidden flex items-center gap-1.5 px-3 py-1.5 text-[11px] text-slate-400 dark:text-slate-500 border-t border-slate-100 dark:border-slate-800">
-    <i data-lucide="move-horizontal" class="w-3 h-3"></i> Geser tabel untuk melihat kolom lainnya
+    <?= iconsax('arrow-swap-horizontal', 'w-3 h-3') ?> Geser tabel untuk melihat kolom lainnya
   </div>
   <div class="overflow-x-auto">
     <table class="table">
@@ -88,8 +88,8 @@
   <div class="modal-container">
     <div class="modal-box modal-box-sm">
       <div class="modal-header">
-        <div><h3 class="modal-title"><i data-lucide="check-circle-2" class="w-5 h-5 text-emerald-600"></i> Tandai Lunas</h3></div>
-        <button class="btn btn-ghost btn-icon" onclick="closeModal('modal-lunas-dt')"><i data-lucide="x"></i></button>
+        <div><h3 class="modal-title"><?= iconsax('tick-circle', 'w-5 h-5 text-emerald-600') ?> Tandai Lunas</h3></div>
+        <button class="btn btn-ghost btn-icon" onclick="closeModal('modal-lunas-dt')"><?= iconsax('close-circle', '') ?></button>
       </div>
       <div class="modal-body">
         <input type="hidden" id="dt-lunas-peserta-id">
@@ -99,7 +99,7 @@
       </div>
       <div class="modal-footer">
         <button class="btn btn-ghost" onclick="closeModal('modal-lunas-dt')">Batal</button>
-        <button class="btn btn-success" onclick="dtKonfirmasiLunas()"><i data-lucide="check"></i> Tandai Lunas</button>
+        <button class="btn btn-success" onclick="dtKonfirmasiLunas()"><?= iconsax('check', '') ?> Tandai Lunas</button>
       </div>
     </div>
   </div>
@@ -142,7 +142,7 @@
       <h3 class="text-sm font-semibold text-slate-700 dark:text-slate-200">Rincian per Perjalanan Dinas</h3>
     </div>
     <div class="sm:hidden flex items-center gap-1.5 px-3 py-1.5 text-[11px] text-slate-400 dark:text-slate-500 border-t border-slate-100 dark:border-slate-800">
-    <i data-lucide="move-horizontal" class="w-3 h-3"></i> Geser tabel untuk melihat kolom lainnya
+    <?= iconsax('arrow-swap-horizontal', 'w-3 h-3') ?> Geser tabel untuk melihat kolom lainnya
   </div>
   <div class="overflow-x-auto">
       <table class="table">
@@ -227,7 +227,7 @@ function renderDanaTaktisTable(rows) {
       : '<span class="badge badge-warning">Belum Lunas</span>';
     const aksi = r.status_lunas === 'lunas'
       ? `<button type="button" class="text-xs text-slate-400 hover:text-red-600" onclick="dtBatalkanLunas(${r.id})">Batalkan</button>`
-      : `<button type="button" class="btn btn-success btn-sm" onclick="dtBukaModalLunas(${r.id})"><i data-lucide="check" class="w-3.5 h-3.5"></i></button>`;
+      : `<button type="button" class="btn btn-success btn-sm" onclick="dtBukaModalLunas(${r.id})">${iconsax('check', 'w-3.5 h-3.5')}</button>`;
     return `<tr>
       <td class="font-medium text-slate-700 dark:text-slate-200">${escapeHtmlDt(r.nama_peserta)}</td>
       <td class="max-w-[280px] truncate" title="${escapeHtmlDt(r.maksud)}">${escapeHtmlDt(r.maksud)}</td>
@@ -237,10 +237,6 @@ function renderDanaTaktisTable(rows) {
       <td class="text-center">${aksi}</td>
     </tr>`;
   }).join('');
-  // Dijaga dengan window.lucide: kalau ikon gagal dimuat (mis. CDN diblokir), baris data yang
-  // sudah berhasil di-fetch tetap tampil, tidak ikut ditelan oleh catch() pemanggilnya sebagai
-  // "gagal memuat data".
-  if (window.lucide) lucide.createIcons({ props: { search: tbody } });
 }
 
 function dtBukaModalLunas(pesertaId) {
