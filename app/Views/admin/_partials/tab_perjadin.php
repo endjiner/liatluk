@@ -284,10 +284,17 @@
         <button class="btn btn-ghost btn-icon" onclick="closeModal('modal-pegawai')"><?= iconsax('close-circle', '') ?></button>
       </div>
       <div class="modal-body">
-        <form onsubmit="tambahPegawai(event)" class="flex flex-wrap gap-2 mb-4">
+        <div class="flex items-center gap-2 mb-3">
+          <div class="relative flex-1">
+            <span class="absolute inset-y-0 left-3 flex items-center text-slate-400"><?= iconsax('search-normal-1', 'w-3.5 h-3.5') ?></span>
+            <input type="text" id="pegawai-search" oninput="filterPegawai()" placeholder="Cari nama / NIP pegawai..." class="form-control form-control-sm pl-8">
+          </div>
+          <button type="button" class="btn btn-outline btn-sm" onclick="toggleFormTambahPegawai()"><?= iconsax('add', '') ?> Tambah</button>
+        </div>
+        <form id="form-tambah-pegawai" onsubmit="tambahPegawai(event)" class="hidden flex flex-wrap gap-2 mb-3 p-2.5 rounded-lg bg-slate-50 dark:bg-slate-900/40 border border-slate-200 dark:border-slate-700">
           <input type="text" id="pegawai-baru-nama" class="form-control form-control-sm flex-1 min-w-[140px]" placeholder="Nama pegawai" required>
           <input type="text" id="pegawai-baru-nip" class="form-control form-control-sm flex-1 min-w-[140px]" placeholder="NIP (opsional)">
-          <button type="submit" class="btn btn-primary btn-sm"><?= iconsax('add', '') ?> Tambah</button>
+          <button type="submit" class="btn btn-primary btn-sm"><?= iconsax('add', '') ?> Simpan</button>
         </form>
         <div class="overflow-x-auto" style="max-height:50vh;overflow-y:auto">
           <table class="table">
@@ -657,18 +664,45 @@ window.batalkanLunas = batalkanLunas;
 
 // ── Master Data Pegawai ──────────────────────────────────────────────────────────
 
+let semuaPegawaiCache = [];
+
 async function muatDaftarPegawai() {
   const res = await fetch(API + '/pegawai');
   const json = await res.json();
+  semuaPegawaiCache = json.data || [];
+  renderTabelPegawai(semuaPegawaiCache);
+}
+window.muatDaftarPegawai = muatDaftarPegawai;
+
+/** Daftar pegawai biasanya cuma puluhan baris, jadi pencariannya disaring langsung di
+ *  browser dari cache yang sudah dimuat — tidak perlu fetch ulang tiap huruf. */
+function filterPegawai() {
+  const q = (document.getElementById('pegawai-search').value || '').toLowerCase().trim();
+  if (!q) { renderTabelPegawai(semuaPegawaiCache); return; }
+  renderTabelPegawai(semuaPegawaiCache.filter(pg =>
+    pg.nama.toLowerCase().includes(q) || (pg.nip || '').toLowerCase().includes(q)
+  ));
+}
+window.filterPegawai = filterPegawai;
+
+function renderTabelPegawai(list) {
   const tbody = document.getElementById('pegawai-tbody');
   tbody.innerHTML = '';
-  (json.data || []).forEach(pg => {
+  if (!list.length) {
+    tbody.innerHTML = '<tr><td colspan="4" class="text-center py-6 text-slate-500">Tidak ada pegawai yang cocok.</td></tr>';
+    return;
+  }
+  list.forEach(pg => {
     const tr = document.createElement('tr');
     renderBarisPegawai(tr, pg);
     tbody.appendChild(tr);
   });
 }
-window.muatDaftarPegawai = muatDaftarPegawai;
+
+function toggleFormTambahPegawai() {
+  document.getElementById('form-tambah-pegawai').classList.toggle('hidden');
+}
+window.toggleFormTambahPegawai = toggleFormTambahPegawai;
 
 function renderBarisPegawai(tr, pg) {
   const pgJson = JSON.stringify(pg).replace(/'/g, "&#39;");
@@ -677,8 +711,9 @@ function renderBarisPegawai(tr, pg) {
     `<td class="text-center">
       <div class="flex items-center justify-center gap-1">
         <button type="button" class="p-1.5 rounded hover:bg-slate-100 dark:hover:bg-slate-700 text-slate-500 hover:text-primary-600" onclick='editBarisPegawai(this, ${pgJson})' title="Edit">${iconsax('edit-2', 'w-4 h-4')}</button>
+        <button type="button" class="p-1.5 rounded hover:bg-red-50 dark:hover:bg-red-900/30 text-slate-500 hover:text-red-600" onclick="hapusPegawai(${pg.id}, '${escapeHtml(pg.nama)}')" title="Hapus">${iconsax('trash', 'w-4 h-4')}</button>
         ${pg.aktif == 1
-          ? `<button type="button" class="p-1.5 rounded hover:bg-red-50 dark:hover:bg-red-900/30 text-slate-500 hover:text-red-600" onclick="nonaktifkanPegawai(${pg.id})" title="Nonaktifkan">${iconsax('user-remove', 'w-4 h-4')}</button>`
+          ? `<button type="button" class="p-1.5 rounded hover:bg-amber-50 dark:hover:bg-amber-900/30 text-slate-500 hover:text-amber-600" onclick="nonaktifkanPegawai(${pg.id})" title="Nonaktifkan">${iconsax('user-remove', 'w-4 h-4')}</button>`
           : `<button type="button" class="p-1.5 rounded hover:bg-emerald-50 dark:hover:bg-emerald-900/30 text-slate-500 hover:text-emerald-600" onclick='aktifkanPegawai(${pgJson})' title="Aktifkan kembali">${iconsax('tick-circle', 'w-4 h-4')}</button>`}
       </div>
     </td>`;
@@ -715,6 +750,8 @@ async function simpanEditPegawai(id, aktifSaatIni) {
 window.simpanEditPegawai = simpanEditPegawai;
 
 function bukaModalPegawai() {
+  document.getElementById('pegawai-search').value = '';
+  document.getElementById('form-tambah-pegawai').classList.add('hidden');
   openModal('modal-pegawai');
   muatDaftarPegawai();
 }
@@ -730,6 +767,7 @@ async function tambahPegawai(e) {
   if (json.success) {
     document.getElementById('pegawai-baru-nama').value = '';
     document.getElementById('pegawai-baru-nip').value = '';
+    document.getElementById('form-tambah-pegawai').classList.add('hidden');
     showToast(json.message, 'success');
     await muatDaftarPegawai();
     await segarkanOpsiPegawai();
@@ -738,11 +776,23 @@ async function tambahPegawai(e) {
 window.tambahPegawai = tambahPegawai;
 
 async function nonaktifkanPegawai(id) {
-  const res = await fetch(API + '/pegawai/delete/' + id, { method: 'POST' });
+  const res = await fetch(API + '/pegawai/nonaktifkan/' + id, { method: 'POST' });
   const json = await res.json();
   if (json.success) { showToast(json.message, 'success'); await muatDaftarPegawai(); await segarkanOpsiPegawai(); }
 }
 window.nonaktifkanPegawai = nonaktifkanPegawai;
+
+function hapusPegawai(id, nama) {
+  tampilkanKonfirmasi(`Hapus pegawai "${nama}"? Tindakan ini tidak bisa dibatalkan.`, async () => {
+    const res = await fetch(API + '/pegawai/delete/' + id, { method: 'POST' });
+    const json = await res.json();
+    // Kalau pegawainya masih punya riwayat perjalanan dinas, backend menolak (bukan error) —
+    // pesannya sudah menjelaskan alasannya & menyarankan nonaktifkan sebagai gantinya.
+    showToast(json.message, json.success ? 'success' : 'error');
+    if (json.success) { await muatDaftarPegawai(); await segarkanOpsiPegawai(); }
+  });
+}
+window.hapusPegawai = hapusPegawai;
 
 async function aktifkanPegawai(pg) {
   const fd = new FormData();

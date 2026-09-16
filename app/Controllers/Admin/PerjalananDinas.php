@@ -417,8 +417,24 @@ class PerjalananDinas extends BaseController
 
     public function pegawaiDelete($id)
     {
-        // Nonaktifkan saja, bukan dihapus permanen — supaya riwayat peserta perjalanan
-        // dinas lama (yang menyimpan pegawai_id ini) tidak kehilangan rujukan.
+        // Hapus permanen HANYA kalau pegawai ini tidak pernah tercatat sebagai peserta
+        // perjalanan dinas manapun — kalau masih ada, dihapus akan bikin baris peserta
+        // lama itu yatim piatu (pegawai_id nunjuk ke baris yang sudah tidak ada, lihat
+        // app:sinkron-sumber-setoran yang justru dibuat untuk mendeteksi masalah ini).
+        // Untuk pegawai yang punya riwayat, sarankan nonaktifkan saja lewat pegawaiNonaktifkan().
+        $terpakai = $this->pesertaModel->where('pegawai_id', $id)->countAllResults();
+        if ($terpakai > 0) {
+            return $this->response->setJSON([
+                'success' => false,
+                'message' => "Tidak bisa dihapus — pegawai ini masih tercatat di {$terpakai} riwayat perjalanan dinas. Nonaktifkan saja supaya riwayatnya tetap utuh.",
+            ]);
+        }
+        $this->pegawaiModel->delete($id);
+        return $this->response->setJSON(['success' => true, 'message' => 'Pegawai berhasil dihapus']);
+    }
+
+    public function pegawaiNonaktifkan($id)
+    {
         $this->pegawaiModel->update($id, ['aktif' => 0]);
         return $this->response->setJSON(['success' => true, 'message' => 'Pegawai dinonaktifkan']);
     }

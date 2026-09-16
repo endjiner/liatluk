@@ -61,6 +61,7 @@ $routes->group('admin', ['filter' => 'auth'], function ($routes) {
     $routes->post('perjalanan-dinas/pegawai', 'Admin\PerjalananDinas::pegawaiStore');
     $routes->post('perjalanan-dinas/pegawai/update/(:num)', 'Admin\PerjalananDinas::pegawaiUpdate/$1');
     $routes->post('perjalanan-dinas/pegawai/delete/(:num)', 'Admin\PerjalananDinas::pegawaiDelete/$1');
+    $routes->post('perjalanan-dinas/pegawai/nonaktifkan/(:num)', 'Admin\PerjalananDinas::pegawaiNonaktifkan/$1');
 
     // Rencana Keuangan
     $routes->get('rencana', 'Admin\RencanaKeuangan::index');
