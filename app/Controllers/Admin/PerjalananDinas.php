@@ -168,6 +168,7 @@ class PerjalananDinas extends BaseController
         $pesertaId = $this->pesertaModel->insert($data);
         $this->simpanTiketHotel($pesertaId);
         $this->pesertaModel->recalculate($pesertaId);
+        $this->terapkanStatusLunasDariInput($pesertaId);
 
         $db->transComplete();
         if ($db->transStatus() === false) {
@@ -195,6 +196,7 @@ class PerjalananDinas extends BaseController
         $this->pesertaModel->update($id, $data);
         $this->simpanTiketHotel((int)$id);
         $this->pesertaModel->recalculate((int)$id);
+        $this->terapkanStatusLunasDariInput((int)$id);
 
         $db->transComplete();
         if ($db->transStatus() === false) {
@@ -230,6 +232,31 @@ class PerjalananDinas extends BaseController
         return $data;
     }
 
+    /** Terapkan status setoran Dana Taktis yang dipilih langsung di form Tambah/Edit Peserta
+     *  (bukan cuma lewat aksi "Tandai Lunas" terpisah di tabel) — supaya admin bisa catat
+     *  rekap sekaligus saat input data pertama kali, tanpa harus mencari barisnya lagi
+     *  setelah tersimpan. Field status_lunas_input yang tidak dikirim/tidak valid berarti
+     *  tidak ada perubahan status. */
+    private function terapkanStatusLunasDariInput(int $pesertaId): void
+    {
+        $status = $this->request->getPost('status_lunas_input');
+        if (!in_array($status, ['belum', 'sebagian', 'lunas'], true)) return;
+
+        $peserta = $this->pesertaModel->find($pesertaId);
+        if (!$peserta) return;
+
+        if ($status === 'belum') {
+            if ($peserta['status_lunas'] !== 'belum') {
+                $this->pesertaModel->batalkanLunas($pesertaId);
+            }
+            return;
+        }
+
+        $tanggal = $this->request->getPost('tanggal_setoran') ?: date('Y-m-d');
+        $jumlah  = $status === 'sebagian' ? $this->sanitizeNominal($this->request->getPost('jumlah_disetor')) : null;
+        $this->pesertaModel->tandaiLunas($pesertaId, $tanggal, $status, $jumlah);
+    }
+
     /** Ganti seluruh baris tiket & blok hotel milik satu peserta dengan yang baru dikirim dari form. */
     private function simpanTiketHotel(int $pesertaId): void
     {
@@ -259,7 +286,7 @@ class PerjalananDinas extends BaseController
     {
         $peserta = $this->pesertaModel->find($pesertaId);
         if (!$peserta) return;
-        if ($peserta['status_lunas'] === 'lunas') {
+        if ($peserta['status_lunas'] !== 'belum') {
             $this->pesertaModel->batalkanLunas($pesertaId);
         }
         $this->tiketModel->where('peserta_id', $pesertaId)->delete();
@@ -271,7 +298,7 @@ class PerjalananDinas extends BaseController
 
     public function toggleLunas($pesertaId)
     {
-        $aksi = $this->request->getPost('aksi'); // 'lunas' | 'batal'
+        $aksi = $this->request->getPost('aksi'); // 'lunas' | 'sebagian' | 'batal'
         $peserta = $this->pesertaModel->find((int)$pesertaId);
         if (!$peserta) {
             return $this->response->setJSON(['success' => false, 'message' => 'Data peserta tidak ditemukan']);
@@ -281,11 +308,16 @@ class PerjalananDinas extends BaseController
             $hasil = $this->pesertaModel->batalkanLunas((int)$pesertaId);
             $ok    = $hasil['ok'];
             $pesan = $hasil['pemasukan_dihapus']
-                ? 'Status lunas dibatalkan, pemasukan otomatis ikut dihapus'
-                : 'Status lunas dibatalkan (pemasukan yang tertaut tetap ada di pembukuan)';
+                ? 'Status setoran dibatalkan, pemasukan otomatis ikut dihapus'
+                : 'Status setoran dibatalkan (pemasukan yang tertaut tetap ada di pembukuan)';
+        } elseif ($aksi === 'sebagian') {
+            $tanggal = $this->request->getPost('tanggal_lunas') ?: date('Y-m-d');
+            $jumlah  = $this->sanitizeNominal($this->request->getPost('jumlah_disetor'));
+            $ok = $this->pesertaModel->tandaiLunas((int)$pesertaId, $tanggal, 'sebagian', $jumlah);
+            $pesan = 'Setoran sebagian dicatat sebagai Pemasukan';
         } else {
             $tanggal = $this->request->getPost('tanggal_lunas') ?: date('Y-m-d');
-            $ok = $this->pesertaModel->tandaiLunas((int)$pesertaId, $tanggal);
+            $ok = $this->pesertaModel->tandaiLunas((int)$pesertaId, $tanggal, 'lunas');
             $pesan = 'Setoran Dana Taktis ditandai lunas & tercatat sebagai Pemasukan';
         }
 

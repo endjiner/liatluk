@@ -75,18 +75,29 @@
   <div class="modal-container">
     <div class="modal-box modal-box-sm">
       <div class="modal-header">
-        <div><h3 class="modal-title"><?= iconsax('tick-circle', 'w-5 h-5 text-emerald-600') ?> Tandai Lunas</h3></div>
+        <div><h3 class="modal-title"><?= iconsax('tick-circle', 'w-5 h-5 text-emerald-600') ?> Kelola Setoran Dana Taktis</h3></div>
         <button class="btn btn-ghost btn-icon" onclick="closeModal('modal-lunas-dt')"><?= iconsax('close-circle', '') ?></button>
       </div>
       <div class="modal-body">
         <input type="hidden" id="dt-lunas-peserta-id">
-        <p class="text-sm text-slate-600 dark:text-slate-300 mb-3">Setoran Dana Taktis peserta ini akan otomatis tercatat sebagai Pemasukan (kategori "Setoran Taktis Pegawai").</p>
+        <p class="text-sm text-slate-600 dark:text-slate-300 mb-3">Dana Taktis: <span class="font-semibold text-slate-800 dark:text-slate-100" id="dt-lunas-dana-taktis-info">Rp 0</span>. Setoran akan otomatis tercatat sebagai Pemasukan (kategori "Setoran Taktis Pegawai").</p>
+        <div class="segment w-full mb-3">
+          <button type="button" data-status="sebagian" class="segment-btn dt-lunas-status-btn flex-1" onclick="dtPilihStatusLunas('sebagian')">Bayar Sebagian</button>
+          <button type="button" data-status="lunas" class="segment-btn dt-lunas-status-btn active flex-1" onclick="dtPilihStatusLunas('lunas')">Lunas</button>
+        </div>
+        <div id="dt-lunas-jumlah-wrap" class="hidden mb-3">
+          <label class="form-label">Jumlah Disetor</label>
+          <div class="relative">
+            <span class="absolute inset-y-0 left-3 flex items-center text-slate-400 text-sm">Rp</span>
+            <input type="text" inputmode="numeric" id="dt-lunas-jumlah-disetor" class="form-control input-rupiah pl-9" placeholder="0">
+          </div>
+        </div>
         <label class="form-label">Tanggal Setoran</label>
         <input type="date" id="dt-lunas-tanggal" class="form-control" value="<?= date('Y-m-d') ?>">
       </div>
       <div class="modal-footer">
         <button class="btn btn-ghost" onclick="closeModal('modal-lunas-dt')">Batal</button>
-        <button class="btn btn-success" onclick="dtKonfirmasiLunas()"><?= iconsax('check', '') ?> Tandai Lunas</button>
+        <button class="btn btn-success" onclick="dtKonfirmasiLunas()"><?= iconsax('check', '') ?> Simpan Setoran</button>
       </div>
     </div>
   </div>
@@ -211,10 +222,13 @@ function renderDanaTaktisTable(rows) {
     const tgl = r.tanggal_surat_tugas ? new Date(r.tanggal_surat_tugas).toLocaleDateString('id-ID', { day: 'numeric', month: 'short', year: 'numeric' }) : '-';
     const statusBadge = r.status_lunas === 'lunas'
       ? '<span class="badge badge-success">Lunas</span>'
+      : r.status_lunas === 'sebagian'
+      ? `<span class="badge badge-info" title="Disetor ${rupiah(r.jumlah_disetor)} dari ${rupiah(r.dana_taktis)}">Sebagian</span>`
       : '<span class="badge badge-warning">Belum Lunas</span>';
-    const aksi = r.status_lunas === 'lunas'
-      ? `<button type="button" class="text-xs text-slate-400 hover:text-red-600" onclick="dtBatalkanLunas(${r.id})">Batalkan</button>`
-      : `<button type="button" class="btn btn-success btn-sm" onclick="dtBukaModalLunas(${r.id})">${iconsax('check', 'w-3.5 h-3.5')}</button>`;
+    const aksi = r.status_lunas === 'belum'
+      ? `<button type="button" class="btn btn-success btn-sm" onclick="dtBukaModalLunas(${r.id}, ${r.dana_taktis})">${iconsax('check', 'w-3.5 h-3.5')}</button>`
+      : `<button type="button" class="block text-xs text-primary-600 hover:underline" onclick="dtBukaModalLunas(${r.id}, ${r.dana_taktis})">${r.status_lunas === 'sebagian' ? 'Lanjutkan' : 'Ubah'}</button>` +
+        `<button type="button" class="block text-xs text-slate-400 hover:text-red-600" onclick="dtBatalkanLunas(${r.id})">Batalkan</button>`;
     return `<tr>
       <td class="font-medium text-slate-700 dark:text-slate-200">${escapeHtmlDt(r.nama_peserta)}</td>
       <td class="max-w-[280px] truncate" title="${escapeHtmlDt(r.maksud)}">${escapeHtmlDt(r.maksud)}</td>
@@ -226,9 +240,20 @@ function renderDanaTaktisTable(rows) {
   }).join('');
 }
 
-function dtBukaModalLunas(pesertaId) {
+let dtLunasStatusDipilih = 'lunas';
+function dtPilihStatusLunas(status) {
+  dtLunasStatusDipilih = status;
+  document.querySelectorAll('.dt-lunas-status-btn').forEach(b => b.classList.toggle('active', b.dataset.status === status));
+  document.getElementById('dt-lunas-jumlah-wrap').classList.toggle('hidden', status !== 'sebagian');
+}
+window.dtPilihStatusLunas = dtPilihStatusLunas;
+
+function dtBukaModalLunas(pesertaId, danaTaktis) {
   document.getElementById('dt-lunas-peserta-id').value = pesertaId;
   document.getElementById('dt-lunas-tanggal').value = new Date().toISOString().slice(0, 10);
+  document.getElementById('dt-lunas-dana-taktis-info').textContent = rupiah(danaTaktis);
+  document.getElementById('dt-lunas-jumlah-disetor').value = '';
+  dtPilihStatusLunas('lunas');
   openModal('modal-lunas-dt');
 }
 window.dtBukaModalLunas = dtBukaModalLunas;
@@ -236,8 +261,11 @@ window.dtBukaModalLunas = dtBukaModalLunas;
 async function dtKonfirmasiLunas() {
   const id = document.getElementById('dt-lunas-peserta-id').value;
   const fd = new FormData();
-  fd.append('aksi', 'lunas');
+  fd.append('aksi', dtLunasStatusDipilih);
   fd.append('tanggal_lunas', document.getElementById('dt-lunas-tanggal').value);
+  if (dtLunasStatusDipilih === 'sebagian') {
+    fd.append('jumlah_disetor', unformatRibuan(document.getElementById('dt-lunas-jumlah-disetor').value));
+  }
   const res = await fetch(API_DT + '/lunas/' + id, { method: 'POST', body: fd });
   const json = await res.json();
   if (json.success) { showToast(json.message, 'success'); closeModal('modal-lunas-dt'); muatDaftarDanaTaktis(); }
@@ -246,7 +274,7 @@ async function dtKonfirmasiLunas() {
 window.dtKonfirmasiLunas = dtKonfirmasiLunas;
 
 function dtBatalkanLunas(pesertaId) {
-  tampilkanKonfirmasi('Batalkan status lunas? Pemasukan otomatis yang sudah tercatat akan ikut dihapus.', async () => {
+  tampilkanKonfirmasi('Batalkan status setoran? Pemasukan otomatis yang sudah tercatat akan ikut dihapus.', async () => {
     const fd = new FormData();
     fd.append('aksi', 'batal');
     const res = await fetch(API_DT + '/lunas/' + pesertaId, { method: 'POST', body: fd });
@@ -285,6 +313,8 @@ async function muatRekap() {
     const tgl = r.tanggal_surat_tugas ? new Date(r.tanggal_surat_tugas).toLocaleDateString('id-ID', { day: 'numeric', month: 'short', year: 'numeric' }) : '-';
     const statusBadge = r.status_lunas === 'lunas'
       ? '<span class="badge badge-success">Lunas</span>'
+      : r.status_lunas === 'sebagian'
+      ? `<span class="badge badge-info" title="Disetor ${rupiah(r.jumlah_disetor)} dari ${rupiah(r.dana_taktis)}">Sebagian</span>`
       : '<span class="badge badge-warning">Belum Lunas</span>';
     const tr = document.createElement('tr');
     tr.innerHTML = `<td class="max-w-[280px] truncate" title="${(r.maksud || '').replace(/"/g, '&quot;')}">${r.maksud || '-'}</td>` +

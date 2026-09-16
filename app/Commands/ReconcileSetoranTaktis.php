@@ -416,7 +416,11 @@ class ReconcileSetoranTaktis extends BaseCommand
                 'tanggal_lunas' => $m['pemasukan']['tanggal'],
                 'pemasukan_id'  => $m['pemasukan']['id'],
             ]);
-            CLI::write("  Peserta #{$m['peserta']['id']} ditandai lunas, ditautkan ke Pemasukan #{$m['pemasukan']['id']}.");
+            // Sumber pemasukan lama (mis. "Pegawai - Pak Alex") diganti nama kanonik pegawai
+            // supaya sama persis dengan yang tampil di Dana Taktis untuk orang yang sama —
+            // sebelumnya cuma pemasukan_id yang ditautkan, teks sumber lamanya tidak ikut rapi.
+            (new PemasukanModel())->update($m['pemasukan']['id'], ['sumber' => $m['peserta']['nama_peserta']]);
+            CLI::write("  Peserta #{$m['peserta']['id']} ditandai lunas, ditautkan ke Pemasukan #{$m['pemasukan']['id']} (sumber -> '{$m['peserta']['nama_peserta']}').");
         }
 
         CLI::write('Menerapkan ' . count($multiTrip) . ' penautan multi-trip...', 'green');
@@ -428,7 +432,8 @@ class ReconcileSetoranTaktis extends BaseCommand
                     'pemasukan_id'  => $m['pemasukan']['id'],
                 ]);
             }
-            CLI::write("  {$m['pegawai']['nama']}: " . count($m['trips']) . " trip ditandai lunas, ditautkan ke Pemasukan #{$m['pemasukan']['id']}.");
+            (new PemasukanModel())->update($m['pemasukan']['id'], ['sumber' => $m['pegawai']['nama']]);
+            CLI::write("  {$m['pegawai']['nama']}: " . count($m['trips']) . " trip ditandai lunas, ditautkan ke Pemasukan #{$m['pemasukan']['id']} (sumber -> '{$m['pegawai']['nama']}').");
         }
         CLI::write('Selesai.', 'green');
     }

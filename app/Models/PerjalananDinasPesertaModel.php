@@ -14,7 +14,7 @@ class PerjalananDinasPesertaModel extends Model
     protected $allowedFields = [
         'perjalanan_dinas_id', 'pegawai_id', 'nama_peserta', 'uang_harian', 'meeting_fullboard',
         'meeting_fullday', 'uang_representasi', 'transport_lokal', 'bbm', 'total_spj',
-        'dana_taktis', 'status_lunas', 'tanggal_lunas', 'pemasukan_id'
+        'dana_taktis', 'status_lunas', 'jumlah_disetor', 'tanggal_lunas', 'pemasukan_id'
     ];
     protected $useTimestamps = true;
 
@@ -55,35 +55,57 @@ class PerjalananDinasPesertaModel extends Model
     }
 
     /**
-     * Tandai setoran Dana Taktis peserta ini sebagai lunas: otomatis membukukan nilainya
-     * sebagai Pemasukan (kategori "Setoran Taktis Pegawai") supaya Dashboard/Laporan ikut
-     * akurat tanpa input dobel. ID pemasukan yang dibuat disimpan di kolom pemasukan_id
-     * supaya bisa dibatalkan (lihat batalkanLunas()) kalau statusnya di-toggle balik.
+     * Tandai setoran Dana Taktis peserta ini lunas atau sebagian: otomatis membukukan
+     * nilainya sebagai Pemasukan (kategori "Setoran Taktis Pegawai", status_dana mengikuti
+     * lunas/sebagian persis seperti pemasukan biasa) supaya Dashboard/Laporan ikut akurat
+     * tanpa input dobel. ID pemasukan yang dibuat disimpan di kolom pemasukan_id supaya bisa
+     * di-update (setoran susulan) atau dibatalkan (lihat batalkanLunas()).
+     *
+     * $jumlahSetor hanya dipakai untuk status 'sebagian' — kalau kosong atau >= dana_taktis,
+     * otomatis dianggap lunas penuh (menghindari status "sebagian" yang nilainya 100%).
      */
-    public function tandaiLunas(int $id, string $tanggalLunas): bool
+    public function tandaiLunas(int $id, string $tanggalLunas, string $status = 'lunas', ?float $jumlahSetor = null): bool
     {
         $peserta = $this->find($id);
-        if (!$peserta || $peserta['status_lunas'] === 'lunas') return false;
+        if (!$peserta || !in_array($status, ['sebagian', 'lunas'], true)) return false;
 
-        $pemasukanId = null;
-        if ((float)$peserta['dana_taktis'] > 0) {
+        $danaTaktis = (float)$peserta['dana_taktis'];
+        if ($status === 'sebagian' && $jumlahSetor !== null && $jumlahSetor > 0 && $jumlahSetor < $danaTaktis) {
+            $jumlahDisetor = $jumlahSetor;
+        } else {
+            $status        = 'lunas';
+            $jumlahDisetor = $danaTaktis;
+        }
+
+        if ($peserta['status_lunas'] === $status && (float)$peserta['jumlah_disetor'] === $jumlahDisetor) {
+            return false; // sudah sesuai, tidak ada perubahan
+        }
+
+        $pemasukanId = $peserta['pemasukan_id'];
+        if ($danaTaktis > 0) {
             $trip = (new PerjalananDinasModel())->find($peserta['perjalanan_dinas_id']);
-            $pemasukanId = (new PemasukanModel())->insert([
+            $dataPemasukan = [
                 'tanggal'           => $tanggalLunas,
                 'kategori'          => 'Setoran Taktis Pegawai',
-                'jumlah'            => $peserta['dana_taktis'],
-                'jumlah_diterima'   => $peserta['dana_taktis'],
-                'status_dana'       => 'diterima',
+                'jumlah'            => $danaTaktis,
+                'jumlah_diterima'   => $jumlahDisetor,
+                'status_dana'       => $status === 'lunas' ? 'diterima' : 'sebagian',
                 'sumber'            => $peserta['nama_peserta'],
                 'keterangan'        => 'Setoran Dana Taktis 10% Uang Harian — ' . ($trip['maksud'] ?? ('Perjalanan Dinas #' . $peserta['perjalanan_dinas_id'])),
                 'dari_tandai_lunas' => 1,
-            ]);
+            ];
+            if ($pemasukanId) {
+                (new PemasukanModel())->update($pemasukanId, $dataPemasukan);
+            } else {
+                $pemasukanId = (new PemasukanModel())->insert($dataPemasukan);
+            }
         }
 
         return $this->update($id, [
-            'status_lunas'  => 'lunas',
-            'tanggal_lunas' => $tanggalLunas,
-            'pemasukan_id'  => $pemasukanId,
+            'status_lunas'   => $status,
+            'jumlah_disetor' => $jumlahDisetor,
+            'tanggal_lunas'  => $status === 'lunas' ? $tanggalLunas : null,
+            'pemasukan_id'   => $pemasukanId,
         ]);
     }
 
@@ -101,7 +123,7 @@ class PerjalananDinasPesertaModel extends Model
     public function batalkanLunas(int $id): array
     {
         $peserta = $this->find($id);
-        if (!$peserta || $peserta['status_lunas'] !== 'lunas') {
+        if (!$peserta || $peserta['status_lunas'] === 'belum') {
             return ['ok' => false, 'pemasukan_dihapus' => false];
         }
 
@@ -116,9 +138,10 @@ class PerjalananDinasPesertaModel extends Model
         }
 
         $ok = $this->update($id, [
-            'status_lunas'  => 'belum',
-            'tanggal_lunas' => null,
-            'pemasukan_id'  => null,
+            'status_lunas'   => 'belum',
+            'jumlah_disetor' => 0,
+            'tanggal_lunas'  => null,
+            'pemasukan_id'   => null,
         ]);
 
         return ['ok' => $ok, 'pemasukan_dihapus' => $pemasukanDihapus];
@@ -143,6 +166,7 @@ class PerjalananDinasPesertaModel extends Model
             $totalSpj        += (float)$r['total_spj'];
             $totalDanaTaktis += (float)$r['dana_taktis'];
             if ($r['status_lunas'] === 'belum') $belumDibayar += (float)$r['dana_taktis'];
+            elseif ($r['status_lunas'] === 'sebagian') $belumDibayar += (float)$r['dana_taktis'] - (float)$r['jumlah_disetor'];
         }
 
         return [
@@ -160,23 +184,12 @@ class PerjalananDinasPesertaModel extends Model
      *  perjalanan_dinas_peserta supaya tidak bisa jadi tidak sinkron). */
     public function getBelumDibayarSummary(): array
     {
-        $row = $this->select('COALESCE(SUM(dana_taktis), 0) as total, COUNT(*) as jumlah')
-            ->where('status_lunas', 'belum')
+        $row = $this->select("COALESCE(SUM(CASE WHEN status_lunas = 'belum' THEN dana_taktis ELSE dana_taktis - jumlah_disetor END), 0) as total, COUNT(*) as jumlah")
+            ->where('status_lunas !=', 'lunas')
             ->where('dana_taktis >', 0)
             ->get()->getRowArray();
 
         return ['total' => (float)$row['total'], 'jumlah' => (int)$row['jumlah']];
-    }
-
-    /** Semua setoran Dana Taktis yang belum lunas, lintas pegawai — untuk overview di halaman Dana Taktis. */
-    public function getAllBelumDibayar(): array
-    {
-        return $this->select('perjalanan_dinas_peserta.*, perjalanan_dinas.maksud, perjalanan_dinas.no_surat_tugas, perjalanan_dinas.tanggal_surat_tugas')
-            ->join('perjalanan_dinas', 'perjalanan_dinas.id = perjalanan_dinas_peserta.perjalanan_dinas_id')
-            ->where('perjalanan_dinas_peserta.status_lunas', 'belum')
-            ->where('perjalanan_dinas_peserta.dana_taktis >', 0)
-            ->orderBy('perjalanan_dinas.tanggal_surat_tugas', 'ASC')
-            ->findAll();
     }
 
     /**

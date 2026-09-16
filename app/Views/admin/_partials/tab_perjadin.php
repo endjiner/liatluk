@@ -188,9 +188,33 @@
             <div>Estimasi Total SPJ: <span class="font-semibold text-slate-800 dark:text-slate-100" id="preview-total-spj">Rp 0</span></div>
             <div>Estimasi Dana Taktis (10% Uang Harian): <span class="font-semibold text-emerald-600" id="preview-dana-taktis">Rp 0</span></div>
           </div>
+
+          <div class="p-3 rounded-lg border border-slate-200 dark:border-slate-700">
+            <label class="form-label mb-2">Status Setoran Dana Taktis</label>
+            <div class="segment w-full mb-3">
+              <button type="button" data-status="belum" class="segment-btn status-lunas-btn active flex-1" onclick="pilihStatusLunas('belum')">Belum Lunas</button>
+              <button type="button" data-status="sebagian" class="segment-btn status-lunas-btn flex-1" onclick="pilihStatusLunas('sebagian')">Bayar Sebagian</button>
+              <button type="button" data-status="lunas" class="segment-btn status-lunas-btn flex-1" onclick="pilihStatusLunas('lunas')">Lunas</button>
+            </div>
+            <input type="hidden" name="status_lunas_input" id="peserta-status-lunas" value="belum">
+            <div id="peserta-status-detail" class="hidden grid grid-cols-2 gap-3">
+              <div>
+                <label class="form-label">Tanggal Setoran</label>
+                <input type="date" name="tanggal_setoran" id="peserta-tanggal-setoran" class="form-control form-control-sm">
+              </div>
+              <div id="peserta-jumlah-disetor-wrap" class="hidden">
+                <label class="form-label">Jumlah Disetor</label>
+                <div class="relative">
+                  <span class="absolute inset-y-0 left-3 flex items-center text-slate-400 text-sm">Rp</span>
+                  <input type="text" inputmode="numeric" name="jumlah_disetor" id="peserta-jumlah-disetor" class="form-control form-control-sm input-rupiah pl-9" placeholder="0">
+                </div>
+              </div>
+            </div>
+          </div>
         </div>
         <div class="modal-footer">
           <button type="button" class="btn btn-ghost" onclick="closeModal('modal-peserta')">Batal</button>
+          <button type="button" class="btn btn-outline" id="btn-simpan-tambah-lagi" onclick="submitPeserta(event, true)"><?= iconsax('add', '') ?> Simpan & Tambah Lagi</button>
           <button type="submit" class="btn btn-primary"><?= iconsax('save-2', '') ?> Simpan Peserta</button>
         </div>
       </form>
@@ -222,18 +246,29 @@
   <div class="modal-container">
     <div class="modal-box modal-box-sm">
       <div class="modal-header">
-        <div><h3 class="modal-title"><?= iconsax('tick-circle', 'w-5 h-5 text-emerald-600') ?> Tandai Lunas</h3></div>
+        <div><h3 class="modal-title"><?= iconsax('tick-circle', 'w-5 h-5 text-emerald-600') ?> Kelola Setoran Dana Taktis</h3></div>
         <button class="btn btn-ghost btn-icon" onclick="closeModal('modal-lunas')"><?= iconsax('close-circle', '') ?></button>
       </div>
       <div class="modal-body">
         <input type="hidden" id="lunas-peserta-id">
-        <p class="text-sm text-slate-600 dark:text-slate-300 mb-3">Setoran Dana Taktis peserta ini akan otomatis tercatat sebagai Pemasukan (kategori "Setoran Taktis Pegawai").</p>
+        <p class="text-sm text-slate-600 dark:text-slate-300 mb-3">Dana Taktis: <span class="font-semibold text-slate-800 dark:text-slate-100" id="lunas-dana-taktis-info">Rp 0</span>. Setoran akan otomatis tercatat sebagai Pemasukan (kategori "Setoran Taktis Pegawai").</p>
+        <div class="segment w-full mb-3">
+          <button type="button" data-status="sebagian" class="segment-btn lunas-status-btn flex-1" onclick="pilihStatusModalLunas('sebagian')">Bayar Sebagian</button>
+          <button type="button" data-status="lunas" class="segment-btn lunas-status-btn active flex-1" onclick="pilihStatusModalLunas('lunas')">Lunas</button>
+        </div>
+        <div id="lunas-jumlah-wrap" class="hidden mb-3">
+          <label class="form-label">Jumlah Disetor</label>
+          <div class="relative">
+            <span class="absolute inset-y-0 left-3 flex items-center text-slate-400 text-sm">Rp</span>
+            <input type="text" inputmode="numeric" id="lunas-jumlah-disetor" class="form-control input-rupiah pl-9" placeholder="0">
+          </div>
+        </div>
         <label class="form-label">Tanggal Setoran</label>
         <input type="date" id="lunas-tanggal" class="form-control" value="<?= date('Y-m-d') ?>">
       </div>
       <div class="modal-footer">
         <button class="btn btn-ghost" onclick="closeModal('modal-lunas')">Batal</button>
-        <button class="btn btn-success" onclick="konfirmasiLunas()"><?= iconsax('check', '') ?> Tandai Lunas</button>
+        <button class="btn btn-success" onclick="konfirmasiLunas()"><?= iconsax('check', '') ?> Simpan Setoran</button>
       </div>
     </div>
   </div>
@@ -340,10 +375,13 @@ function renderTripTable(rows) {
     const totalHotel = r.hotel ? ((parseFloat(r.hotel.total_bill) || 0) + (parseFloat(r.hotel.total_biaya_30persen) || 0)) : 0;
     const statusBadge = r.status_lunas === 'lunas'
       ? '<span class="badge badge-success">Lunas</span>'
+      : r.status_lunas === 'sebagian'
+      ? `<span class="badge badge-info" title="Disetor ${rupiah(r.jumlah_disetor)} dari ${rupiah(r.dana_taktis)}">Sebagian</span>`
       : '<span class="badge badge-warning">Belum Lunas</span>';
-    const aksiLunas = r.status_lunas === 'lunas'
-      ? `<button type="button" class="block text-[11px] text-slate-400 hover:text-red-600 mt-0.5" onclick="batalkanLunas(${r.id})">batalkan</button>`
-      : `<button type="button" class="mt-1 p-1 rounded bg-emerald-600 hover:bg-emerald-700 text-white" onclick="bukaModalLunas(${r.id})" title="Tandai Lunas">${iconsax('check', 'w-3.5 h-3.5')}</button>`;
+    const aksiLunas = r.status_lunas === 'belum'
+      ? `<button type="button" class="mt-1 p-1 rounded bg-emerald-600 hover:bg-emerald-700 text-white" onclick="bukaModalLunas(${r.id})" title="Kelola Setoran">${iconsax('check', 'w-3.5 h-3.5')}</button>`
+      : `<button type="button" class="block text-[11px] text-primary-600 hover:underline mt-0.5" onclick="bukaModalLunas(${r.id})">${r.status_lunas === 'sebagian' ? 'lanjutkan' : 'ubah'}</button>` +
+        `<button type="button" class="block text-[11px] text-slate-400 hover:text-red-600 mt-0.5" onclick="batalkanLunas(${r.id})">batalkan</button>`;
 
     const selTrip = tripBaru ? `
       <td class="align-top font-semibold text-slate-500 dark:text-slate-400">${noTrip}</td>
@@ -415,7 +453,14 @@ async function submitTrip(e) {
   const url = id ? API + '/update/' + id : API;
   const res = await fetch(url, { method: 'POST', body: buildFormData(document.getElementById('form-trip')) });
   const json = await res.json();
-  if (json.success) { showToast(json.message, 'success'); closeModal('modal-trip'); setTimeout(muatDaftarTrip, 800); }
+  if (json.success) {
+    showToast(json.message, 'success');
+    closeModal('modal-trip');
+    // Trip baru: langsung lanjut ke form Tambah Peserta supaya alurnya menyatu, tidak perlu
+    // cari-cari barisnya lagi di tabel (bisa ratusan baris) untuk tambah peserta pertama.
+    if (!id && json.id) bukaModalPeserta(json.id);
+    setTimeout(muatDaftarTrip, 800);
+  }
   else showToast(json.message || 'Gagal menyimpan', 'error');
 }
 window.submitTrip = submitTrip;
@@ -436,13 +481,26 @@ function kosongkanFormPeserta() {
   document.getElementById('peserta-id').value = '';
   document.getElementById('tiket-rows').innerHTML = '';
   tiketIdx = 0;
+  pilihStatusLunas('belum');
   hitungPreviewPeserta();
 }
+
+/* ── Status Setoran Dana Taktis (dipilih langsung di form Tambah/Edit Peserta) ── */
+function pilihStatusLunas(status) {
+  document.getElementById('peserta-status-lunas').value = status;
+  document.querySelectorAll('.status-lunas-btn').forEach(b => b.classList.toggle('active', b.dataset.status === status));
+  document.getElementById('peserta-status-detail').classList.toggle('hidden', status === 'belum');
+  document.getElementById('peserta-jumlah-disetor-wrap').classList.toggle('hidden', status !== 'sebagian');
+  const tglInput = document.getElementById('peserta-tanggal-setoran');
+  if (status !== 'belum' && !tglInput.value) tglInput.value = new Date().toISOString().slice(0, 10);
+}
+window.pilihStatusLunas = pilihStatusLunas;
 
 function bukaModalPeserta(tripId) {
   kosongkanFormPeserta();
   document.getElementById('peserta-trip-id').value = tripId;
   document.getElementById('peserta-modal-title').innerHTML = iconsax('user-add', 'w-5 h-5 text-primary-600') + ' Tambah Peserta';
+  document.getElementById('btn-simpan-tambah-lagi').classList.remove('hidden');
   openModal('modal-peserta');
 }
 window.bukaModalPeserta = bukaModalPeserta;
@@ -490,18 +548,28 @@ function editPeserta(p) {
     setRupiahValue(document.querySelector('[name="hotel[total_bill]"]'), p.hotel.total_bill);
     setRupiahValue(document.querySelector('[name="hotel[total_biaya_30persen]"]'), p.hotel.total_biaya_30persen);
   }
+  pilihStatusLunas(p.status_lunas || 'belum');
+  if (p.status_lunas === 'sebagian') setRupiahValue(document.getElementById('peserta-jumlah-disetor'), p.jumlah_disetor);
+  if (p.status_lunas !== 'belum' && p.tanggal_lunas) document.getElementById('peserta-tanggal-setoran').value = p.tanggal_lunas;
   document.getElementById('peserta-modal-title').innerHTML = iconsax('edit-2', 'w-5 h-5 text-primary-600') + ' Edit Peserta: ' + p.nama_peserta;
+  document.getElementById('btn-simpan-tambah-lagi').classList.add('hidden');
   hitungPreviewPeserta();
   openModal('modal-peserta');
 }
 
-async function submitPeserta(e) {
+async function submitPeserta(e, tambahLagi) {
   e.preventDefault();
   const id = document.getElementById('peserta-id').value;
+  const tripId = document.getElementById('peserta-trip-id').value;
   const url = id ? API + '/peserta/update/' + id : API + '/peserta';
   const res = await fetch(url, { method: 'POST', body: buildFormData(document.getElementById('form-peserta')) });
   const json = await res.json();
-  if (json.success) { showToast(json.message, 'success'); closeModal('modal-peserta'); setTimeout(muatDaftarTrip, 800); }
+  if (json.success) {
+    showToast(json.message, 'success');
+    if (tambahLagi && !id) bukaModalPeserta(tripId);
+    else closeModal('modal-peserta');
+    setTimeout(muatDaftarTrip, 800);
+  }
   else showToast(json.message || 'Gagal menyimpan', 'error');
 }
 window.submitPeserta = submitPeserta;
@@ -532,9 +600,21 @@ window.hitungPreviewPeserta = hitungPreviewPeserta;
 
 // ── Status Lunas ─────────────────────────────────────────────────────────────────
 
+let lunasStatusDipilih = 'lunas';
+function pilihStatusModalLunas(status) {
+  lunasStatusDipilih = status;
+  document.querySelectorAll('.lunas-status-btn').forEach(b => b.classList.toggle('active', b.dataset.status === status));
+  document.getElementById('lunas-jumlah-wrap').classList.toggle('hidden', status !== 'sebagian');
+}
+window.pilihStatusModalLunas = pilihStatusModalLunas;
+
 function bukaModalLunas(pesertaId) {
+  const r = currentRows.find(row => row.id === pesertaId);
   document.getElementById('lunas-peserta-id').value = pesertaId;
   document.getElementById('lunas-tanggal').value = new Date().toISOString().slice(0, 10);
+  document.getElementById('lunas-dana-taktis-info').textContent = r ? rupiah(r.dana_taktis) : '-';
+  document.getElementById('lunas-jumlah-disetor').value = '';
+  pilihStatusModalLunas('lunas');
   openModal('modal-lunas');
 }
 window.bukaModalLunas = bukaModalLunas;
@@ -542,8 +622,11 @@ window.bukaModalLunas = bukaModalLunas;
 async function konfirmasiLunas() {
   const id = document.getElementById('lunas-peserta-id').value;
   const fd = new FormData();
-  fd.append('aksi', 'lunas');
+  fd.append('aksi', lunasStatusDipilih);
   fd.append('tanggal_lunas', document.getElementById('lunas-tanggal').value);
+  if (lunasStatusDipilih === 'sebagian') {
+    fd.append('jumlah_disetor', unformatRibuan(document.getElementById('lunas-jumlah-disetor').value));
+  }
   const res = await fetch(API + '/lunas/' + id, { method: 'POST', body: fd });
   const json = await res.json();
   if (json.success) { showToast(json.message, 'success'); closeModal('modal-lunas'); setTimeout(muatDaftarTrip, 800); }
@@ -552,7 +635,7 @@ async function konfirmasiLunas() {
 window.konfirmasiLunas = konfirmasiLunas;
 
 function batalkanLunas(pesertaId) {
-  tampilkanKonfirmasi('Batalkan status lunas? Pemasukan otomatis yang sudah tercatat akan ikut dihapus.', async () => {
+  tampilkanKonfirmasi('Batalkan status setoran? Pemasukan otomatis yang sudah tercatat akan ikut dihapus.', async () => {
     const fd = new FormData();
     fd.append('aksi', 'batal');
     const res = await fetch(API + '/lunas/' + pesertaId, { method: 'POST', body: fd });
@@ -572,14 +655,56 @@ async function muatDaftarPegawai() {
   tbody.innerHTML = '';
   (json.data || []).forEach(pg => {
     const tr = document.createElement('tr');
-    tr.innerHTML = `<td>${pg.nama}</td><td>${pg.nip || '-'}</td>` +
-      `<td>${pg.aktif == 1 ? '<span class="badge badge-success">Aktif</span>' : '<span class="badge badge-muted">Nonaktif</span>'}</td>` +
-      `<td class="text-center">` +
-      (pg.aktif == 1 ? `<button type="button" class="p-1.5 rounded hover:bg-red-50 dark:hover:bg-red-900/30 text-slate-500 hover:text-red-600" onclick="nonaktifkanPegawai(${pg.id})" title="Nonaktifkan">${iconsax('user-remove', 'w-4 h-4')}</button>` : '') +
-      `</td>`;
+    renderBarisPegawai(tr, pg);
     tbody.appendChild(tr);
   });
 }
+window.muatDaftarPegawai = muatDaftarPegawai;
+
+function renderBarisPegawai(tr, pg) {
+  const pgJson = JSON.stringify(pg).replace(/'/g, "&#39;");
+  tr.innerHTML = `<td>${escapeHtml(pg.nama)}</td><td>${escapeHtml(pg.nip || '-')}</td>` +
+    `<td>${pg.aktif == 1 ? '<span class="badge badge-success">Aktif</span>' : '<span class="badge badge-muted">Nonaktif</span>'}</td>` +
+    `<td class="text-center">
+      <div class="flex items-center justify-center gap-1">
+        <button type="button" class="p-1.5 rounded hover:bg-slate-100 dark:hover:bg-slate-700 text-slate-500 hover:text-primary-600" onclick='editBarisPegawai(this, ${pgJson})' title="Edit">${iconsax('edit-2', 'w-4 h-4')}</button>
+        ${pg.aktif == 1
+          ? `<button type="button" class="p-1.5 rounded hover:bg-red-50 dark:hover:bg-red-900/30 text-slate-500 hover:text-red-600" onclick="nonaktifkanPegawai(${pg.id})" title="Nonaktifkan">${iconsax('user-remove', 'w-4 h-4')}</button>`
+          : `<button type="button" class="p-1.5 rounded hover:bg-emerald-50 dark:hover:bg-emerald-900/30 text-slate-500 hover:text-emerald-600" onclick='aktifkanPegawai(${pgJson})' title="Aktifkan kembali">${iconsax('tick-circle', 'w-4 h-4')}</button>`}
+      </div>
+    </td>`;
+}
+
+function editBarisPegawai(btn, pg) {
+  const tr = btn.closest('tr');
+  tr.innerHTML = `
+    <td><input type="text" class="form-control form-control-sm" value="${escapeHtml(pg.nama)}" id="edit-pegawai-nama-${pg.id}"></td>
+    <td><input type="text" class="form-control form-control-sm" value="${escapeHtml(pg.nip || '')}" id="edit-pegawai-nip-${pg.id}"></td>
+    <td>${pg.aktif == 1 ? '<span class="badge badge-success">Aktif</span>' : '<span class="badge badge-muted">Nonaktif</span>'}</td>
+    <td class="text-center">
+      <div class="flex items-center justify-center gap-1">
+        <button type="button" class="p-1.5 rounded hover:bg-emerald-50 dark:hover:bg-emerald-900/30 text-slate-500 hover:text-emerald-600" onclick="simpanEditPegawai(${pg.id}, ${pg.aktif})" title="Simpan">${iconsax('tick-circle', 'w-4 h-4')}</button>
+        <button type="button" class="p-1.5 rounded hover:bg-slate-100 dark:hover:bg-slate-700 text-slate-500" onclick="muatDaftarPegawai()" title="Batal">${iconsax('close-circle', 'w-4 h-4')}</button>
+      </div>
+    </td>`;
+}
+window.editBarisPegawai = editBarisPegawai;
+
+async function simpanEditPegawai(id, aktifSaatIni) {
+  const nama = document.getElementById('edit-pegawai-nama-' + id).value.trim();
+  const nip  = document.getElementById('edit-pegawai-nip-' + id).value.trim();
+  if (!nama) { showToast('Nama tidak boleh kosong', 'error'); return; }
+  const fd = new FormData();
+  fd.append('nama', nama);
+  fd.append('nip', nip);
+  fd.append('aktif', aktifSaatIni);
+  const res = await fetch(API + '/pegawai/update/' + id, { method: 'POST', body: fd });
+  const json = await res.json();
+  if (json.success) { showToast(json.message, 'success'); await muatDaftarPegawai(); await segarkanOpsiPegawai(); }
+  else showToast(json.message || 'Gagal', 'error');
+}
+window.simpanEditPegawai = simpanEditPegawai;
+
 function bukaModalPegawai() {
   openModal('modal-pegawai');
   muatDaftarPegawai();
@@ -609,6 +734,18 @@ async function nonaktifkanPegawai(id) {
   if (json.success) { showToast(json.message, 'success'); await muatDaftarPegawai(); await segarkanOpsiPegawai(); }
 }
 window.nonaktifkanPegawai = nonaktifkanPegawai;
+
+async function aktifkanPegawai(pg) {
+  const fd = new FormData();
+  fd.append('nama', pg.nama);
+  fd.append('nip', pg.nip || '');
+  fd.append('aktif', '1');
+  const res = await fetch(API + '/pegawai/update/' + pg.id, { method: 'POST', body: fd });
+  const json = await res.json();
+  if (json.success) { showToast('Pegawai diaktifkan kembali', 'success'); await muatDaftarPegawai(); await segarkanOpsiPegawai(); }
+  else showToast(json.message || 'Gagal', 'error');
+}
+window.aktifkanPegawai = aktifkanPegawai;
 
 async function segarkanOpsiPegawai() {
   const res = await fetch(API + '/pegawai');
