@@ -365,9 +365,16 @@ class PerjalananDinasPesertaModel extends Model
         $page       = !empty($filters['page']) ? min(max(1, (int)$filters['page']), $totalPages) : $totalPages;
         $offset     = ($page - 1) * $perPage;
 
+        // Kelompok per nama diurutkan dari orang yang perjadin TERBARUnya paling baru;
+        // di dalam satu kelompok nama yang sama, trip terbarunya juga di atas.
+        $subqueryTerbaru = '(SELECT MAX(pd2.tanggal_surat_tugas) FROM perjalanan_dinas_peserta pdp2 '
+            . 'JOIN perjalanan_dinas pd2 ON pd2.id = pdp2.perjalanan_dinas_id '
+            . 'WHERE pdp2.nama_peserta = perjalanan_dinas_peserta.nama_peserta)';
+
         $rows = $this->applyFilterPesertaTrip($filters, true)
+            ->orderBy($subqueryTerbaru, 'DESC', false)
             ->orderBy('perjalanan_dinas_peserta.nama_peserta', 'ASC')
-            ->orderBy('perjalanan_dinas.tanggal_surat_tugas', 'ASC')
+            ->orderBy('perjalanan_dinas.tanggal_surat_tugas', 'DESC')
             ->orderBy('perjalanan_dinas_peserta.id', 'ASC')
             ->findAll($perPage, $offset);
 
