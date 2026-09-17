@@ -328,6 +328,18 @@ function renderDanaTaktisTable(rows, page, perPage) {
   }
   const curPage = page || dtHalamanSaatIni || 1;
   const curPerPage = perPage || 10;
+
+  // Berapa baris berturut-turut punya nama_peserta yang sama persis -- dipakai
+  // supaya kolom Nama Pegawai tampil sekali saja (rowspan) untuk satu orang,
+  // sementara No, No. PD, dan kolom lain tetap satu per baris.
+  const rowspanNama = new Array(rows.length).fill(0);
+  for (let i = 0; i < rows.length; i++) {
+    if (i > 0 && rows[i].nama_peserta === rows[i - 1].nama_peserta) continue;
+    let span = 1;
+    while (i + span < rows.length && rows[i + span].nama_peserta === rows[i].nama_peserta) span++;
+    rowspanNama[i] = span;
+  }
+
   tbody.innerHTML = rows.map((r, idx) => {
     const tgl = fmtTgl(r.tanggal_surat_tugas);
     const isLunas = r.status_lunas === 'lunas' || parseFloat(r.dana_taktis) === 0;
@@ -353,10 +365,14 @@ function renderDanaTaktisTable(rows, page, perPage) {
           : `<span class="text-xs font-semibold text-slate-700 dark:text-slate-200">${esc(r.no_pd)}</span>`)
       : '<span class="text-xs text-slate-400">-</span>';
 
+    const namaCellHtml = rowspanNama[idx] > 0
+      ? `<td class="font-medium text-slate-700 dark:text-slate-200 whitespace-nowrap align-top" rowspan="${rowspanNama[idx]}">${esc(r.nama_peserta)}</td>`
+      : '';
+
     return `<tr class="cursor-pointer ${rowBgClass} transition-colors" onclick="dtBukaDetail('${rowData.replace(/'/g,"&#39;")}')">
       <td class="text-center text-xs text-slate-500">${rowNum}</td>
       <td class="text-center font-medium">${nomorPdHtml}</td>
-      <td class="font-medium text-slate-700 dark:text-slate-200 whitespace-nowrap">${esc(r.nama_peserta)}</td>
+      ${namaCellHtml}
       <td class="min-w-[180px] max-w-[300px] break-words whitespace-normal" title="${esc(r.maksud)}">${esc(r.maksud)}</td>
       <td class="text-xs">
         <div class="font-medium text-slate-700 dark:text-slate-200">${esc(r.no_surat_tugas || '-')}</div>
