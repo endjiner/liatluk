@@ -409,6 +409,7 @@
       </div>
     </div>
   </div>
+</div>
 <!-- Modal Detail Perjalanan Dinas (Admin) -->
 <div id="modal-detail-perjadin-adm" class="hidden">
   <div class="modal-backdrop" onclick="closeModal('modal-detail-perjadin-adm')"></div>
