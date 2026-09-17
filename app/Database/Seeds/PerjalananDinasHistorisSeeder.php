@@ -61,6 +61,7 @@ class PerjalananDinasHistorisSeeder extends Seeder
                 'tanggal_surat_tugas' => $trip['tanggal_surat_tugas'],
                 'kode_mak'            => $trip['kode_mak'],
                 'no_spm'              => $trip['no_spm'],
+                'no_pd'               => $trip['no_pd'] ?? null,
                 'created_at'          => $now,
                 'updated_at'          => $now,
             ]);
