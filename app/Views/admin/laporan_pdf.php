@@ -4,12 +4,14 @@
   <meta charset="UTF-8">
   <title>Laporan Keuangan BBPOM di Pangkal Pinang (<?= $bulanDari ?> s/d <?= $bulanSampai ?>)</title>
   <link rel="stylesheet" href="<?= base_url('assets/css/laporan-pdf.css') ?>">
-  <?php if (!empty($sertakanPerjadin)): ?>
   <style>
-    @page { size: landscape; margin: 10mm; }
+    <?php if (!empty($sertakanPerjadin)): ?>
+    @page { size: A4 landscape; margin: 10mm; }
     body { padding: 10px; }
+    <?php else: ?>
+    @page { size: A4 portrait; margin: 15mm; }
+    <?php endif; ?>
   </style>
-  <?php endif; ?>
 </head>
 <body onload="window.print()">
 
@@ -244,22 +246,22 @@
 <table class="data-table data-table-perjadin">
   <thead>
     <tr>
-      <th style="width:4%">No. PD</th>
-      <th style="width:10%">Tgl & No. ST</th>
-      <th style="width:13%">Maksud Perjalanan</th>
-      <th style="width:10%">MAK / SPM</th>
-      <th style="width:11%">Pelaksana</th>
-      <th class="text-right" style="width:6.5%">Uang Harian</th>
-      <th class="text-right" style="width:6%">Meeting FB</th>
-      <th class="text-right" style="width:6%">Meeting FD</th>
-      <th class="text-right" style="width:6%">Uang Repr.</th>
-      <th class="text-right" style="width:6.5%">Transp Lokal</th>
-      <th class="text-right" style="width:5.5%">BBM</th>
-      <th class="text-right" style="width:6.5%">Tiket</th>
-      <th class="text-right" style="width:6.5%">Hotel</th>
-      <th class="text-right font-bold" style="width:7.5%">Total SPJ</th>
-      <th class="text-right" style="width:6%">Taktis</th>
-      <th class="text-center" style="width:4%">Status</th>
+      <th style="width:3%">No. PD</th>
+      <th style="width:8%">Tgl & No. ST</th>
+      <th style="width:10%">Maksud Perjalanan</th>
+      <th style="width:7%">MAK / SPM</th>
+      <th style="width:8%">Pelaksana</th>
+      <th class="text-right" style="width:6%">Uang Harian</th>
+      <th class="text-right" style="width:5%">Meeting FB</th>
+      <th class="text-right" style="width:5%">Meeting FD</th>
+      <th class="text-right" style="width:5%">Uang Repr.</th>
+      <th class="text-right" style="width:5.5%">Transp Lokal</th>
+      <th class="text-right" style="width:5%">BBM</th>
+      <th class="text-right" style="width:5.5%">Tiket</th>
+      <th class="text-right" style="width:5.5%">Hotel</th>
+      <th class="text-right font-bold" style="width:8.5%">Total SPJ</th>
+      <th class="text-right" style="width:7.5%">Taktis</th>
+      <th class="text-center" style="width:5.5%">Status</th>
     </tr>
   </thead>
   <tbody>
@@ -310,7 +312,32 @@
 <?php endif; ?>
 
 <?php if (!empty($sertakanDanaTaktis)): ?>
-<div class="section-head">Rincian Dana Taktis</div>
+<div class="section-head">
+  Rincian Dana Taktis
+  <?php if (($filterNamaTaktis ?? '') !== ''): ?>
+    <span style="font-size:10px;font-weight:normal;color:#64748b;">(Filter nama: <?= esc($filterNamaTaktis) ?>)</span>
+  <?php endif; ?>
+</div>
+<table class="kpi-table">
+  <tr>
+    <td>
+      <div class="kpi-title">Total Uang Harian</div>
+      <div class="kpi-val"><?= 'Rp ' . number_format($danaTaktisTotalUangHarian, 0, ',', '.') ?></div>
+    </td>
+    <td>
+      <div class="kpi-title">Total SPJ</div>
+      <div class="kpi-val"><?= 'Rp ' . number_format($danaTaktisTotalSpj, 0, ',', '.') ?></div>
+    </td>
+    <td>
+      <div class="kpi-title">Dana Taktis</div>
+      <div class="kpi-val text-success"><?= 'Rp ' . number_format($danaTaktisTotalTaktis, 0, ',', '.') ?></div>
+    </td>
+    <td>
+      <div class="kpi-title">Belum Dibayar</div>
+      <div class="kpi-val text-danger"><?= 'Rp ' . number_format($danaTaktisTotalBelumSetor, 0, ',', '.') ?></div>
+    </td>
+  </tr>
+</table>
 <table class="data-table">
   <thead>
     <tr>
@@ -323,7 +350,7 @@
   </thead>
   <tbody>
     <?php if (empty($danaTaktisRows)): ?>
-    <tr><td colspan="5" class="text-center">Tidak ada data pada periode ini</td></tr>
+    <tr><td colspan="5" class="text-center">Tidak ada data pada periode<?= ($filterNamaTaktis ?? '') !== '' ? ' / filter nama' : '' ?> ini</td></tr>
     <?php else: foreach ($danaTaktisRows as $row): ?>
     <tr>
       <td><?= date('d/m/Y', strtotime($row['tanggal_surat_tugas'])) ?></td>
@@ -336,14 +363,6 @@
     </tr>
     <?php endforeach; endif; ?>
   </tbody>
-  <?php if (!empty($danaTaktisRows)): ?>
-  <tfoot>
-    <tr>
-      <td colspan="3" class="text-right font-bold">TOTAL LUNAS / BELUM LUNAS</td>
-      <td colspan="2" class="text-right font-bold"><?= number_format($danaTaktisTotalLunas, 0, ',', '.') ?> / <?= number_format($danaTaktisTotalBelum, 0, ',', '.') ?></td>
-    </tr>
-  </tfoot>
-  <?php endif; ?>
 </table>
 <?php endif; ?>
 

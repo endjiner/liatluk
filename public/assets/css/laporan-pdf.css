@@ -55,8 +55,8 @@ table.data-table th, table.data-table td {
 }
 table.data-table th { background: #e2e8f0; font-weight: bold; }
 table.data-table-gabungan { font-size: 10px; }
-table.data-table-perjadin { font-size: 8px; }
-table.data-table-perjadin th, table.data-table-perjadin td { padding: 3px 4px; word-break: break-word; }
+table.data-table-perjadin { font-size: 8px; table-layout: fixed; }
+table.data-table-perjadin th, table.data-table-perjadin td { padding: 3px 4px; word-break: break-word; overflow-wrap: break-word; }
 
 .text-right   { text-align: right; }
 .text-center  { text-align: center; }

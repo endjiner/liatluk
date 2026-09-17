@@ -12,6 +12,7 @@
       'bulan_sampai'         => $bulanSampai,
       'sertakan_perjadin'    => $sertakanPerjadin ? 1 : 0,
       'sertakan_dana_taktis' => $sertakanDanaTaktis ? 1 : 0,
+      'filter_nama_taktis'   => $filterNamaTaktis ?? '',
     ]);
   ?>
   <div class="flex flex-wrap items-center gap-2">
@@ -47,6 +48,12 @@
       </label>
     </div>
   </div>
+  <?php if ($sertakanDanaTaktis): ?>
+  <div class="mt-3 pt-3 border-t border-slate-100 dark:border-slate-700">
+    <label class="form-label">Filter Nama (Dana Taktis)</label>
+    <input type="text" name="filter_nama_taktis" placeholder="Kosongkan untuk semua pegawai..." class="form-control form-control-sm max-w-xs" value="<?= esc($filterNamaTaktis ?? '') ?>">
+  </div>
+  <?php endif; ?>
 </form>
 
 <?php if (!empty($periodeDipangkas)): ?>
@@ -227,46 +234,57 @@
 <?php endif; ?>
 
 <?php if ($sertakanDanaTaktis): ?>
-<div class="card mt-4">
-  <div class="card-header">
-    <h3 class="text-sm font-semibold text-slate-700 dark:text-slate-200 flex items-center gap-2">
-      <?= iconsax('wallet', 'w-4 h-4 text-primary-600') ?> Rincian Dana Taktis Periode Ini
-    </h3>
+<div class="mt-4">
+  <h3 class="text-sm font-semibold text-slate-700 dark:text-slate-200 flex items-center gap-2 mb-2.5">
+    <?= iconsax('wallet', 'w-4 h-4 text-primary-600') ?> Rincian Dana Taktis Periode Ini
+    <?php if (($filterNamaTaktis ?? '') !== ''): ?>
+      <span class="text-xs font-normal text-slate-400">Filter nama: "<?= esc($filterNamaTaktis) ?>"</span>
+    <?php endif; ?>
+  </h3>
+
+  <div class="grid grid-cols-2 lg:grid-cols-4 gap-2.5 sm:gap-3 mb-3">
+    <div class="kpi p-3 sm:p-4">
+      <div class="kpi-label text-[11px]"><?= iconsax('money', 'w-4 h-4') ?> Total Uang Harian</div>
+      <div class="kpi-value text-base sm:text-lg text-slate-700 dark:text-slate-200 text-currency">Rp <?= number_format($danaTaktisTotalUangHarian, 0, ',', '.') ?></div>
+    </div>
+    <div class="kpi p-3 sm:p-4">
+      <div class="kpi-label text-[11px]"><?= iconsax('receipt-2', 'w-4 h-4') ?> Total SPJ</div>
+      <div class="kpi-value text-base sm:text-lg text-slate-700 dark:text-slate-200 text-currency">Rp <?= number_format($danaTaktisTotalSpj, 0, ',', '.') ?></div>
+    </div>
+    <div class="kpi p-3 sm:p-4">
+      <div class="kpi-label text-[11px]"><?= iconsax('moneys', 'w-4 h-4 text-emerald-600') ?> Dana Taktis</div>
+      <div class="kpi-value text-base sm:text-lg text-emerald-700 dark:text-emerald-400 text-currency">Rp <?= number_format($danaTaktisTotalTaktis, 0, ',', '.') ?></div>
+    </div>
+    <div class="kpi p-3 sm:p-4 bg-amber-50/70 dark:bg-amber-900/20">
+      <div class="kpi-label text-[11px]"><?= iconsax('warning-2', 'w-4 h-4 text-amber-600') ?> Belum Dibayar</div>
+      <div class="kpi-value text-base sm:text-lg text-amber-700 dark:text-amber-400 text-currency">Rp <?= number_format($danaTaktisTotalBelumSetor, 0, ',', '.') ?></div>
+    </div>
   </div>
-  <div class="overflow-x-auto">
-    <table class="table">
-      <thead><tr><th>Tanggal</th><th>Nama Peserta</th><th>Maksud Perjalanan</th><th class="text-right">Dana Taktis</th><th>Status</th></tr></thead>
-      <tbody>
-      <?php if (empty($danaTaktisRows)): ?>
-        <tr><td colspan="5" class="text-center py-8 text-slate-500"><img src="<?= icons8('empty-box', '3d-fluency', 64) ?>" alt="" class="w-10 h-10 mx-auto mb-2 opacity-80"><br>Tidak ada data pada periode ini</td></tr>
-      <?php else: foreach ($danaTaktisRows as $row): ?>
-        <tr>
-          <td class="whitespace-nowrap"><?= date('d/m/Y', strtotime($row['tanggal_surat_tugas'])) ?></td>
-          <td><?= esc($row['nama_peserta']) ?></td>
-          <td class="truncate max-w-[240px]"><?= esc($row['maksud']) ?></td>
-          <td class="text-right font-medium text-currency">Rp <?= number_format($row['dana_taktis'], 0, ',', '.') ?></td>
-          <td>
-            <?= $row['status_lunas'] === 'lunas' ? '<span class="badge badge-success">Lunas</span>' : '<span class="badge badge-warning">Belum Lunas</span>' ?>
-            <?php if ($row['status_lunas'] === 'lunas' && !empty($row['tanggal_lunas'])): ?>
-              <div class="text-[11px] text-slate-500 mt-0.5 whitespace-nowrap"><i class="ti ti-calendar-check text-emerald-500"></i> <?= date('d/m/Y', strtotime($row['tanggal_lunas'])) ?></div>
-            <?php endif; ?>
-          </td>
-        </tr>
-      <?php endforeach; endif; ?>
-      </tbody>
-      <?php if (!empty($danaTaktisRows)): ?>
-      <tfoot>
-        <tr>
-          <td colspan="3" class="text-right font-semibold">TOTAL LUNAS / BELUM LUNAS</td>
-          <td colspan="2" class="text-right font-semibold text-currency">
-            <span class="text-emerald-600">Rp <?= number_format($danaTaktisTotalLunas, 0, ',', '.') ?></span>
-            /
-            <span class="text-amber-600">Rp <?= number_format($danaTaktisTotalBelum, 0, ',', '.') ?></span>
-          </td>
-        </tr>
-      </tfoot>
-      <?php endif; ?>
-    </table>
+
+  <div class="card">
+    <div class="overflow-x-auto">
+      <table class="table">
+        <thead><tr><th>Tanggal</th><th>Nama Peserta</th><th>Maksud Perjalanan</th><th class="text-right">Dana Taktis</th><th>Status</th></tr></thead>
+        <tbody>
+        <?php if (empty($danaTaktisRows)): ?>
+          <tr><td colspan="5" class="text-center py-8 text-slate-500"><img src="<?= icons8('empty-box', '3d-fluency', 64) ?>" alt="" class="w-10 h-10 mx-auto mb-2 opacity-80"><br>Tidak ada data pada periode<?= ($filterNamaTaktis ?? '') !== '' ? ' / filter nama' : '' ?> ini</td></tr>
+        <?php else: foreach ($danaTaktisRows as $row): ?>
+          <tr>
+            <td class="whitespace-nowrap"><?= date('d/m/Y', strtotime($row['tanggal_surat_tugas'])) ?></td>
+            <td><?= esc($row['nama_peserta']) ?></td>
+            <td class="truncate max-w-[240px]"><?= esc($row['maksud']) ?></td>
+            <td class="text-right font-medium text-currency">Rp <?= number_format($row['dana_taktis'], 0, ',', '.') ?></td>
+            <td>
+              <?= $row['status_lunas'] === 'lunas' ? '<span class="badge badge-success">Lunas</span>' : '<span class="badge badge-warning">Belum Lunas</span>' ?>
+              <?php if ($row['status_lunas'] === 'lunas' && !empty($row['tanggal_lunas'])): ?>
+                <div class="text-[11px] text-slate-500 mt-0.5 whitespace-nowrap"><i class="ti ti-calendar-check text-emerald-500"></i> <?= date('d/m/Y', strtotime($row['tanggal_lunas'])) ?></div>
+              <?php endif; ?>
+            </td>
+          </tr>
+        <?php endforeach; endif; ?>
+        </tbody>
+      </table>
+    </div>
   </div>
 </div>
 <?php endif; ?>
