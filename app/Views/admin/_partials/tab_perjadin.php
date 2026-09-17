@@ -5,7 +5,7 @@
     <?= iconsax('people', '') ?> Kelola Pegawai
   </button>
   <button class="btn btn-success btn-sm" onclick="bukaModalTrip()">
-    <?= iconsax('add', '') ?> Perjalanan Dinas
+    <?= iconsax('add', '') ?> Tambah Perjalanan Dinas
   </button>
 </div>
 

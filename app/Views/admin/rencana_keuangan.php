@@ -8,10 +8,10 @@
   </div>
   <div class="flex flex-wrap items-center gap-2">
     <button class="btn btn-success btn-sm" onclick="openModal('modal-rp')">
-      <?= iconsax('add', '') ?> <span class="hidden sm:inline">Rencana Pemasukan</span>
+      <?= iconsax('add', '') ?> <span class="hidden sm:inline">Tambah Rencana Pemasukan</span>
     </button>
     <button class="btn btn-danger btn-sm" onclick="openModal('modal-re')">
-      <?= iconsax('add', '') ?> <span class="hidden sm:inline">Rencana Pengeluaran</span>
+      <?= iconsax('add', '') ?> <span class="hidden sm:inline">Tambah Rencana Pengeluaran</span>
     </button>
   </div>
 </div>
