@@ -24,9 +24,7 @@ class PerjalananDinasPesertaModel extends Model
     }
 
     /**
-     * Hitung ulang Total SPJ (semua komponen biaya milik peserta ini, termasuk seluruh
-     * tiket & hotelnya) dan Dana Taktis (10% dari Uang Harian saja — TIDAK dari total SPJ,
-     * sesuai rumus di spreadsheet sumber). Dipanggil setiap kali peserta/tiket/hotel disimpan.
+     * Hitung ulang Total SPJ dan Dana Taktis (10% Uang Harian).
      */
     public function recalculate(int $pesertaId): void
     {
@@ -55,70 +53,133 @@ class PerjalananDinasPesertaModel extends Model
     }
 
     /**
-     * Tandai setoran Dana Taktis peserta ini lunas atau sebagian: otomatis membukukan
-     * nilainya sebagai Pemasukan (kategori "Setoran Taktis Pegawai", status_dana mengikuti
-     * lunas/sebagian persis seperti pemasukan biasa) supaya Dashboard/Laporan ikut akurat
-     * tanpa input dobel. ID pemasukan yang dibuat disimpan di kolom pemasukan_id supaya bisa
-     * di-update (setoran susulan) atau dibatalkan (lihat batalkanLunas()).
-     *
-     * $jumlahSetor hanya dipakai untuk status 'sebagian' — kalau kosong atau >= dana_taktis,
-     * otomatis dianggap lunas penuh (menghindari status "sebagian" yang nilainya 100%).
+     * Format teks keterangan & data relasional MariaDB untuk pencatatan di tabel Pemasukan.
+     * Mengisi kolom relasional native MariaDB: no_surat_tugas, kode_mak, no_spm, perjalanan_dinas_id,
+     * serta identitas peserta sehingga terintegrasi langsung di database MariaDB tanpa memerlukan JSON.
      */
-    public function tandaiLunas(int $id, string $tanggalLunas, string $status = 'lunas', ?float $jumlahSetor = null): bool
+    public function formatMetadataPemasukan(array $peserta, ?array $trip): array
+    {
+        $maksud      = $trip['maksud'] ?? ('Perjalanan Dinas #' . ($peserta['perjalanan_dinas_id'] ?? '-'));
+        $noST        = !empty($trip['no_surat_tugas']) ? $trip['no_surat_tugas'] : null;
+        $kodeMak     = !empty($trip['kode_mak']) ? $trip['kode_mak'] : null;
+        $noSpm       = !empty($trip['no_spm']) ? $trip['no_spm'] : null;
+
+        $parts = ["Setoran Dana Taktis 10% Uang Harian — {$maksud}"];
+        if ($noST) $parts[] = "No. ST: {$noST}";
+        if ($kodeMak) $parts[] = "MAK: {$kodeMak}";
+        if ($noSpm) $parts[] = "SPM: {$noSpm}";
+        $keterangan = implode(' | ', $parts);
+
+        return [
+            'keterangan'                  => $keterangan,
+            'perjalanan_dinas_id'         => (int)($peserta['perjalanan_dinas_id'] ?? 0),
+            'perjalanan_dinas_peserta_id' => (int)($peserta['id'] ?? 0),
+            'no_surat_tugas'              => $noST,
+            'kode_mak'                    => $kodeMak,
+            'no_spm'                      => $noSpm,
+        ];
+    }
+
+    /**
+     * Sinkronisasi status setoran taktis peserta ke tabel Pemasukan.
+     * Jika status lunas/sebagian: membukukan ke Pemasukan dengan kategori "Setoran Taktis Pegawai"
+     * dan sumber sesuai nama peserta yang membayar, disimpan langsung ke kolom-kolom MariaDB.
+     * Jika status belum: membatalkan dan menghapus baris pemasukan otomatis terkait.
+     */
+    public function sinkronPemasukan(int $id, ?string $tanggalSetoran = null, ?string $forceStatus = null, ?float $forceJumlahDisetor = null): bool
     {
         $peserta = $this->find($id);
-        if (!$peserta || !in_array($status, ['sebagian', 'lunas'], true)) return false;
+        if (!$peserta) return false;
+
+        $status = $forceStatus ?? $peserta['status_lunas'];
+        if (!in_array($status, ['belum', 'sebagian', 'lunas'], true)) return false;
+
+        // Jika status belum, batalkan pelunasan
+        if ($status === 'belum') {
+            $this->batalkanLunas($id);
+            return true;
+        }
 
         $danaTaktis = (float)$peserta['dana_taktis'];
-        if ($status === 'sebagian' && $jumlahSetor !== null && $jumlahSetor > 0 && $jumlahSetor < $danaTaktis) {
-            $jumlahDisetor = $jumlahSetor;
+        if ($danaTaktis <= 0) {
+            // Jika dana taktis 0, tidak ada setoran yang masuk kas
+            $this->update($id, [
+                'status_lunas'   => $status,
+                'jumlah_disetor' => 0,
+                'tanggal_lunas'  => ($tanggalSetoran ?: date('Y-m-d')),
+                'pemasukan_id'   => null,
+            ]);
+            return true;
+        }
+
+        if ($status === 'sebagian') {
+            $jumlahDisetor = ($forceJumlahDisetor !== null) ? $forceJumlahDisetor : (float)$peserta['jumlah_disetor'];
+            if ($jumlahDisetor >= $danaTaktis) {
+                $status        = 'lunas';
+                $jumlahDisetor = $danaTaktis;
+            } elseif ($jumlahDisetor <= 0) {
+                // Sebagian tapi nilainya 0 -> batalkan
+                $this->batalkanLunas($id);
+                return true;
+            }
         } else {
-            $status        = 'lunas';
             $jumlahDisetor = $danaTaktis;
         }
 
-        if ($peserta['status_lunas'] === $status && (float)$peserta['jumlah_disetor'] === $jumlahDisetor) {
-            return false; // sudah sesuai, tidak ada perubahan
+        $tanggal = $tanggalSetoran ?: ($peserta['tanggal_lunas'] ?: date('Y-m-d'));
+        $trip    = (new PerjalananDinasModel())->find($peserta['perjalanan_dinas_id']);
+
+        $meta = $this->formatMetadataPemasukan(array_merge($peserta, [
+            'dana_taktis'    => $danaTaktis,
+            'jumlah_disetor' => $jumlahDisetor,
+            'status_lunas'   => $status,
+            'tanggal_lunas'  => $tanggal,
+        ]), $trip);
+
+        $dataPemasukan = [
+            'tanggal'                     => $tanggal,
+            'kategori'                    => 'Setoran Taktis Pegawai',
+            'jumlah'                      => $status === 'sebagian' ? $jumlahDisetor : $danaTaktis,
+            'jumlah_diterima'             => $jumlahDisetor,
+            'status_dana'                 => $status === 'lunas' ? 'diterima' : 'sebagian',
+            'sumber'                      => $peserta['nama_peserta'],
+            'keterangan'                  => $meta['keterangan'],
+            'catatan_internal'            => null,
+            'dari_tandai_lunas'           => 1,
+            'perjalanan_dinas_id'         => $meta['perjalanan_dinas_id'],
+            'perjalanan_dinas_peserta_id' => $meta['perjalanan_dinas_peserta_id'],
+            'no_surat_tugas'              => $meta['no_surat_tugas'],
+            'kode_mak'                    => $meta['kode_mak'],
+            'no_spm'                      => $meta['no_spm'],
+        ];
+
+        $pemasukanModel = new PemasukanModel();
+        $pemasukanId    = $peserta['pemasukan_id'];
+
+        if ($pemasukanId && $pemasukanModel->find($pemasukanId)) {
+            $pemasukanModel->update($pemasukanId, $dataPemasukan);
+        } else {
+            $pemasukanId = $pemasukanModel->insert($dataPemasukan);
         }
 
-        $pemasukanId = $peserta['pemasukan_id'];
-        if ($danaTaktis > 0) {
-            $trip = (new PerjalananDinasModel())->find($peserta['perjalanan_dinas_id']);
-            $dataPemasukan = [
-                'tanggal'           => $tanggalLunas,
-                'kategori'          => 'Setoran Taktis Pegawai',
-                'jumlah'            => $danaTaktis,
-                'jumlah_diterima'   => $jumlahDisetor,
-                'status_dana'       => $status === 'lunas' ? 'diterima' : 'sebagian',
-                'sumber'            => $peserta['nama_peserta'],
-                'keterangan'        => 'Setoran Dana Taktis 10% Uang Harian — ' . ($trip['maksud'] ?? ('Perjalanan Dinas #' . $peserta['perjalanan_dinas_id'])),
-                'dari_tandai_lunas' => 1,
-            ];
-            if ($pemasukanId) {
-                (new PemasukanModel())->update($pemasukanId, $dataPemasukan);
-            } else {
-                $pemasukanId = (new PemasukanModel())->insert($dataPemasukan);
-            }
-        }
-
-        return $this->update($id, [
+        return (bool) $this->update($id, [
             'status_lunas'   => $status,
             'jumlah_disetor' => $jumlahDisetor,
-            'tanggal_lunas'  => $status === 'lunas' ? $tanggalLunas : null,
+            'tanggal_lunas'  => $tanggal,
             'pemasukan_id'   => $pemasukanId,
         ]);
     }
 
     /**
-     * Batalkan status lunas. Pemasukan yang tadi ditautkan HANYA ikut dihapus kalau memang
-     * dibuat otomatis oleh tandaiLunas() (dari_tandai_lunas=1) DAN tidak juga masih dipakai
-     * peserta lain (setoran gabungan satu pegawai untuk beberapa trip sekaligus). Pemasukan
-     * yang sudah ada sebelumnya dan cuma ditautkan (mis. lewat app:reconcile-setoran-taktis,
-     * atau data lama) TIDAK PERNAH ikut terhapus di sini — itu data keuangan asli, bukan
-     * sesuatu yang dibuat oleh aksi ini, jadi membatalkan tautannya tidak boleh menghilangkan
-     * catatan pemasukannya dari pembukuan.
-     *
-     * @return array{ok: bool, pemasukan_dihapus: bool}
+     * Tandai setoran Dana Taktis peserta ini lunas atau sebagian (delegasi ke sinkronPemasukan).
+     */
+    public function tandaiLunas(int $id, string $tanggalLunas, string $status = 'lunas', ?float $jumlahSetor = null): bool
+    {
+        return $this->sinkronPemasukan($id, $tanggalLunas, $status, $jumlahSetor);
+    }
+
+    /**
+     * Batalkan status lunas peserta dan hapus pemasukan otomatis terkait.
      */
     public function batalkanLunas(int $id): array
     {
@@ -131,7 +192,7 @@ class PerjalananDinasPesertaModel extends Model
         if (!empty($peserta['pemasukan_id'])) {
             $pemasukan = (new PemasukanModel())->find($peserta['pemasukan_id']);
             $masihDipakai = $this->where('pemasukan_id', $peserta['pemasukan_id'])->where('id !=', $id)->countAllResults();
-            if ($pemasukan && (int) $pemasukan['dari_tandai_lunas'] === 1 && $masihDipakai === 0) {
+            if ($pemasukan && (int)$pemasukan['dari_tandai_lunas'] === 1 && $masihDipakai === 0) {
                 (new PemasukanModel())->delete($peserta['pemasukan_id']);
                 $pemasukanDihapus = true;
             }
@@ -144,10 +205,10 @@ class PerjalananDinasPesertaModel extends Model
             'pemasukan_id'   => null,
         ]);
 
-        return ['ok' => $ok, 'pemasukan_dihapus' => $pemasukanDihapus];
+        return ['ok' => (bool)$ok, 'pemasukan_dihapus' => $pemasukanDihapus];
     }
 
-    /** Rekap Dana Taktis milik satu pegawai — dipakai di halaman "Dana Taktis". */
+    /** Rekap Dana Taktis milik satu pegawai. */
     public function getRekapDanaTaktisByPegawai(int $pegawaiId): array
     {
         $rows = $this->select('perjalanan_dinas_peserta.*, perjalanan_dinas.maksud, perjalanan_dinas.no_surat_tugas, perjalanan_dinas.tanggal_surat_tugas, perjalanan_dinas.kode_mak')
@@ -178,10 +239,7 @@ class PerjalananDinasPesertaModel extends Model
         ];
     }
 
-    /** Ringkasan (total + jumlah baris) setoran Dana Taktis yang belum lunas — dipakai di
-     *  Rencana Keuangan untuk menampilkan setoran ini sebagai bagian dari rencana pemasukan,
-     *  tanpa menulis baris baru ke tabel rencana_pemasukan (selalu diturunkan langsung dari
-     *  perjalanan_dinas_peserta supaya tidak bisa jadi tidak sinkron). */
+    /** Ringkasan setoran Dana Taktis yang belum lunas. */
     public function getBelumDibayarSummary(): array
     {
         $row = $this->select("COALESCE(SUM(CASE WHEN status_lunas = 'belum' THEN dana_taktis ELSE dana_taktis - jumlah_disetor END), 0) as total, COUNT(*) as jumlah")
@@ -193,19 +251,26 @@ class PerjalananDinasPesertaModel extends Model
     }
 
     /**
-     * Query dasar (join + filter) yang dipakai bersama oleh getFiltered() & countFiltered() —
-     * satu baris per PESERTA per PERJALANAN DINAS (bukan digabung per pegawai), supaya satu
-     * pegawai yang ikut 3 perjalanan dinas dengan 1 yang sudah lunas tetap terlihat sebagai
-     * 3 baris terpisah dengan status masing-masing.
+     * Query dasar (join + filter) terpadu untuk daftar peserta perjalanan dinas / dana taktis.
      */
-    private function applyFilterDanaTaktis($filters)
+    private function applyFilterPesertaTrip(array $filters, bool $danaTaktisOnly = false)
     {
-        $builder = $this->select('perjalanan_dinas_peserta.*, perjalanan_dinas.maksud, perjalanan_dinas.no_surat_tugas, perjalanan_dinas.tanggal_surat_tugas, perjalanan_dinas.kode_mak')
-            ->join('perjalanan_dinas', 'perjalanan_dinas.id = perjalanan_dinas_peserta.perjalanan_dinas_id')
-            ->where('perjalanan_dinas_peserta.dana_taktis >', 0);
+        $builder = $this->select('perjalanan_dinas_peserta.*, perjalanan_dinas.no_pd, perjalanan_dinas.maksud, perjalanan_dinas.no_surat_tugas, perjalanan_dinas.tanggal_surat_tugas, perjalanan_dinas.kode_mak, perjalanan_dinas.no_spm')
+            ->join('perjalanan_dinas', 'perjalanan_dinas.id = perjalanan_dinas_peserta.perjalanan_dinas_id');
 
+        if ($danaTaktisOnly) {
+            $builder->where('perjalanan_dinas_peserta.dana_taktis >', 0);
+        }
         if (!empty($filters['status'])) {
-            $builder->where('perjalanan_dinas_peserta.status_lunas', $filters['status']);
+            if ($filters['status'] === 'belum') {
+                $builder->whereIn('perjalanan_dinas_peserta.status_lunas', ['belum', 'sebagian'])
+                        ->where('perjalanan_dinas_peserta.dana_taktis >', 0);
+            } else {
+                $builder->groupStart()
+                        ->where('perjalanan_dinas_peserta.status_lunas', $filters['status'])
+                        ->orWhere('perjalanan_dinas_peserta.dana_taktis <=', 0)
+                        ->groupEnd();
+            }
         }
         if (!empty($filters['tahun'])) {
             $builder->where('YEAR(perjalanan_dinas.tanggal_surat_tugas)', (int)$filters['tahun']);
@@ -213,78 +278,125 @@ class PerjalananDinasPesertaModel extends Model
         if (!empty($filters['bulan'])) {
             $builder->where('MONTH(perjalanan_dinas.tanggal_surat_tugas)', (int)$filters['bulan']);
         }
-        $this->applyPencarian($builder, $filters['search'] ?? null, ['perjalanan_dinas.maksud', 'perjalanan_dinas.no_surat_tugas']);
+        if ($danaTaktisOnly) {
+            // Pada Dana Taktis, fokus pencarian adalah nama pegawai dan data administrasi (No. PD, ST, MAK, SPM), bukan teks maksud perjadin
+            $searchFields = ['perjalanan_dinas.no_pd', 'perjalanan_dinas.no_surat_tugas', 'perjalanan_dinas.kode_mak', 'perjalanan_dinas.no_spm'];
+        } else {
+            // Pada Perjalanan Dinas, sertakan maksud hanya jika pencarian cukup spesifik (>= 4 huruf)
+            $search = trim((string)($filters['search'] ?? ''));
+            $searchFields = ['perjalanan_dinas.no_pd', 'perjalanan_dinas.no_surat_tugas', 'perjalanan_dinas.kode_mak', 'perjalanan_dinas.no_spm'];
+            if (mb_strlen($search) >= 4) {
+                $searchFields[] = 'perjalanan_dinas.maksud';
+            }
+        }
+        $this->applyPencarian($builder, $filters['search'] ?? null, $searchFields);
         return $builder;
     }
 
-    /** Pencarian nama/maksud/dll — untuk query PENDEK (<3 huruf) sengaja DIBATASI ke
-     *  nama_peserta saja, tidak ikut mencari di field lain. Kalau semua field ikut dicari
-     *  untuk query sependek "Al", hasilnya jadi cocok ke HAMPIR SEMUA baris (bukan cuma
-     *  yang namanya diawali "Al") karena kata umum seperti "Perjalanan"/"Lokal" yang
-     *  muncul di hampir setiap maksud trip SAMA-SAMA mengandung substring "al" — jadi
-     *  pencarian nama pendek terasa "tidak menyaring apa-apa" padahal sebenarnya cocok
-     *  ke field yang salah. Query 3+ huruf jauh lebih jarang kebetulan begitu, jadi tetap
-     *  dicari di semua field seperti biasa. */
     private function applyPencarian($builder, ?string $search, array $fieldLain): void
     {
-        if (empty($search)) return;
+        $search = trim((string)$search);
+        if ($search === '') return;
+        
+        // Query pendek (< 3 huruf): izinkan pencarian nama pegawai dan No. PD (misal: "UP", "52", "1")
         if (mb_strlen($search) < 3) {
-            $builder->like('perjalanan_dinas_peserta.nama_peserta', $search);
+            $builder->groupStart()
+                ->like('perjalanan_dinas_peserta.nama_peserta', $search)
+                ->orLike('perjalanan_dinas.no_pd', $search)
+                ->groupEnd();
             return;
         }
+
         $builder->groupStart()->like('perjalanan_dinas_peserta.nama_peserta', $search);
-        foreach ($fieldLain as $f) $builder->orLike($f, $search);
+        foreach ($fieldLain as $f) {
+            $builder->orLike($f, $search);
+        }
         $builder->groupEnd();
     }
 
-    /** Daftar Dana Taktis per peserta-per-trip, dipaginasi & difilter — bukan rumus baru,
-     *  dana_taktis sudah dihitung 10% uang_harian saat peserta disimpan (lihat recalculate()). */
+    /**
+     * Mengambil data perjalanan dinas terpaginasi lengkap dengan tiket & hotel.
+     */
+    public function getPaginatedPerjalananDinas(array $filters): array
+    {
+        $perPage = (int)($filters['per_page'] ?? 10);
+        if (!in_array($perPage, [10, 25, 50, 100], true)) $perPage = 10;
+        $filters['per_page'] = $perPage;
+
+        $total      = $this->applyFilterPesertaTrip($filters, false)->countAllResults();
+        $totalPages = max(1, (int)ceil($total / $perPage));
+        $page       = !empty($filters['page']) ? min(max(1, (int)$filters['page']), $totalPages) : $totalPages;
+        $offset     = ($page - 1) * $perPage;
+
+        $rows = $this->applyFilterPesertaTrip($filters, false)
+            ->orderBy('perjalanan_dinas.id', 'ASC')
+            ->orderBy('perjalanan_dinas_peserta.id', 'ASC')
+            ->findAll($perPage, $offset);
+
+        $tiketModel = new PerjalananDinasTiketModel();
+        $hotelModel = new PerjalananDinasHotelModel();
+        foreach ($rows as &$r) {
+            $r['tiket'] = $tiketModel->getByPeserta($r['id']);
+            $r['hotel'] = $hotelModel->getByPeserta($r['id']);
+        }
+        unset($r);
+
+        return [
+            'data'        => $rows,
+            'total'       => $total,
+            'page'        => $page,
+            'per_page'    => $perPage,
+            'total_pages' => $totalPages,
+            'offset'      => $offset,
+        ];
+    }
+
+    /**
+     * Mengambil data dana taktis terpaginasi.
+     */
+    public function getPaginatedDanaTaktis(array $filters): array
+    {
+        $perPage = (int)($filters['per_page'] ?? 10);
+        if (!in_array($perPage, [10, 25, 50, 100], true)) $perPage = 10;
+        $filters['per_page'] = $perPage;
+
+        $total      = $this->applyFilterPesertaTrip($filters, true)->countAllResults();
+        $totalPages = max(1, (int)ceil($total / $perPage));
+        $page       = !empty($filters['page']) ? min(max(1, (int)$filters['page']), $totalPages) : $totalPages;
+        $offset     = ($page - 1) * $perPage;
+
+        $rows = $this->applyFilterPesertaTrip($filters, true)
+            ->orderBy('perjalanan_dinas.id', 'ASC')
+            ->orderBy('perjalanan_dinas_peserta.id', 'ASC')
+            ->findAll($perPage, $offset);
+
+        return [
+            'data'        => $rows,
+            'total'       => $total,
+            'page'        => $page,
+            'per_page'    => $perPage,
+            'total_pages' => $totalPages,
+            'offset'      => $offset,
+        ];
+    }
+
     public function getFilteredDanaTaktis(array $filters, int $limit, int $offset): array
     {
-        return $this->applyFilterDanaTaktis($filters)
-            ->orderBy('perjalanan_dinas.tanggal_surat_tugas', 'DESC')
-            ->orderBy('perjalanan_dinas_peserta.id', 'DESC')
+        return $this->applyFilterPesertaTrip($filters, true)
+            ->orderBy('perjalanan_dinas.id', 'ASC')
+            ->orderBy('perjalanan_dinas_peserta.id', 'ASC')
             ->findAll($limit, $offset);
     }
 
     public function countFilteredDanaTaktis(array $filters): int
     {
-        return $this->applyFilterDanaTaktis($filters)->countAllResults();
+        return $this->applyFilterPesertaTrip($filters, true)->countAllResults();
     }
 
-    /**
-     * Query dasar untuk daftar Perjalanan Dinas versi tabel datar (satu baris per peserta
-     * per trip) — dipakai bersama oleh admin & publik. Beda dengan applyFilterDanaTaktis():
-     * di sini SEMUA peserta ditampilkan (termasuk yang dana_taktis-nya 0, mis. trip
-     * "Transport Lokal" tanpa uang harian), bukan cuma yang punya setoran.
-     */
-    private function applyFilterPerjalananDinas($filters)
-    {
-        $builder = $this->select('perjalanan_dinas_peserta.*, perjalanan_dinas.maksud, perjalanan_dinas.no_surat_tugas, perjalanan_dinas.tanggal_surat_tugas, perjalanan_dinas.kode_mak, perjalanan_dinas.no_spm')
-            ->join('perjalanan_dinas', 'perjalanan_dinas.id = perjalanan_dinas_peserta.perjalanan_dinas_id');
-
-        if (!empty($filters['status'])) {
-            $builder->where('perjalanan_dinas_peserta.status_lunas', $filters['status']);
-        }
-        if (!empty($filters['tahun'])) {
-            $builder->where('YEAR(perjalanan_dinas.tanggal_surat_tugas)', (int)$filters['tahun']);
-        }
-        if (!empty($filters['bulan'])) {
-            $builder->where('MONTH(perjalanan_dinas.tanggal_surat_tugas)', (int)$filters['bulan']);
-        }
-        $this->applyPencarian($builder, $filters['search'] ?? null, ['perjalanan_dinas.maksud', 'perjalanan_dinas.no_surat_tugas', 'perjalanan_dinas.kode_mak']);
-        return $builder;
-    }
-
-    /** Daftar Perjalanan Dinas datar (1 baris = 1 peserta), dipaginasi & difilter, lengkap
-     *  dengan tiket & hotel per baris — pengganti tampilan kartu bertingkat lama. Diurutkan
-     *  (tanggal, trip id, peserta id) supaya peserta dari trip yang sama selalu bersebelahan,
-     *  jadi baris "Perjalanan Dinas" yang berulang bisa disembunyikan sisi klien. */
     public function getFilteredPerjalananDinas(array $filters, int $limit, int $offset): array
     {
-        $rows = $this->applyFilterPerjalananDinas($filters)
-            ->orderBy('perjalanan_dinas.tanggal_surat_tugas', 'ASC')
-            ->orderBy('perjalanan_dinas_peserta.perjalanan_dinas_id', 'ASC')
+        $rows = $this->applyFilterPesertaTrip($filters, false)
+            ->orderBy('perjalanan_dinas.id', 'ASC')
             ->orderBy('perjalanan_dinas_peserta.id', 'ASC')
             ->findAll($limit, $offset);
 
@@ -301,18 +413,12 @@ class PerjalananDinasPesertaModel extends Model
 
     public function countFilteredPerjalananDinas(array $filters): int
     {
-        return $this->applyFilterPerjalananDinas($filters)->countAllResults();
+        return $this->applyFilterPesertaTrip($filters, false)->countAllResults();
     }
 
-    /**
-     * Semua peserta (dengan data trip) dalam rentang tanggal_surat_tugas [tglMulai, tglAkhir] —
-     * dipakai khusus oleh Laporan untuk rincian opsional Perjalanan Dinas / Dana Taktis. Tidak
-     * dipaginasi, sama seperti pemasukan/pengeluaran di Laporan yang juga ditampilkan utuh untuk
-     * satu periode (bukan per halaman).
-     */
     public function getForLaporan(string $tglMulai, string $tglAkhir): array
     {
-        return $this->select('perjalanan_dinas_peserta.*, perjalanan_dinas.maksud, perjalanan_dinas.no_surat_tugas, perjalanan_dinas.tanggal_surat_tugas, perjalanan_dinas.kode_mak')
+        $rows = $this->select('perjalanan_dinas_peserta.*, perjalanan_dinas.no_pd, perjalanan_dinas.maksud, perjalanan_dinas.no_surat_tugas, perjalanan_dinas.tanggal_surat_tugas, perjalanan_dinas.kode_mak, perjalanan_dinas.no_spm')
             ->join('perjalanan_dinas', 'perjalanan_dinas.id = perjalanan_dinas_peserta.perjalanan_dinas_id')
             ->where('perjalanan_dinas.tanggal_surat_tugas >=', $tglMulai)
             ->where('perjalanan_dinas.tanggal_surat_tugas <=', $tglAkhir)
@@ -320,5 +426,60 @@ class PerjalananDinasPesertaModel extends Model
             ->orderBy('perjalanan_dinas_peserta.perjalanan_dinas_id', 'ASC')
             ->orderBy('perjalanan_dinas_peserta.id', 'ASC')
             ->findAll();
+
+        $tiketModel = new PerjalananDinasTiketModel();
+        $hotelModel = new PerjalananDinasHotelModel();
+        foreach ($rows as &$r) {
+            $r['tiket'] = $tiketModel->getByPeserta($r['id']);
+            $r['hotel'] = $hotelModel->getByPeserta($r['id']);
+        }
+        unset($r);
+
+        return $rows;
+    }
+
+    /**
+     * Reset status peserta yang bertaut dengan baris pemasukan yang dihapus di modul keuangan.
+     * Menjamin integritas dua arah sehingga tidak ada peserta yang menggantung dengan ID pemasukan fiktif.
+     */
+    public function resetStatusDariPemasukan(array $pemasukanIds): int
+    {
+        $pemasukanIds = array_values(array_filter(array_map('intval', $pemasukanIds), fn($v) => $v > 0));
+        if (empty($pemasukanIds)) return 0;
+
+        $pesertaList = $this->whereIn('pemasukan_id', $pemasukanIds)->findAll();
+        foreach ($pesertaList as $p) {
+            $this->update($p['id'], [
+                'status_lunas'   => 'belum',
+                'jumlah_disetor' => 0,
+                'tanggal_lunas'  => null,
+                'pemasukan_id'   => null,
+            ]);
+        }
+
+        return count($pesertaList);
+    }
+
+    /**
+     * Sinkronkan pembaruan nama master pegawai ke seluruh riwayat perjalanan dinas dan pemasukan setoran.
+     */
+    public function perbaruiNamaPegawai(int $pegawaiId, string $namaBaru): int
+    {
+        $namaBaru = trim($namaBaru);
+        if ($namaBaru === '' || $pegawaiId <= 0) return 0;
+
+        // 1. Update nama_peserta di seluruh riwayat perjalanan_dinas_peserta
+        $this->where('pegawai_id', $pegawaiId)->set(['nama_peserta' => $namaBaru])->update();
+
+        // 2. Update sumber di tabel pemasukan yang bertaut dengan peserta milik pegawai ini
+        $pesertaList = $this->where('pegawai_id', $pegawaiId)->where('pemasukan_id IS NOT NULL')->findAll();
+        $pemasukanModel = new PemasukanModel();
+        foreach ($pesertaList as $p) {
+            if (!empty($p['pemasukan_id'])) {
+                $pemasukanModel->update($p['pemasukan_id'], ['sumber' => $namaBaru]);
+            }
+        }
+
+        return count($pesertaList);
     }
 }

@@ -4,6 +4,12 @@
   <meta charset="UTF-8">
   <title>Laporan Keuangan BBPOM di Pangkal Pinang (<?= $bulanDari ?> s/d <?= $bulanSampai ?>)</title>
   <link rel="stylesheet" href="<?= base_url('assets/css/laporan-pdf.css') ?>">
+  <?php if (!empty($sertakanPerjadin)): ?>
+  <style>
+    @page { size: landscape; margin: 10mm; }
+    body { padding: 10px; }
+  </style>
+  <?php endif; ?>
 </head>
 <body onload="window.print()">
 
@@ -235,34 +241,68 @@
 
 <?php if (!empty($sertakanPerjadin)): ?>
 <div class="section-head">Rincian Perjalanan Dinas</div>
-<table class="data-table">
+<table class="data-table data-table-perjadin">
   <thead>
     <tr>
-      <th class="col-w12">Tanggal</th>
-      <th class="col-w20">No. Surat Tugas</th>
-      <th>Maksud</th>
-      <th class="col-w15">Jml Peserta</th>
-      <th class="col-w15">Total SPJ</th>
+      <th style="width:4%">No. PD</th>
+      <th style="width:10%">Tgl & No. ST</th>
+      <th style="width:13%">Maksud Perjalanan</th>
+      <th style="width:10%">MAK / SPM</th>
+      <th style="width:11%">Pelaksana</th>
+      <th class="text-right" style="width:6.5%">Uang Harian</th>
+      <th class="text-right" style="width:6%">Meeting FB</th>
+      <th class="text-right" style="width:6%">Meeting FD</th>
+      <th class="text-right" style="width:6%">Uang Repr.</th>
+      <th class="text-right" style="width:6.5%">Transp Lokal</th>
+      <th class="text-right" style="width:5.5%">BBM</th>
+      <th class="text-right" style="width:6.5%">Tiket</th>
+      <th class="text-right" style="width:6.5%">Hotel</th>
+      <th class="text-right font-bold" style="width:7.5%">Total SPJ</th>
+      <th class="text-right" style="width:6%">Taktis</th>
+      <th class="text-center" style="width:4%">Status</th>
     </tr>
   </thead>
   <tbody>
-    <?php if (empty($perjadinTrips)): ?>
-    <tr><td colspan="5" class="text-center">Tidak ada data pada periode ini</td></tr>
-    <?php else: foreach ($perjadinTrips as $t): ?>
+    <?php if (empty($perjadinRows)): ?>
+    <tr><td colspan="16" class="text-center">Tidak ada data pada periode ini</td></tr>
+    <?php else: foreach ($perjadinRows as $idx => $r): ?>
     <tr>
-      <td><?= date('d/m/Y', strtotime($t['tanggal_surat_tugas'])) ?></td>
-      <td><?= esc($t['no_surat_tugas'] ?: '-') ?></td>
-      <td><?= esc($t['maksud']) ?></td>
-      <td class="text-center"><?= $t['jumlah_peserta'] ?></td>
-      <td class="text-right"><?= number_format($t['total_spj'], 0, ',', '.') ?></td>
+      <td class="text-center font-bold">
+        <?= !empty($r['no_pd']) ? esc($r['no_pd']) : ($idx + 1) ?>
+      </td>
+      <td>
+        <?= !empty($r['tanggal_surat_tugas']) ? date('d/m/Y', strtotime($r['tanggal_surat_tugas'])) : '-' ?><br>
+        <small style="color:#64748b"><?= esc($r['no_surat_tugas'] ?: '-') ?></small>
+      </td>
+      <td><?= esc($r['maksud']) ?></td>
+      <td>
+        <?= esc($r['kode_mak'] ?: '-') ?>
+        <?php if (!empty($r['no_spm'])): ?><br><small style="color:#64748b">SPM: <?= esc($r['no_spm']) ?></small><?php endif; ?>
+      </td>
+      <td class="font-bold"><?= esc($r['nama_peserta']) ?></td>
+      <td class="text-right"><?= number_format((float)($r['uang_harian'] ?? 0), 0, ',', '.') ?></td>
+      <td class="text-right"><?= number_format((float)($r['meeting_fullboard'] ?? 0), 0, ',', '.') ?></td>
+      <td class="text-right"><?= number_format((float)($r['meeting_fullday'] ?? 0), 0, ',', '.') ?></td>
+      <td class="text-right"><?= number_format((float)($r['uang_representasi'] ?? 0), 0, ',', '.') ?></td>
+      <td class="text-right"><?= number_format((float)($r['transport_lokal'] ?? 0), 0, ',', '.') ?></td>
+      <td class="text-right"><?= number_format((float)($r['bbm'] ?? 0), 0, ',', '.') ?></td>
+      <td class="text-right"><?= number_format((float)($r['total_tiket'] ?? 0), 0, ',', '.') ?></td>
+      <td class="text-right"><?= number_format((float)($r['total_hotel'] ?? 0), 0, ',', '.') ?></td>
+      <td class="text-right font-bold"><?= number_format((float)($r['total_spj'] ?? 0), 0, ',', '.') ?></td>
+      <td class="text-right"><?= number_format((float)($r['dana_taktis'] ?? 0), 0, ',', '.') ?></td>
+      <td class="text-center">
+        <?= ($r['status_lunas'] ?? '') === 'lunas' ? ('Lunas' . (!empty($r['tanggal_lunas']) ? '<br><span style="font-size:8px;color:#64748b;">' . date('d/m/Y', strtotime($r['tanggal_lunas'])) . '</span>' : '')) : 'Belum' ?>
+      </td>
     </tr>
     <?php endforeach; endif; ?>
   </tbody>
-  <?php if (!empty($perjadinTrips)): ?>
+  <?php if (!empty($perjadinRows)): ?>
   <tfoot>
     <tr>
-      <td colspan="4" class="text-right font-bold">TOTAL SPJ</td>
+      <td colspan="13" class="text-right font-bold">TOTAL SPJ</td>
       <td class="text-right font-bold"><?= number_format($perjadinTotalSpj, 0, ',', '.') ?></td>
+      <td class="text-right font-bold"><?= number_format(array_sum(array_column($perjadinRows, 'dana_taktis')), 0, ',', '.') ?></td>
+      <td></td>
     </tr>
   </tfoot>
   <?php endif; ?>
@@ -290,7 +330,9 @@
       <td><?= esc($row['nama_peserta']) ?></td>
       <td><?= esc($row['maksud']) ?></td>
       <td class="text-right"><?= number_format($row['dana_taktis'], 0, ',', '.') ?></td>
-      <td class="<?= $row['status_lunas'] === 'lunas' ? 'text-success' : 'text-danger' ?>"><?= $row['status_lunas'] === 'lunas' ? 'Lunas' : 'Belum Lunas' ?></td>
+      <td class="<?= $row['status_lunas'] === 'lunas' ? 'text-success' : 'text-danger' ?>">
+        <?= $row['status_lunas'] === 'lunas' ? ('Lunas' . (!empty($row['tanggal_lunas']) ? '<br><span style="font-size:8px;color:#64748b;">' . date('d/m/Y', strtotime($row['tanggal_lunas'])) . '</span>' : '')) : 'Belum Lunas' ?>
+      </td>
     </tr>
     <?php endforeach; endif; ?>
   </tbody>

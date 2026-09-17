@@ -135,26 +135,89 @@
     </h3>
   </div>
   <div class="overflow-x-auto">
-    <table class="table">
-      <thead><tr><th>Tanggal</th><th>No. Surat Tugas</th><th>Maksud</th><th class="text-right">Jml Peserta</th><th class="text-right">Total SPJ</th></tr></thead>
-      <tbody>
-      <?php if (empty($perjadinTrips)): ?>
-        <tr><td colspan="5" class="text-center py-8 text-slate-500"><img src="<?= icons8('empty-box', '3d-fluency', 64) ?>" alt="" class="w-10 h-10 mx-auto mb-2 opacity-80"><br>Tidak ada data pada periode ini</td></tr>
-      <?php else: foreach ($perjadinTrips as $t): ?>
+    <table class="table text-xs">
+      <thead>
         <tr>
-          <td class="whitespace-nowrap"><?= date('d/m/Y', strtotime($t['tanggal_surat_tugas'])) ?></td>
-          <td><?= esc($t['no_surat_tugas'] ?: '-') ?></td>
-          <td class="truncate max-w-[280px]"><?= esc($t['maksud']) ?></td>
-          <td class="text-right"><?= $t['jumlah_peserta'] ?></td>
-          <td class="text-right font-medium text-currency">Rp <?= number_format($t['total_spj'], 0, ',', '.') ?></td>
+          <th class="w-14 text-center">No. PD</th>
+          <th class="min-w-[7rem]">Tgl & No. ST</th>
+          <th class="min-w-[12rem]">Maksud Perjalanan</th>
+          <th class="min-w-[9rem]">MAK / SPM</th>
+          <th class="min-w-[7rem]">Pelaksana</th>
+          <th class="col-currency text-right">Uang Harian</th>
+          <th class="col-currency text-right">Paket Meeting Fullboard</th>
+          <th class="col-currency text-right">Paket Meeting Fullday</th>
+          <th class="col-currency text-right">Uang Representasi</th>
+          <th class="col-currency text-right">Transport Lokal / Taksi</th>
+          <th class="col-currency text-right">BBM Jalan Darat</th>
+          <th class="col-currency text-right">Tiket Pesawat</th>
+          <th class="col-currency text-right">Hotel</th>
+          <th class="col-currency text-right font-semibold">Total SPJ</th>
+          <th class="col-currency-sm text-right">Dana Taktis</th>
+          <th class="min-w-[4rem] text-center">Status</th>
+        </tr>
+      </thead>
+      <tbody>
+      <?php if (empty($perjadinRows)): ?>
+        <tr><td colspan="16" class="text-center py-8 text-slate-500"><img src="<?= icons8('empty-box', '3d-fluency', 64) ?>" alt="" class="w-10 h-10 mx-auto mb-2 opacity-80"><br>Tidak ada data pada periode ini</td></tr>
+      <?php else: foreach ($perjadinRows as $idx => $r): ?>
+        <tr>
+          <td class="text-center font-mono text-slate-700 dark:text-slate-300 font-semibold whitespace-nowrap">
+            <?php if (!empty($r['no_pd'])): ?>
+              <?php if (stripos($r['no_pd'], 'UP') !== false): ?>
+                <span class="inline-block px-1.5 py-0.5 rounded text-xs font-bold bg-amber-100 text-amber-800 dark:bg-amber-900/60 dark:text-amber-300 border border-amber-300/80"><?= esc($r['no_pd']) ?></span>
+              <?php else: ?>
+                <?= esc($r['no_pd']) ?>
+              <?php endif; ?>
+            <?php else: ?>
+              <span class="text-slate-400 font-normal"><?= $idx + 1 ?></span>
+            <?php endif; ?>
+          </td>
+          <td class="whitespace-nowrap">
+            <span class="font-medium text-slate-700 dark:text-slate-200"><?= !empty($r['tanggal_surat_tugas']) ? date('d/m/Y', strtotime($r['tanggal_surat_tugas'])) : '-' ?></span>
+            <div class="text-[11px] text-slate-500 font-mono"><?= esc($r['no_surat_tugas'] ?: '-') ?></div>
+          </td>
+          <td>
+            <div class="truncate max-w-[200px]" title="<?= esc($r['maksud']) ?>"><?= esc($r['maksud']) ?></div>
+          </td>
+          <td class="whitespace-nowrap">
+            <span class="font-mono text-slate-600 dark:text-slate-300"><?= esc($r['kode_mak'] ?: '-') ?></span>
+            <?php if (!empty($r['no_spm'])): ?>
+              <div class="text-[11px] text-slate-400">SPM: <?= esc($r['no_spm']) ?></div>
+            <?php endif; ?>
+          </td>
+          <td class="font-medium whitespace-nowrap text-slate-800 dark:text-slate-200"><?= esc($r['nama_peserta']) ?></td>
+          <td class="text-right text-currency text-slate-600 dark:text-slate-300">Rp <?= number_format((float)($r['uang_harian'] ?? 0), 0, ',', '.') ?></td>
+          <td class="text-right text-currency text-slate-600 dark:text-slate-300">Rp <?= number_format((float)($r['meeting_fullboard'] ?? 0), 0, ',', '.') ?></td>
+          <td class="text-right text-currency text-slate-600 dark:text-slate-300">Rp <?= number_format((float)($r['meeting_fullday'] ?? 0), 0, ',', '.') ?></td>
+          <td class="text-right text-currency text-slate-600 dark:text-slate-300">Rp <?= number_format((float)($r['uang_representasi'] ?? 0), 0, ',', '.') ?></td>
+          <td class="text-right text-currency text-slate-600 dark:text-slate-300">Rp <?= number_format((float)($r['transport_lokal'] ?? 0), 0, ',', '.') ?></td>
+          <td class="text-right text-currency text-slate-600 dark:text-slate-300">Rp <?= number_format((float)($r['bbm'] ?? 0), 0, ',', '.') ?></td>
+          <td class="text-right text-currency text-slate-600 dark:text-slate-300">Rp <?= number_format((float)($r['total_tiket'] ?? 0), 0, ',', '.') ?></td>
+          <td class="text-right text-currency text-slate-600 dark:text-slate-300">Rp <?= number_format((float)($r['total_hotel'] ?? 0), 0, ',', '.') ?></td>
+          <td class="text-right font-semibold text-currency text-income">Rp <?= number_format((float)($r['total_spj'] ?? 0), 0, ',', '.') ?></td>
+          <td class="text-right text-currency font-medium <?= (float)($r['dana_taktis'] ?? 0) > 0 ? 'text-taktis' : 'text-slate-400' ?>">
+            Rp <?= number_format((float)($r['dana_taktis'] ?? 0), 0, ',', '.') ?>
+          </td>
+          <td class="text-center">
+            <?php if (($r['status_lunas'] ?? '') === 'lunas'): ?>
+              <span class="badge badge-success text-[11px]">Lunas</span>
+              <?php if (!empty($r['tanggal_lunas'])): ?>
+                <div class="text-[10px] text-slate-500 mt-0.5 whitespace-nowrap"><?= date('d/m/Y', strtotime($r['tanggal_lunas'])) ?></div>
+              <?php endif; ?>
+            <?php else: ?>
+              <span class="badge badge-warning text-[11px]">Belum</span>
+            <?php endif; ?>
+          </td>
         </tr>
       <?php endforeach; endif; ?>
       </tbody>
-      <?php if (!empty($perjadinTrips)): ?>
+      <?php if (!empty($perjadinRows)): ?>
       <tfoot>
-        <tr>
-          <td colspan="4" class="text-right font-semibold">TOTAL SPJ</td>
-          <td class="text-right font-semibold text-currency">Rp <?= number_format($perjadinTotalSpj, 0, ',', '.') ?></td>
+        <tr class="bg-slate-50 dark:bg-slate-800/60 font-semibold">
+          <td colspan="13" class="text-right pr-3 text-slate-600 dark:text-slate-300">TOTAL SPJ</td>
+          <td class="text-right text-currency text-income">Rp <?= number_format($perjadinTotalSpj, 0, ',', '.') ?></td>
+          <td class="text-right text-currency text-taktis">Rp <?= number_format(array_sum(array_column($perjadinRows, 'dana_taktis')), 0, ',', '.') ?></td>
+          <td></td>
         </tr>
       </tfoot>
       <?php endif; ?>
@@ -182,7 +245,12 @@
           <td><?= esc($row['nama_peserta']) ?></td>
           <td class="truncate max-w-[240px]"><?= esc($row['maksud']) ?></td>
           <td class="text-right font-medium text-currency">Rp <?= number_format($row['dana_taktis'], 0, ',', '.') ?></td>
-          <td><?= $row['status_lunas'] === 'lunas' ? '<span class="badge badge-success">Lunas</span>' : '<span class="badge badge-warning">Belum Lunas</span>' ?></td>
+          <td>
+            <?= $row['status_lunas'] === 'lunas' ? '<span class="badge badge-success">Lunas</span>' : '<span class="badge badge-warning">Belum Lunas</span>' ?>
+            <?php if ($row['status_lunas'] === 'lunas' && !empty($row['tanggal_lunas'])): ?>
+              <div class="text-[11px] text-slate-500 mt-0.5 whitespace-nowrap"><i class="ti ti-calendar-check text-emerald-500"></i> <?= date('d/m/Y', strtotime($row['tanggal_lunas'])) ?></div>
+            <?php endif; ?>
+          </td>
         </tr>
       <?php endforeach; endif; ?>
       </tbody>

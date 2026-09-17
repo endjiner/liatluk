@@ -4,24 +4,6 @@ namespace App\Database\Seeds;
 
 use CodeIgniter\Database\Seeder;
 
-/**
- * Import data historis Perjalanan Dinas dari spreadsheet sumber (rekap SPJ & Dana
- * Taktis BBPOM Pangkal Pinang). Data di data/perjadin_historis.json sudah dibersihkan
- * & distrukturkan dari CSV asli — lihat catatan di kelas ini untuk detail keputusan
- * pemetaannya.
- *
- * PENTING: status_lunas di-set langsung dari kolom LUNAS sheet sumber TANPA memanggil
- * PerjalananDinasPesertaModel::tandaiLunas(), supaya TIDAK otomatis membuat baris
- * Pemasukan baru — data "Setoran Taktis Pegawai" untuk periode ini sudah pernah
- * diinput manual sebelumnya, jadi kalau proses ini juga membuat Pemasukan akan dobel.
- *
- * NIP pegawai sengaja TIDAK diikutkan (selalu null) — repo ini publik, dan NIP tidak
- * diperlukan untuk fitur apa pun di aplikasi. Kalau perlu, isi manual lewat menu
- * Kelola Pegawai setelah data ini masuk (perubahan itu hanya di database lokal,
- * tidak pernah ikut ke git).
- *
- * Jalankan sekali: php spark db:seed PerjalananDinasHistorisSeeder
- */
 class PerjalananDinasHistorisSeeder extends Seeder
 {
     public function run()

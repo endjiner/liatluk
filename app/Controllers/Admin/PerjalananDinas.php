@@ -53,12 +53,15 @@ class PerjalananDinas extends BaseController
         $perPage = (int)($this->request->getGet('per_page') ?? 10);
         if (!in_array($perPage, [10, 25, 50, 100])) $perPage = 10;
 
+        $pageParam = $this->request->getGet('page');
+        $page = ($pageParam !== null && $pageParam !== '') ? max(1, (int)$pageParam) : null;
+
         return [
             'bulan'    => $this->request->getGet('bulan'),
             'tahun'    => $this->request->getGet('tahun'),
             'status'   => $this->request->getGet('status'),
             'search'   => $this->request->getGet('search'),
-            'page'     => max(1, (int)($this->request->getGet('page') ?? 1)),
+            'page'     => $page,
             'per_page' => $perPage,
         ];
     }
@@ -76,23 +79,10 @@ class PerjalananDinas extends BaseController
      *  (1 baris = 1 peserta per trip), bukan lagi kartu bertingkat. */
     public function ajaxList()
     {
-        $filters    = $this->ambilFilterGet();
-        $total      = $this->pesertaModel->countFilteredPerjalananDinas($filters);
-        $totalPages = max(1, (int)ceil($total / $filters['per_page']));
-        $page       = min(max(1, $filters['page']), $totalPages);
-        $offset     = ($page - 1) * $filters['per_page'];
+        $filters = $this->ambilFilterGet();
+        $result  = $this->pesertaModel->getPaginatedPerjalananDinas($filters);
 
-        $rows = $this->pesertaModel->getFilteredPerjalananDinas($filters, $filters['per_page'], $offset);
-
-        return $this->response->setJSON([
-            'success'     => true,
-            'data'        => $rows,
-            'total'       => $total,
-            'page'        => $page,
-            'per_page'    => $filters['per_page'],
-            'total_pages' => $totalPages,
-            'offset'      => $offset,
-        ]);
+        return $this->response->setJSON(['success' => true] + $result);
     }
 
     // ── CRUD Header Perjalanan Dinas ──────────────────────────────────────────────
@@ -108,6 +98,7 @@ class PerjalananDinas extends BaseController
         }
 
         $id = $this->tripModel->insert([
+            'no_pd'               => trim((string)$this->request->getPost('no_pd')) ?: null,
             'maksud'              => $this->request->getPost('maksud'),
             'no_surat_tugas'      => $this->request->getPost('no_surat_tugas'),
             'tanggal_surat_tugas' => $this->request->getPost('tanggal_surat_tugas'),
@@ -129,12 +120,22 @@ class PerjalananDinas extends BaseController
         }
 
         $this->tripModel->update($id, [
+            'no_pd'               => trim((string)$this->request->getPost('no_pd')) ?: null,
             'maksud'              => $this->request->getPost('maksud'),
             'no_surat_tugas'      => $this->request->getPost('no_surat_tugas'),
             'tanggal_surat_tugas' => $this->request->getPost('tanggal_surat_tugas'),
             'kode_mak'            => $this->request->getPost('kode_mak'),
             'no_spm'              => $this->request->getPost('no_spm'),
         ]);
+
+        // Sinkronisasi otomatis ke seluruh pemasukan peserta yang sudah lunas/sebagian di trip ini
+        // agar keterangan & metadata JSON Asikkekku selalu sinkron
+        $pesertaList = $this->pesertaModel->getByPerjalanan((int)$id);
+        foreach ($pesertaList as $p) {
+            if (!empty($p['pemasukan_id']) || in_array($p['status_lunas'], ['lunas', 'sebagian'], true)) {
+                $this->pesertaModel->sinkronPemasukan((int)$p['id']);
+            }
+        }
 
         return $this->response->setJSON(['success' => true, 'message' => 'Perjalanan dinas berhasil diupdate']);
     }
@@ -240,7 +241,15 @@ class PerjalananDinas extends BaseController
     private function terapkanStatusLunasDariInput(int $pesertaId): void
     {
         $status = $this->request->getPost('status_lunas_input');
-        if (!in_array($status, ['belum', 'sebagian', 'lunas'], true)) return;
+        if (!in_array($status, ['belum', 'sebagian', 'lunas'], true)) {
+            // Jika status_lunas_input tidak dikirim di form, namun peserta sudah punya pemasukan_id
+            // (misal edit data peserta), kita tetap sinkronkan agar nama sumber/nominal terbaru terupdate!
+            $peserta = $this->pesertaModel->find($pesertaId);
+            if ($peserta && !empty($peserta['pemasukan_id'])) {
+                $this->pesertaModel->sinkronPemasukan($pesertaId);
+            }
+            return;
+        }
 
         $peserta = $this->pesertaModel->find($pesertaId);
         if (!$peserta) return;
@@ -344,30 +353,21 @@ class PerjalananDinas extends BaseController
      *  (mis. satu pegawai 3 perjalanan dinas, cuma 1 yang sudah lunas). */
     public function danaTaktisList()
     {
+        $pageParam = $this->request->getGet('page');
+        $page = ($pageParam !== null && $pageParam !== '') ? max(1, (int)$pageParam) : null;
+
         $filters = [
-            'search' => $this->request->getGet('search'),
-            'status' => $this->request->getGet('status'),
-            'tahun'  => $this->request->getGet('tahun'),
-            'bulan'  => $this->request->getGet('bulan'),
+            'search'   => $this->request->getGet('search'),
+            'status'   => $this->request->getGet('status'),
+            'tahun'    => $this->request->getGet('tahun'),
+            'bulan'    => $this->request->getGet('bulan'),
+            'page'     => $page,
+            'per_page' => (int)($this->request->getGet('per_page') ?? 10),
         ];
-        $page    = max(1, (int)($this->request->getGet('page') ?? 1));
-        $perPage = (int)($this->request->getGet('per_page') ?? 10);
-        if (!in_array($perPage, [10, 25, 50, 100])) $perPage = 10;
 
-        $total      = $this->pesertaModel->countFilteredDanaTaktis($filters);
-        $totalPages = max(1, (int)ceil($total / $perPage));
-        $page       = min($page, $totalPages);
+        $result = $this->pesertaModel->getPaginatedDanaTaktis($filters);
 
-        $rows = $this->pesertaModel->getFilteredDanaTaktis($filters, $perPage, ($page - 1) * $perPage);
-
-        return $this->response->setJSON([
-            'success'     => true,
-            'data'        => $rows,
-            'total'       => $total,
-            'page'        => $page,
-            'per_page'    => $perPage,
-            'total_pages' => $totalPages,
-        ]);
+        return $this->response->setJSON(['success' => true] + $result);
     }
 
     public function danaTaktisData($pegawaiId)
@@ -407,12 +407,16 @@ class PerjalananDinas extends BaseController
         if (!$this->validate($rules)) {
             return $this->response->setJSON(['success' => false, 'errors' => $this->validator->getErrors()]);
         }
+        $namaBaru = trim((string)$this->request->getPost('nama'));
         $this->pegawaiModel->update($id, [
-            'nama'  => $this->request->getPost('nama'),
+            'nama'  => $namaBaru,
             'nip'   => $this->request->getPost('nip'),
             'aktif' => $this->request->getPost('aktif') !== null ? (int)$this->request->getPost('aktif') : 1,
         ]);
-        return $this->response->setJSON(['success' => true, 'message' => 'Pegawai berhasil diupdate']);
+        // Sinkronkan nama baru ke seluruh riwayat peserta & sumber pemasukan setoran terkait
+        $this->pesertaModel->perbaruiNamaPegawai((int)$id, $namaBaru);
+
+        return $this->response->setJSON(['success' => true, 'message' => 'Pegawai berhasil diupdate dan riwayat disinkronkan']);
     }
 
     public function pegawaiDelete($id)

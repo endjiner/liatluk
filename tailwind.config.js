@@ -1,7 +1,14 @@
 /** @type {import('tailwindcss').Config} */
 module.exports = {
-  content: ['./app/Views/**/*.php'],
+  content: [
+    './app/Views/**/*.php',
+    './public/assets/js/**/*.js'
+  ],
   darkMode: 'selector',
+  corePlugins: {
+    preflight: false,
+    container: false,
+  },
   theme: {
     extend: {
       fontFamily: {

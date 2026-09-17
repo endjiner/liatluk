@@ -20,7 +20,7 @@
   <!-- Rencana Pemasukan -->
   <div>
   <?php if ($danaTaktisBelumDibayar['jumlah'] > 0): ?>
-  <div class="card border-l-4 border-emerald-500 mb-3">
+  <div class="card mb-3">
     <div class="card-body flex items-center justify-between gap-3 py-3 flex-wrap">
       <div class="flex items-center gap-3 min-w-0">
         <div class="w-9 h-9 rounded-full bg-emerald-100 dark:bg-emerald-900/40 text-emerald-600 dark:text-emerald-400 flex items-center justify-center shrink-0">
@@ -74,6 +74,12 @@
               <span class="badge <?= $row['status'] === 'terealisasi' ? 'badge-success' : 'badge-warning' ?>">
                 <?= ucfirst($row['status']) ?>
               </span>
+              <?php if ($row['status'] === 'terealisasi' && !empty($row['updated_at'])): ?>
+              <div class="text-xs text-slate-500 mt-1">
+                <i class="ti ti-calendar-check text-emerald-500"></i>
+                <?= date('d M Y', strtotime($row['updated_at'])) ?>
+              </div>
+              <?php endif; ?>
             </td>
             <td>
               <div class="flex items-center justify-center gap-1">
@@ -139,6 +145,12 @@
               <span class="badge <?= $row['status'] === 'terealisasi' ? 'badge-success' : 'badge-warning' ?>">
                 <?= ucfirst($row['status']) ?>
               </span>
+              <?php if ($row['status'] === 'terealisasi' && !empty($row['updated_at'])): ?>
+              <div class="text-xs text-slate-500 mt-1">
+                <i class="ti ti-calendar-check text-emerald-500"></i>
+                <?= date('d M Y', strtotime($row['updated_at'])) ?>
+              </div>
+              <?php endif; ?>
             </td>
             <td>
               <div class="flex items-center justify-center gap-1">
@@ -460,8 +472,11 @@ function showDetailRencana(btn) {
   } else {
     progressWrap.classList.add('hidden');
   }
-  document.getElementById('detail-rencana-status').innerHTML =
-    '<span class="badge ' + (row.status === 'terealisasi' ? 'badge-success' : 'badge-warning') + '">' + row.status.charAt(0).toUpperCase() + row.status.slice(1) + '</span>';
+  let statusHtml = '<span class="badge ' + (row.status === 'terealisasi' ? 'badge-success' : 'badge-warning') + '">' + row.status.charAt(0).toUpperCase() + row.status.slice(1) + '</span>';
+  if (row.status === 'terealisasi' && row.updated_at) {
+    statusHtml += '<div class="text-xs text-slate-500 mt-1"><i class="ti ti-calendar-check text-emerald-500 mr-1"></i>Tanggal Realisasi: ' + new Date(row.updated_at).toLocaleDateString('id-ID', { day: 'numeric', month: 'long', year: 'numeric' }) + '</div>';
+  }
+  document.getElementById('detail-rencana-status').innerHTML = statusHtml;
   document.getElementById('detail-rencana-keterangan').textContent = row.keterangan || '-';
   const buktiEl = document.getElementById('detail-rencana-bukti');
   if (row.file_bukti) {

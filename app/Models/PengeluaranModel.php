@@ -72,8 +72,9 @@ class PengeluaranModel extends Model
      *  menyaring apa-apa. Query 3+ huruf tetap dicari di semua field. */
     private function applyPencarian($builder, ?string $search)
     {
-        if (empty($search)) return $builder;
-        if (mb_strlen($search) < 3) {
+        $search = trim((string)$search);
+        if ($search === '') return $builder;
+        if (mb_strlen($search) < 4) {
             return $builder->like('tujuan', $search);
         }
         return $builder->groupStart()

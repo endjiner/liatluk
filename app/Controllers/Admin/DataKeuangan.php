@@ -7,6 +7,7 @@ use App\Models\PemasukanModel;
 use App\Models\PengeluaranModel;
 use App\Models\NotifikasiModel;
 use App\Models\PengaturanModel;
+use App\Models\PerjalananDinasPesertaModel;
 
 class DataKeuangan extends BaseController
 {
@@ -80,54 +81,17 @@ class DataKeuangan extends BaseController
         $pageParam = $this->request->getGet('page');
         $page = ($pageParam !== null && $pageParam !== '') ? max(1, (int)$pageParam) : null;
         $perPage = (int)($this->request->getGet('per_page') ?? 15);
-        if (!in_array($perPage, [10, 15, 25, 50, 100])) $perPage = 15;
 
-        $total = ($showPemasukan ? $this->pemasukanModel->countFiltered($filters) : 0)
-               + ($showPengeluaran ? $this->pengeluaranModel->countFiltered($filters) : 0);
+        $result = \App\Services\TransaksiService::getTransaksiGabungan(
+            $filters,
+            $showPemasukan,
+            $showPengeluaran,
+            $perPage,
+            $page,
+            false
+        );
 
-        $totalPages = max(1, (int)ceil($total / $perPage));
-        $page = $page ?? $totalPages;
-        $page = max(1, min($page, $totalPages));
-
-        $startNum = ($page - 1) * $perPage + 1;
-        $endNum   = min($total, $page * $perPage);
-        $take     = max(0, $endNum - $startNum + 1);
-
-        $descOffset = max(0, $total - $endNum);
-        $fetchLimit = $descOffset + $take;
-
-        $data = [];
-        if ($showPemasukan) {
-            foreach ($this->pemasukanModel->getFiltered($filters, $fetchLimit, 0) as $r) {
-                $data[] = array_merge($r, ['tipe' => 'pemasukan']);
-            }
-        }
-        if ($showPengeluaran) {
-            foreach ($this->pengeluaranModel->getFiltered($filters, $fetchLimit, 0) as $r) {
-                $data[] = array_merge($r, ['tipe' => 'pengeluaran']);
-            }
-        }
-
-        // Urutkan berdasarkan tanggal terbaru, secondary id terbaru (DESC)
-        usort($data, function ($a, $b) {
-            $t = strtotime($b['tanggal']) - strtotime($a['tanggal']);
-            if ($t !== 0) return $t;
-            return ((int)($b['id'] ?? 0)) - ((int)($a['id'] ?? 0));
-        });
-
-        $slice = array_reverse(array_slice($data, $descOffset, $take));
-        foreach ($slice as $i => &$row) {
-            $row['nomor'] = $startNum + $i;
-        }
-        unset($row);
-
-        return $this->response->setJSON([
-            'data'        => $slice,
-            'total'       => $total,
-            'page'        => $page,
-            'per_page'    => $perPage,
-            'total_pages' => $totalPages,
-        ]);
+        return $this->response->setJSON($result);
     }
 
     // ── Pemasukan CRUD ──────────────────────────────────────────────────────────
@@ -201,14 +165,36 @@ class DataKeuangan extends BaseController
         }
 
         $this->pemasukanModel->update($id, $data);
+
+        // Jika pemasukan ini bertaut dengan setoran taktis peserta, sinkronkan kembali tanggal & nominalnya
+        $existing = $this->pemasukanModel->find($id);
+        if ($existing && !empty($existing['dari_tandai_lunas'])) {
+            $pesertaModel = new PerjalananDinasPesertaModel();
+            $peserta = $pesertaModel->where('pemasukan_id', $id)->first();
+            if ($peserta) {
+                $jmlDiterima = (float)($existing['jumlah_diterima'] ?? $existing['jumlah']);
+                $danaTaktis  = (float)$peserta['dana_taktis'];
+                $statusBaru  = ($jmlDiterima >= $danaTaktis && $danaTaktis > 0) ? 'lunas' : (($jmlDiterima > 0) ? 'sebagian' : 'belum');
+                $pesertaModel->update($peserta['id'], [
+                    'tanggal_lunas'  => $statusBaru === 'lunas' ? $existing['tanggal'] : null,
+                    'jumlah_disetor' => $jmlDiterima,
+                    'status_lunas'   => $statusBaru,
+                ]);
+            }
+        }
+
         return $this->response->setJSON(['success' => true, 'message' => 'Pemasukan berhasil diupdate']);
     }
 
     public function deletePemasukan($id)
     {
         $row = $this->pemasukanModel->find($id);
-        $this->hapusFileBukti($row['file_bukti'] ?? null);
-        $this->pemasukanModel->delete($id);
+        if ($row) {
+            $this->hapusFileBukti($row['file_bukti'] ?? null);
+            // Reset status peserta perjadin jika pemasukan ini bertaut dengan setoran taktis
+            (new PerjalananDinasPesertaModel())->resetStatusDariPemasukan([(int)$id]);
+            $this->pemasukanModel->delete($id);
+        }
         return $this->response->setJSON(['success' => true, 'message' => 'Pemasukan berhasil dihapus']);
     }
 
@@ -331,12 +317,14 @@ class DataKeuangan extends BaseController
         $deletedP = 0;
         $deletedE = 0;
 
-        // Hapus pemasukan (termasuk file bukti)
+        // Hapus pemasukan (termasuk file bukti & reset relasi status perjadin)
         if (!empty($pemasukanIds)) {
             $rows = $this->pemasukanModel->whereIn('id', $pemasukanIds)->findAll();
             foreach ($rows as $row) {
                 $this->hapusFileBukti($row['file_bukti'] ?? null);
             }
+            // Reset status peserta perjadin untuk seluruh pemasukan yang dihapus
+            (new PerjalananDinasPesertaModel())->resetStatusDariPemasukan($pemasukanIds);
             $this->pemasukanModel->whereIn('id', $pemasukanIds)->delete();
             $deletedP = count($pemasukanIds);
         }

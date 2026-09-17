@@ -6,10 +6,10 @@ $tahunOpsi = range($tahunSekarang, $tahunSekarang - 5);
 
 <div class="mb-3 flex items-center justify-end gap-2">
   <button onclick="openModal('modal-import')" class="btn btn-outline btn-sm">
-    <?= iconsax('document-upload', '') ?> <span class="hidden sm:inline">Import CSV</span>
+    <?= iconsax('document-upload', '') ?> Import CSV
   </button>
   <button onclick="openExportMenu()" class="btn btn-outline btn-sm">
-    <?= iconsax('document-download', '') ?> <span class="hidden sm:inline">Export</span>
+    <?= iconsax('document-download', '') ?> Export
   </button>
 </div>
 
@@ -36,48 +36,52 @@ $tahunOpsi = range($tahunSekarang, $tahunSekarang - 5);
   </div>
 
   <!-- Filter compact -->
-  <div class="p-3 border-b border-slate-200 dark:border-slate-700 bg-slate-50 dark:bg-slate-900/40">
+  <div class="p-3 border-b border-slate-200 dark:border-slate-700 bg-slate-50 dark:bg-slate-900/40 space-y-2">
+    <!-- Baris 1: Toggle tipe + Search -->
     <div class="flex flex-wrap items-center gap-2">
-      <!-- Tipe checkbox -->
-      <div class="flex items-center gap-3 pr-3 border-r border-slate-200 dark:border-slate-700">
-        <label class="inline-flex items-center gap-1.5 cursor-pointer text-xs">
-          <input type="checkbox" id="filter-pemasukan" checked class="form-checkbox text-emerald-600">
-          <span class="text-slate-700 dark:text-slate-300">Pemasukan</span>
-        </label>
-        <label class="inline-flex items-center gap-1.5 cursor-pointer text-xs">
-          <input type="checkbox" id="filter-pengeluaran" checked class="form-checkbox text-red-600">
-          <span class="text-slate-700 dark:text-slate-300">Pengeluaran</span>
-        </label>
+      <!-- Toggle tipe styled (sama persis dengan public) -->
+      <div class="flex items-center gap-1 p-0.5 bg-slate-200/70 dark:bg-slate-700/50 rounded-lg shrink-0">
+        <button type="button" id="adm-toggle-pemasukan"
+          onclick="admToggleTipeTxn('pemasukan')"
+          class="adm-txn-toggle inline-flex items-center gap-1.5 px-2.5 py-1 rounded-md text-xs font-medium transition-all bg-emerald-100 dark:bg-emerald-900/40 text-emerald-700 dark:text-emerald-300 shadow-sm">
+          <?= iconsax('trend-up', 'w-3 h-3') ?> Pemasukan
+        </button>
+        <button type="button" id="adm-toggle-pengeluaran"
+          onclick="admToggleTipeTxn('pengeluaran')"
+          class="adm-txn-toggle inline-flex items-center gap-1.5 px-2.5 py-1 rounded-md text-xs font-medium transition-all bg-red-100 dark:bg-red-900/40 text-red-700 dark:text-red-300 shadow-sm">
+          <?= iconsax('trend-down', 'w-3 h-3') ?> Pengeluaran
+        </button>
       </div>
-
+      <!-- Hidden checkboxes untuk kompatibilitas JS lama -->
+      <input type="checkbox" id="filter-pemasukan" checked class="hidden">
+      <input type="checkbox" id="filter-pengeluaran" checked class="hidden">
       <!-- Search -->
-      <div class="relative flex-1 min-w-[160px] max-w-xs">
+      <div class="relative flex-1 min-w-[200px]">
         <span class="absolute inset-y-0 left-3 flex items-center text-slate-400">
           <?= iconsax('search-normal-1', 'w-3.5 h-3.5') ?>
         </span>
-        <input type="text" id="filter-search" placeholder="Cari kategori/keterangan..."
-               class="form-control form-control-sm pl-8">
+        <input type="text" id="filter-search" placeholder="Cari kategori, keterangan, MAK, no. ST..."
+               class="form-control form-control-sm pl-8 w-full">
       </div>
-
-      <!-- Bulan -->
-      <select id="filter-bulan" class="form-control form-control-sm w-auto">
-        <option value="">Semua Bulan</option>
-        <?php foreach ($namaBulan as $n => $nm): ?>
-        <option value="<?= $n ?>"><?= $nm ?></option>
-        <?php endforeach; ?>
-      </select>
-
-      <!-- Tahun -->
-      <select id="filter-tahun" class="form-control form-control-sm w-auto">
-        <option value="">Semua Tahun</option>
-        <?php foreach ($tahunOpsi as $t): ?>
-        <option value="<?= $t ?>"><?= $t ?></option>
-        <?php endforeach; ?>
-      </select>
-
-      <!-- Per page -->
-      <div class="flex items-center gap-1.5 pl-3 border-l border-slate-200 dark:border-slate-700">
-        <span class="text-xs text-slate-600 dark:text-slate-400">Tampilkan</span>
+    </div>
+    <!-- Baris 2: Bulan, Tahun, Per page -->
+    <div class="flex flex-wrap items-center justify-between gap-2.5">
+      <div class="flex items-center gap-2 flex-wrap">
+        <select id="filter-bulan" class="form-control form-control-sm w-auto">
+          <option value="">Semua Bulan</option>
+          <?php foreach ($namaBulan as $n => $nm): ?>
+          <option value="<?= $n ?>"><?= $nm ?></option>
+          <?php endforeach; ?>
+        </select>
+        <select id="filter-tahun" class="form-control form-control-sm w-auto">
+          <option value="">Semua Tahun</option>
+          <?php foreach ($tahunOpsi as $t): ?>
+          <option value="<?= $t ?>"><?= $t ?></option>
+          <?php endforeach; ?>
+        </select>
+      </div>
+      <div class="flex items-center gap-1.5 shrink-0 text-xs text-slate-500">
+        <span>Tampilkan</span>
         <select id="filter-perpage" class="form-control form-control-sm w-auto">
           <option value="10">10</option>
           <option value="15" selected>15</option>
@@ -85,7 +89,7 @@ $tahunOpsi = range($tahunSekarang, $tahunSekarang - 5);
           <option value="50">50</option>
           <option value="100">100</option>
         </select>
-        <span class="text-xs text-slate-600 dark:text-slate-400">baris</span>
+        <span>baris</span>
       </div>
     </div>
   </div>
@@ -106,7 +110,7 @@ $tahunOpsi = range($tahunSekarang, $tahunSekarang - 5);
           <th>Sumber</th>
           <th>Tipe</th>
           <th class="text-right">Nominal</th>
-          <th class="w-28 text-center">Aksi</th>
+          <th class="w-28 min-w-[100px] text-center whitespace-nowrap">Aksi</th>
         </tr>
       </thead>
       <tbody id="txn-tbody">
@@ -171,6 +175,20 @@ $tahunOpsi = range($tahunSekarang, $tahunSekarang - 5);
             <div>
               <label class="form-label">Sumber</label>
               <input type="text" name="sumber" id="edit-p-sumber" class="form-control">
+            </div>
+          </div>
+          <div class="grid grid-cols-1 md:grid-cols-3 gap-4 mt-4">
+            <div>
+              <label class="form-label">Kode MAK</label>
+              <input type="text" name="kode_mak" id="edit-p-mak" class="form-control font-mono" placeholder="cth: 524111.001">
+            </div>
+            <div>
+              <label class="form-label">No. Surat Tugas</label>
+              <input type="text" name="no_surat_tugas" id="edit-p-st" class="form-control" placeholder="cth: ST-001/...">
+            </div>
+            <div>
+              <label class="form-label">No. SPM</label>
+              <input type="text" name="no_spm" id="edit-p-spm" class="form-control" placeholder="cth: SPM-001/...">
             </div>
           </div>
           <div class="mt-4">
@@ -458,13 +476,19 @@ function refreshTxn() {
   });
   if (currentPage) params.set('page', currentPage);
 
+  const tbody = document.getElementById('txn-tbody');
   const seq = ++txnRequestSeq;
-  document.getElementById('txn-tbody').innerHTML = '<tr><td colspan="8" class="text-center py-8 text-slate-500">Memuat...</td></tr>';
+  if (!tbody.hasChildNodes() || tbody.querySelector('.loading-placeholder')) {
+    tbody.innerHTML = '<tr><td colspan="8" class="loading-placeholder text-center py-8 text-slate-500">Memuat data...</td></tr>';
+  } else {
+    tbody.classList.add('opacity-40', 'pointer-events-none', 'transition-opacity', 'duration-200');
+  }
 
   fetch(BASE_URL + 'admin/keuangan/ajax?' + params.toString())
     .then(r => r.json())
     .then(data => {
       if (seq !== txnRequestSeq) return; // ada request lebih baru yang menyusul, respons ini basi
+      tbody.classList.remove('opacity-40', 'pointer-events-none');
       currentPage = data.page || 1;
       renderTxn(data.data || []);
       document.getElementById('txn-total').textContent = new Intl.NumberFormat('id-ID').format(data.total || 0);
@@ -473,6 +497,7 @@ function refreshTxn() {
     })
     .catch(() => {
       if (seq !== txnRequestSeq) return;
+      tbody.classList.remove('opacity-40', 'pointer-events-none');
       document.getElementById('txn-tbody').innerHTML = '<tr><td colspan="8" class="text-center py-8 text-red-500">Gagal memuat data.</td></tr>';
     });
 }
@@ -495,22 +520,25 @@ function renderTxn(rows) {
     const editFn = isP ? 'editPemasukan' : 'editPengeluaran';
     const deleteFn = isP ? 'deletePemasukan' : 'deletePengeluaran';
     const selesaiBtn = (isP && (r.status_dana === 'sebagian' || r.status_dana === 'belum_diterima'))
-      ? `<button onclick="tandaiSelesai(${r.id}, ${r.jumlah})" title="Tandai Selesai/Lunas" class="p-1.5 rounded hover:bg-emerald-50 dark:hover:bg-emerald-900/30 text-slate-500 hover:text-emerald-600">${iconsax('tick-circle', 'w-4 h-4')}</button>`
+      ? `<button type="button" onclick="event.stopPropagation(); tandaiSelesai(${r.id}, ${r.jumlah})" title="Tandai Selesai/Lunas" class="w-7 h-7 inline-flex items-center justify-center rounded hover:bg-emerald-50 dark:hover:bg-emerald-900/30 text-slate-500 hover:text-emerald-600 shrink-0">${iconsax('tick-circle', 'w-4 h-4 shrink-0')}</button>`
       : '';
-    return `<tr data-id="${r.id}" data-type="${r.tipe}">
-      <td><input type="checkbox" class="row-checkbox row-checkbox-${r.tipe} form-checkbox" onclick="onRowCheck(this)"></td>
+    return `<tr data-id="${r.id}" data-type="${r.tipe}" class="cursor-pointer hover:bg-slate-50/80 dark:hover:bg-slate-800/40 transition-colors" onclick='showDetailRow(${rowJson})'>
+      <td onclick="event.stopPropagation()"><input type="checkbox" class="row-checkbox row-checkbox-${r.tipe} form-checkbox" onclick="event.stopPropagation(); onRowCheck(this)"></td>
       <td class="text-center text-slate-500">${r.nomor ?? '-'}</td>
       <td class="whitespace-nowrap">${dateFormatted}</td>
-      <td class="truncate max-w-[180px]">${escapeHtml(r.kategori || '-')}</td>
-      <td class="truncate max-w-[150px]">${escapeHtml(r.sumber || r.tujuan || '-')}</td>
+      <td class="min-w-[120px] max-w-[200px] break-words whitespace-normal">
+        <div class="font-medium text-slate-700 dark:text-slate-200">${escapeHtml(r.kategori || '-')}</div>
+        ${r.kode_mak ? `<div class="text-[11px] font-mono text-slate-500 dark:text-slate-400">MAK: ${escapeHtml(r.kode_mak)}</div>` : ''}
+      </td>
+      <td class="min-w-[120px] max-w-[180px] break-words whitespace-normal">${escapeHtml(r.sumber || r.tujuan || '-')}</td>
       <td>${badge}</td>
-      <td class="text-right font-medium text-currency ${isP ? 'text-emerald-600' : 'text-red-600'}">Rp ${new Intl.NumberFormat('id-ID').format(Math.round(nominal))}</td>
-      <td>
-        <div class="flex items-center justify-center gap-1">
-          <button onclick='showDetailRow(${rowJson})' title="Detail" class="p-1.5 rounded hover:bg-slate-100 dark:hover:bg-slate-700 text-slate-500 hover:text-primary-600">${iconsax('eye', 'w-4 h-4')}</button>
-          <button onclick='${editFn}(${rowJson})' title="Edit" class="p-1.5 rounded hover:bg-slate-100 dark:hover:bg-slate-700 text-slate-500 hover:text-primary-600">${iconsax('edit-2', 'w-4 h-4')}</button>
+      <td class="text-right font-medium text-currency ${isP ? 'text-income' : 'text-expense'}">Rp ${new Intl.NumberFormat('id-ID').format(Math.round(nominal))}</td>
+      <td class="text-center whitespace-nowrap min-w-[100px]" onclick="event.stopPropagation()">
+        <div class="inline-flex items-center justify-center gap-1">
+          <button type="button" onclick='event.stopPropagation(); showDetailRow(${rowJson})' title="Detail" class="w-7 h-7 inline-flex items-center justify-center rounded hover:bg-slate-100 dark:hover:bg-slate-700 text-slate-500 hover:text-primary-600 shrink-0">${iconsax('eye', 'w-4 h-4 shrink-0')}</button>
+          <button type="button" onclick='event.stopPropagation(); ${editFn}(${rowJson})' title="Edit" class="w-7 h-7 inline-flex items-center justify-center rounded hover:bg-slate-100 dark:hover:bg-slate-700 text-slate-500 hover:text-primary-600 shrink-0">${iconsax('edit-2', 'w-4 h-4 shrink-0')}</button>
           ${selesaiBtn}
-          <button onclick="${deleteFn}(${r.id})" title="Hapus" class="p-1.5 rounded hover:bg-red-50 dark:hover:bg-red-900/30 text-slate-500 hover:text-red-600">${iconsax('trash', 'w-4 h-4')}</button>
+          <button type="button" onclick="event.stopPropagation(); ${deleteFn}(${r.id})" title="Hapus" class="w-7 h-7 inline-flex items-center justify-center rounded hover:bg-red-50 dark:hover:bg-red-900/30 text-slate-500 hover:text-red-600 shrink-0">${iconsax('trash', 'w-4 h-4 shrink-0')}</button>
         </div>
       </td>
     </tr>`;
@@ -571,15 +599,34 @@ function gotoPage(p) {
 }
 window.gotoPage = gotoPage;
 
+/* ── Toggle tipe transaksi admin (styled button → sync hidden checkbox) ── */
+const ADM_TOGGLE_ACTIVE = {
+  pemasukan:   'bg-emerald-100 dark:bg-emerald-900/40 text-emerald-700 dark:text-emerald-300 shadow-sm',
+  pengeluaran: 'bg-red-100 dark:bg-red-900/40 text-red-700 dark:text-red-300 shadow-sm',
+};
+const ADM_TOGGLE_INACTIVE = 'text-slate-500 dark:text-slate-400 hover:text-slate-700';
+function admToggleTipeTxn(tipe) {
+  const btn = document.getElementById('adm-toggle-' + tipe);
+  const cb  = document.getElementById('filter-' + tipe);
+  cb.checked = !cb.checked;
+  const isActive = cb.checked;
+  btn.className = 'adm-txn-toggle inline-flex items-center gap-1.5 px-2.5 py-1 rounded-md text-xs font-medium transition-all ' +
+    (isActive ? ADM_TOGGLE_ACTIVE[tipe] : ADM_TOGGLE_INACTIVE);
+  currentPage = null;
+  refreshTxn();
+}
+window.admToggleTipeTxn = admToggleTipeTxn;
+
 let filterTimer;
 function scheduleFilterReset() {
   clearTimeout(filterTimer);
-  filterTimer = setTimeout(() => { currentPage = null; refreshTxn(); }, 200);
+  filterTimer = setTimeout(() => { currentPage = null; refreshTxn(); }, 350);
 }
 ['filter-pemasukan','filter-pengeluaran','filter-bulan','filter-tahun','filter-perpage'].forEach(id => {
   document.getElementById(id).addEventListener('change', scheduleFilterReset);
 });
 document.getElementById('filter-search').addEventListener('input', scheduleFilterReset);
+
 
 /* ── Detail modal ── */
 function showDetailRow(row) {
@@ -588,7 +635,7 @@ function showDetailRow(row) {
   const items = [
     ['Tanggal', fmtDate(row.tanggal)],
     ['Kategori', row.kategori ? escapeHtml(row.kategori) : '-'],
-    ['Nominal', `<span class="font-semibold ${isP ? 'text-emerald-600' : 'text-red-600'}">${fmtRp(row.jumlah)}</span>`],
+    ['Nominal', `<span class="font-semibold ${isP ? 'text-income' : 'text-expense'}">${fmtRp(row.jumlah)}</span>`],
   ];
   if (isP) {
     items.push(['Jumlah Diterima', fmtRp(row.jumlah_diterima)]);
@@ -597,6 +644,9 @@ function showDetailRow(row) {
   } else {
     items.push(['Tujuan / Penerima', row.tujuan ? escapeHtml(row.tujuan) : '-']);
   }
+  if (row.kode_mak) items.push(['Kode MAK', `<span class="font-mono text-xs font-semibold text-slate-700 dark:text-slate-300">${escapeHtml(row.kode_mak)}</span>`]);
+  if (row.no_surat_tugas) items.push(['No. Surat Tugas', escapeHtml(row.no_surat_tugas)]);
+  if (row.no_spm) items.push(['No. SPM', escapeHtml(row.no_spm)]);
   items.push(['Keterangan', row.keterangan ? escapeHtml(row.keterangan) : '-']);
   if (row.catatan_internal) items.push(['Catatan Internal', escapeHtml(row.catatan_internal)]);
   items.push(['Dibuat', row.created_at || '-']);
@@ -633,6 +683,9 @@ function editPemasukan(row) {
   setRupiahValue(document.getElementById('edit-p-diterima'), row.jumlah_diterima);
   document.getElementById('edit-p-status').value = row.status_dana;
   document.getElementById('edit-p-sumber').value = row.sumber || '';
+  document.getElementById('edit-p-mak').value = row.kode_mak || '';
+  document.getElementById('edit-p-st').value = row.no_surat_tugas || '';
+  document.getElementById('edit-p-spm').value = row.no_spm || '';
   document.getElementById('edit-p-ket').value = row.keterangan || '';
   // Preview bukti
   const prev = document.getElementById('edit-p-bukti-preview');

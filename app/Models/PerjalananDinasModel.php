@@ -11,7 +11,7 @@ class PerjalananDinasModel extends Model
     protected $useAutoIncrement = true;
     protected $returnType = 'array';
     protected $useSoftDeletes = false;
-    protected $allowedFields = ['maksud', 'no_surat_tugas', 'tanggal_surat_tugas', 'kode_mak', 'no_spm'];
+    protected $allowedFields = ['no_pd', 'maksud', 'no_surat_tugas', 'tanggal_surat_tugas', 'kode_mak', 'no_spm'];
     protected $useTimestamps = true;
 
     /** Daftar tahun yang punya data, untuk selector rekap. */
@@ -40,7 +40,8 @@ class PerjalananDinasModel extends Model
         $builder = $this->applyPeriode($this->builder(), $filters['bulan'] ?? null, $filters['tahun'] ?? null);
         if (!empty($filters['search'])) {
             $builder->groupStart()
-                ->like('maksud', $filters['search'])
+                ->like('no_pd', $filters['search'])
+                ->orLike('maksud', $filters['search'])
                 ->orLike('no_surat_tugas', $filters['search'])
                 ->orLike('kode_mak', $filters['search'])
                 ->groupEnd();
@@ -54,7 +55,8 @@ class PerjalananDinasModel extends Model
         $builder = $this->applyPeriode($this->builder(), $filters['bulan'] ?? null, $filters['tahun'] ?? null);
         if (!empty($filters['search'])) {
             $builder->groupStart()
-                ->like('maksud', $filters['search'])
+                ->like('no_pd', $filters['search'])
+                ->orLike('maksud', $filters['search'])
                 ->orLike('no_surat_tugas', $filters['search'])
                 ->orLike('kode_mak', $filters['search'])
                 ->groupEnd();

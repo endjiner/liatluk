@@ -59,21 +59,25 @@ class Home extends BaseController
         // (lihat #panel-perjadin di public/dashboard.php), bukan halaman terpisah. Daftarnya
         // sepenuhnya dimuat lewat AJAX (perjalananDinasAjax), jadi tidak dihitung di sini.
 
+        // Ringkasan Dana Taktis belum dibayar — ditampilkan sebagai KPI card di samping Saldo Kas.
+        $danaTaktisBelumDibayar = (new PerjalananDinasPesertaModel())->getBelumDibayarSummary();
+
         return view('public/dashboard', [
-            'saldoAkhir'          => $saldoAkhir,
-            'totalPemasukan'      => $totalPemasukan,
-            'totalPengeluaran'    => $totalPengeluaran,
-            'pemasukanTahunIni'   => $pemasukanTahunIni,
-            'pengeluaranTahunIni' => $pengeluaranTahunIni,
-            'pemasukanBulanIni'   => $pemasukanBulanIni,
-            'pengeluaranBulanIni' => $pengeluaranBulanIni,
-            'rasio'               => $rasio,
-            'chartPemasukan'      => json_encode($chartPemasukan),
-            'chartPengeluaran'    => json_encode($chartPengeluaran),
-            'pieData'             => json_encode($pieData),
-            'tahunTren'           => $tahunTren,
-            'tahunTersedia'       => $tahunTersedia,
-            'tahunListPerjadin'   => (new PerjalananDinasModel())->getAvailableYears(),
+            'saldoAkhir'              => $saldoAkhir,
+            'totalPemasukan'          => $totalPemasukan,
+            'totalPengeluaran'        => $totalPengeluaran,
+            'pemasukanTahunIni'       => $pemasukanTahunIni,
+            'pengeluaranTahunIni'     => $pengeluaranTahunIni,
+            'pemasukanBulanIni'       => $pemasukanBulanIni,
+            'pengeluaranBulanIni'     => $pengeluaranBulanIni,
+            'rasio'                   => $rasio,
+            'chartPemasukan'          => json_encode($chartPemasukan),
+            'chartPengeluaran'        => json_encode($chartPengeluaran),
+            'pieData'                 => json_encode($pieData),
+            'tahunTren'               => $tahunTren,
+            'tahunTersedia'           => $tahunTersedia,
+            'tahunListPerjadin'       => (new PerjalananDinasModel())->getAvailableYears(),
+            'danaTaktisBelumDibayar'  => $danaTaktisBelumDibayar,
         ]);
     }
 
@@ -106,23 +110,16 @@ class Home extends BaseController
         $perPage = (int)($this->request->getGet('per_page') ?? 10);
         if (!in_array($perPage, [10, 25, 50, 100])) $perPage = 10;
 
-        $result = $this->fetchTransaksiGabungan(
-            $pemasukanModel,
-            $pengeluaranModel,
+        $result = \App\Services\TransaksiService::getTransaksiGabungan(
             $filters,
             $showPemasukan,
             $showPengeluaran,
             $perPage,
-            $page
+            $page,
+            true
         );
 
-        return $this->response->setJSON([
-            'data'        => $result['data'],
-            'total'       => $result['total'],
-            'page'        => $result['page'],
-            'per_page'    => $perPage,
-            'total_pages' => $result['total_pages'],
-        ]);
+        return $this->response->setJSON($result);
     }
 
     /**
@@ -180,88 +177,6 @@ class Home extends BaseController
         ]);
     }
 
-    /**
-     * Ambil transaksi gabungan sesuai filter + tipe yang di-check + per_page sebagai
-     * total gabungan (bukan per-tipe). Menyaring kategori sesuai daftar per tipe supaya
-     * tidak salah filter (kategori pemasukan tidak nyasar ke pengeluaran, dst).
-     *
-     * Penomoran baris SELALU ascending dari transaksi paling awal (nomor 1 = transaksi
-     * tertua). Tapi kalau $page tidak diisi (null), yang ditampilkan default adalah
-     * HALAMAN TERAKHIR — yaitu transaksi-transaksi terbaru — supaya user tetap melihat
-     * aktivitas terkini begitu halaman dibuka, walau nomor barisnya tetap urut dari awal.
-     *
-     * Query tetap diambil dalam urutan DESC (termurah untuk data terbaru) lalu dibalik jadi
-     * ASC untuk ditampilkan — jadi kasus paling umum (halaman default/terbaru) tetap murah;
-     * yang jadi mahal cuma saat user sengaja menjelajah jauh ke histori paling awal.
-     */
-    private function fetchTransaksiGabungan($pemasukanModel, $pengeluaranModel, $filters, $showPemasukan, $showPengeluaran, $perPage, $page)
-    {
-        // Pisahkan kategori per tipe agar filter tidak nyasar
-        $kat = $filters['kategori'] ?? [];
-        $katP = !empty($kat) ? array_values(array_intersect($kat, \App\Config\Kategori::$pemasukan)) : [];
-        $katE = !empty($kat) ? array_values(array_intersect($kat, \App\Config\Kategori::$pengeluaran)) : [];
-
-        // Kalau user memilih kategori dan checkbox tipe masih aktif, filter memaksa hanya tipe yang ada kategorinya
-        $filtersP = array_merge($filters, ['kategori' => $katP]);
-        $filtersE = array_merge($filters, ['kategori' => $katE]);
-
-        // Kalau ada filter kategori tapi tidak ada kategori yang cocok untuk tipe itu, skip
-        $skipP = !$showPemasukan || (!empty($kat) && empty($katP));
-        $skipE = !$showPengeluaran || (!empty($kat) && empty($katE));
-
-        // Total sebenarnya lewat COUNT query di DB
-        $total = ($skipP ? 0 : $pemasukanModel->countFiltered($filtersP))
-               + ($skipE ? 0 : $pengeluaranModel->countFiltered($filtersE));
-
-        $totalPages = max(1, (int)ceil($total / $perPage));
-        $page = $page ?? $totalPages; // default: halaman terakhir (data terbaru)
-        $page = max(1, min($page, $totalPages));
-
-        // Rentang nomor baris ascending yang perlu ditampilkan di halaman ini
-        $startNum = ($page - 1) * $perPage + 1;
-        $endNum   = min($total, $page * $perPage);
-        $take     = max(0, $endNum - $startNum + 1);
-
-        // Terjemahkan ke posisi DESC: descOffset = jarak dari transaksi TERBARU ke ujung
-        // akhir rentang halaman ini.
-        $descOffset = max(0, $total - $endNum);
-        $fetchLimit = $descOffset + $take;
-
-        // 'catatan_internal' disengaja hanya untuk admin (labelnya "Admin Only" di form) —
-        // endpoint ini publik & tanpa login, jadi field itu wajib dibuang sebelum dikirim,
-        // meskipun getFiltered() mengembalikan semua kolom (dipakai bersama oleh admin juga).
-        $data = [];
-        if (!$skipP) {
-            foreach ($pemasukanModel->getFiltered($filtersP, $fetchLimit, 0) as $r) {
-                unset($r['catatan_internal']);
-                $data[] = array_merge($r, ['tipe' => 'pemasukan']);
-            }
-        }
-        if (!$skipE) {
-            foreach ($pengeluaranModel->getFiltered($filtersE, $fetchLimit, 0) as $r) {
-                unset($r['catatan_internal']);
-                $data[] = array_merge($r, ['tipe' => 'pengeluaran']);
-            }
-        }
-
-        // Urutkan berdasarkan tanggal terbaru, secondary id terbaru (DESC)
-        usort($data, function ($a, $b) {
-            $t = strtotime($b['tanggal']) - strtotime($a['tanggal']);
-            if ($t !== 0) return $t;
-            return ((int)($b['id'] ?? 0)) - ((int)($a['id'] ?? 0));
-        });
-
-        // Ambil persis bagian yang dibutuhkan (masih DESC), lalu balik ke ASC supaya nomor
-        // baris berjalan naik dari transaksi paling awal.
-        $slice = array_reverse(array_slice($data, $descOffset, $take));
-        foreach ($slice as $i => &$row) {
-            $row['nomor'] = $startNum + $i;
-        }
-        unset($row);
-
-        return ['data' => $slice, 'total' => $total, 'page' => $page, 'total_pages' => $totalPages];
-    }
-
     // ── Rekap Perjalanan Dinas & Dana Taktis (publik, read-only, tanpa login) ────────
 
     /** 'tahun' sengaja tidak default ke tahun berjalan — lihat catatan yang sama di
@@ -271,12 +186,15 @@ class Home extends BaseController
         $perPage = (int)($this->request->getGet('per_page') ?? 10);
         if (!in_array($perPage, [10, 25, 50, 100])) $perPage = 10;
 
+        $pageParam = $this->request->getGet('page');
+        $page = ($pageParam !== null && $pageParam !== '') ? max(1, (int)$pageParam) : null;
+
         return [
             'bulan'    => $this->request->getGet('bulan'),
             'tahun'    => $this->request->getGet('tahun'),
             'status'   => $this->request->getGet('status'),
             'search'   => $this->request->getGet('search'),
-            'page'     => max(1, (int)($this->request->getGet('page') ?? 1)),
+            'page'     => $page,
             'per_page' => $perPage,
         ];
     }
@@ -295,23 +213,9 @@ class Home extends BaseController
     {
         $filters      = $this->ambilFilterPerjalananDinasGet();
         $pesertaModel = new PerjalananDinasPesertaModel();
+        $result       = $pesertaModel->getPaginatedPerjalananDinas($filters);
 
-        $total      = $pesertaModel->countFilteredPerjalananDinas($filters);
-        $totalPages = max(1, (int)ceil($total / $filters['per_page']));
-        $page       = min(max(1, $filters['page']), $totalPages);
-        $offset     = ($page - 1) * $filters['per_page'];
-
-        $rows = $pesertaModel->getFilteredPerjalananDinas($filters, $filters['per_page'], $offset);
-
-        return $this->response->setJSON([
-            'success'     => true,
-            'data'        => $rows,
-            'total'       => $total,
-            'page'        => $page,
-            'per_page'    => $filters['per_page'],
-            'total_pages' => $totalPages,
-            'offset'      => $offset,
-        ]);
+        return $this->response->setJSON(['success' => true] + $result);
     }
 
     /** Halaman terpisah lama — sekarang jadi tab "Dana Taktis" tersendiri di halaman
@@ -323,33 +227,24 @@ class Home extends BaseController
 
     /** JSON untuk fetch() dari filter/search/pagination publik — tabel datar semua pegawai,
      *  sama seperti Admin\PerjalananDinas::danaTaktisList() tapi read-only (tanpa aksi
-     *  tandai-lunas). Menggantikan pola lama "pilih pegawai dulu baru lihat rekapnya". */
+     *  tandai-lunas). */
     public function danaTaktisAjax()
     {
+        $pageParam = $this->request->getGet('page');
+        $page = ($pageParam !== null && $pageParam !== '') ? max(1, (int)$pageParam) : null;
+
         $filters = [
-            'search' => $this->request->getGet('search'),
-            'status' => $this->request->getGet('status'),
-            'tahun'  => $this->request->getGet('tahun'),
-            'bulan'  => $this->request->getGet('bulan'),
+            'search'   => $this->request->getGet('search'),
+            'status'   => $this->request->getGet('status'),
+            'tahun'    => $this->request->getGet('tahun'),
+            'bulan'    => $this->request->getGet('bulan'),
+            'page'     => $page,
+            'per_page' => (int)($this->request->getGet('per_page') ?? 10),
         ];
-        $page    = max(1, (int)($this->request->getGet('page') ?? 1));
-        $perPage = (int)($this->request->getGet('per_page') ?? 10);
-        if (!in_array($perPage, [10, 25, 50, 100])) $perPage = 10;
 
         $pesertaModel = new PerjalananDinasPesertaModel();
-        $total      = $pesertaModel->countFilteredDanaTaktis($filters);
-        $totalPages = max(1, (int)ceil($total / $perPage));
-        $page       = min($page, $totalPages);
+        $result       = $pesertaModel->getPaginatedDanaTaktis($filters);
 
-        $rows = $pesertaModel->getFilteredDanaTaktis($filters, $perPage, ($page - 1) * $perPage);
-
-        return $this->response->setJSON([
-            'success'     => true,
-            'data'        => $rows,
-            'total'       => $total,
-            'page'        => $page,
-            'per_page'    => $perPage,
-            'total_pages' => $totalPages,
-        ]);
+        return $this->response->setJSON(['success' => true] + $result);
     }
 }

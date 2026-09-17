@@ -196,6 +196,7 @@ class Laporan extends BaseController
 
         return [
             'perjadinTrips'        => array_values($trips),
+            'perjadinRows'         => $rows,
             'perjadinTotalSpj'     => array_sum(array_column($trips, 'total_spj')),
             'danaTaktisRows'       => $danaTaktisRows,
             'danaTaktisTotalLunas' => array_sum(array_map(fn($r) => (float) $r['dana_taktis'],
@@ -250,7 +251,7 @@ class Laporan extends BaseController
         if (class_exists('Dompdf\Dompdf')) {
             $dompdf = new \Dompdf\Dompdf();
             $dompdf->loadHtml($html);
-            $dompdf->setPaper('A4', 'portrait');
+            $dompdf->setPaper('A4', $sertakanPerjadin ? 'landscape' : 'portrait');
             $dompdf->render();
             $dompdf->stream('laporan_keuangan_' . $bulanDari . '_' . $bulanSampai . '.pdf', ['Attachment' => true]);
             exit;
@@ -303,7 +304,7 @@ class Laporan extends BaseController
 
         if ($sertakanPerjadin) {
             $sheetPerjadin = $spreadsheet->createSheet();
-            $this->buildSheetPerjadin($sheetPerjadin, $data['perjadinTrips'], $data['perjadinTotalSpj']);
+            $this->buildSheetPerjadin($sheetPerjadin, $data['perjadinRows'] ?? [], $data['perjadinTotalSpj'] ?? 0.0);
         }
 
         if ($sertakanDanaTaktis) {
@@ -597,44 +598,161 @@ class Laporan extends BaseController
         $sheet->freezePane('A3');
     }
 
-    /** Sheet opsional: rincian trip Perjalanan Dinas pada periode ini (satu baris per trip). */
-    private function buildSheetPerjadin($sheet, array $trips, float $totalSpj)
+    /** Sheet opsional: rincian Perjalanan Dinas lengkap persis format spreadsheet instansi tanpa ada kolom yang diringkas. */
+    private function buildSheetPerjadin($sheet, array $rows, float $totalSpj)
     {
         $sheet->setTitle('Perjalanan Dinas');
         $fill = ['fillType' => \PhpOffice\PhpSpreadsheet\Style\Fill::FILL_SOLID, 'startColor' => ['rgb' => '0066B2']];
 
         $sheet->setCellValue('A1', 'RINCIAN PERJALANAN DINAS');
-        $sheet->mergeCells('A1:F1');
+        $sheet->mergeCells('A1:AG1');
         $sheet->getStyle('A1')->applyFromArray(['font' => ['bold' => true, 'size' => 12, 'color' => ['rgb' => '0066B2']]]);
 
-        $header = ['No', 'Tanggal', 'No. Surat Tugas', 'Maksud', 'Jumlah Peserta', 'Total SPJ'];
+        $header = [
+            'No',
+            'Maksud Perjalanan Dinas',
+            'No. Surat Tugas/Tgl. Surat Tugas',
+            'Kode MAK',
+            'No. SPM',
+            'Nama Pelaksana Perjalanan Dinas (TANPA GELAR AKADEMIK)',
+            'Uang Harian',
+            'Biaya Paket Meeting Fullboard',
+            'Biaya Paket Meeting Fullday',
+            'Uang Representasi (Eselon II)',
+            'Transportasi Lokal / Transportasi Luar Kota / Taksi',
+            'BBM (Jika Jalan Darat)',
+            'Maskapai',
+            'Pergi/Pulang',
+            'No Tiket',
+            'Kode Booking',
+            'No Penerbangan',
+            'Tempat Asal',
+            'Tempat Tujuan',
+            'Tanggal Terbang',
+            'Harga Tiket (Rp)',
+            'Nama Hotel',
+            'Alamat Hotel',
+            'No. Telepon Hotel',
+            'Tanggal Check-In Hotel (Arrival Date)',
+            'Tanggal Check-Out Hotel (Departure Date)',
+            'Total Bill Hotel Yang Dibayarkan',
+            'No Kamar (Room)',
+            'No. Invoice Hotel',
+            'Total Biaya Hotel (Jika 30%)',
+            'TOTAL SPJ YANG DIBAYARKAN OLEH BENDAHARA PENGELUARAN',
+            'TAKTIS',
+            'LUNAS',
+        ];
         $sheet->fromArray($header, null, 'A2');
-        $sheet->getStyle('A2:F2')->applyFromArray(['font' => ['bold' => true, 'color' => ['rgb' => 'FFFFFF']], 'fill' => $fill]);
+        $sheet->getStyle('A2:AG2')->applyFromArray(['font' => ['bold' => true, 'color' => ['rgb' => 'FFFFFF']], 'fill' => $fill]);
 
         $r = 3;
-        foreach ($trips as $i => $t) {
-            $sheet->setCellValue("A{$r}", $i + 1);
-            $sheet->setCellValue("B{$r}", $t['tanggal_surat_tugas']);
-            $sheet->setCellValue("C{$r}", $t['no_surat_tugas'] ?: '-');
-            $sheet->setCellValue("D{$r}", $t['maksud']);
-            $sheet->setCellValue("E{$r}", $t['jumlah_peserta']);
-            $sheet->setCellValue("F{$r}", $t['total_spj']);
-            $sheet->getStyle("F{$r}")->getNumberFormat()->setFormatCode('"Rp" #,##0');
-            $r++;
+        $nomorUrut = 0;
+        $totalTaktisSum = 0.0;
+        $totalSpjSum = 0.0;
+
+        foreach ($rows as $peserta) {
+            $nomorUrut++;
+            $tikets = !empty($peserta['tiket']) ? $peserta['tiket'] : [];
+            $hotel  = !empty($peserta['hotel']) ? $peserta['hotel'] : null;
+
+            $totalSpjSum += (float) ($peserta['total_spj'] ?? 0);
+            $totalTaktisSum += (float) ($peserta['dana_taktis'] ?? 0);
+
+            $maxLines = max(1, count($tikets));
+
+            for ($k = 0; $k < $maxLines; $k++) {
+                $t = $tikets[$k] ?? null;
+
+                $tglSt = !empty($peserta['tanggal_surat_tugas']) ? date('d/m/Y', strtotime($peserta['tanggal_surat_tugas'])) : '';
+                $noStDanTgl = trim(($peserta['no_surat_tugas'] ?? '') . ($tglSt !== '' ? " / {$tglSt}" : ''));
+
+                if ($k === 0) {
+                    $sheet->setCellValue("A{$r}", $nomorUrut);
+                    $sheet->setCellValue("B{$r}", $peserta['maksud'] ?? '');
+                    $sheet->setCellValue("C{$r}", $noStDanTgl);
+                    $sheet->setCellValue("D{$r}", $peserta['kode_mak'] ?? '');
+                    $sheet->setCellValue("E{$r}", $peserta['no_spm'] ?? '');
+                    $sheet->setCellValue("F{$r}", $peserta['nama_peserta'] ?? '');
+
+                    $sheet->setCellValue("G{$r}", (float) ($peserta['uang_harian'] ?? 0));
+                    $sheet->setCellValue("H{$r}", (float) ($peserta['meeting_fullboard'] ?? 0));
+                    $sheet->setCellValue("I{$r}", (float) ($peserta['meeting_fullday'] ?? 0));
+                    $sheet->setCellValue("J{$r}", (float) ($peserta['uang_representasi'] ?? 0));
+                    $sheet->setCellValue("K{$r}", (float) ($peserta['transport_lokal'] ?? 0));
+                    $sheet->setCellValue("L{$r}", (float) ($peserta['bbm'] ?? 0));
+
+                    if ($hotel) {
+                        $sheet->setCellValue("V{$r}", $hotel['nama_hotel'] ?? '');
+                        $sheet->setCellValue("W{$r}", $hotel['alamat_hotel'] ?? '');
+                        $sheet->setCellValue("X{$r}", $hotel['telp_hotel'] ?? '');
+                        $sheet->setCellValue("Y{$r}", $hotel['checkin'] ?? '');
+                        $sheet->setCellValue("Z{$r}", $hotel['checkout'] ?? '');
+                        $sheet->setCellValue("AA{$r}", (float) ($hotel['total_bill'] ?? 0));
+                        $sheet->setCellValue("AB{$r}", $hotel['no_kamar'] ?? '');
+                        $sheet->setCellValue("AC{$r}", $hotel['no_invoice'] ?? '');
+                        $sheet->setCellValue("AD{$r}", (float) ($hotel['total_biaya_30persen'] ?? 0));
+                    }
+
+                    $sheet->setCellValue("AE{$r}", (float) ($peserta['total_spj'] ?? 0));
+                    $sheet->setCellValue("AF{$r}", (float) ($peserta['dana_taktis'] ?? 0));
+                    $sheet->setCellValue("AG{$r}", ($peserta['status_lunas'] ?? '') === 'lunas' ? 'LUNAS' : 'BELUM');
+                } else {
+                    $sheet->setCellValue("A{$r}", '');
+                    $sheet->setCellValue("B{$r}", '');
+                    $sheet->setCellValue("C{$r}", '');
+                    $sheet->setCellValue("D{$r}", '');
+                    $sheet->setCellValue("E{$r}", '');
+                    $sheet->setCellValue("F{$r}", $peserta['nama_peserta'] ?? '');
+                }
+
+                if ($t) {
+                    $sheet->setCellValue("M{$r}", $t['maskapai'] ?? '');
+                    $sheet->setCellValue("N{$r}", $t['arah'] ?? '');
+                    $sheet->setCellValue("O{$r}", $t['no_tiket'] ?? '');
+                    $sheet->setCellValue("P{$r}", $t['kode_booking'] ?? '');
+                    $sheet->setCellValue("Q{$r}", $t['no_penerbangan'] ?? '');
+                    $sheet->setCellValue("R{$r}", $t['tempat_asal'] ?? '');
+                    $sheet->setCellValue("S{$r}", $t['tempat_tujuan'] ?? '');
+                    $sheet->setCellValue("T{$r}", $t['tanggal_terbang'] ?? '');
+                    $sheet->setCellValue("U{$r}", (float) ($t['harga_tiket'] ?? 0));
+                }
+
+                foreach (['G', 'H', 'I', 'J', 'K', 'L', 'U', 'AA', 'AD', 'AE', 'AF'] as $col) {
+                    $sheet->getStyle("{$col}{$r}")->getNumberFormat()->setFormatCode('"Rp" #,##0');
+                }
+
+                $r++;
+            }
         }
 
-        if (empty($trips)) {
+        if (empty($rows)) {
             $sheet->setCellValue('A3', 'Tidak ada data pada periode ini');
             $r = 4;
         } else {
-            $sheet->setCellValue("D{$r}", 'TOTAL');
-            $sheet->setCellValue("F{$r}", $totalSpj);
-            $sheet->getStyle("F{$r}")->getNumberFormat()->setFormatCode('"Rp" #,##0');
-            $sheet->getStyle("D{$r}:F{$r}")->applyFromArray(['font' => ['bold' => true], 'borders' => ['top' => ['borderStyle' => \PhpOffice\PhpSpreadsheet\Style\Border::BORDER_THIN]]]);
+            $sheet->setCellValue("F{$r}", 'TOTAL');
+            $sheet->setCellValue("AE{$r}", $totalSpjSum);
+            $sheet->setCellValue("AF{$r}", $totalTaktisSum);
+            $sheet->getStyle("AE{$r}")->getNumberFormat()->setFormatCode('"Rp" #,##0');
+            $sheet->getStyle("AF{$r}")->getNumberFormat()->setFormatCode('"Rp" #,##0');
+            $sheet->getStyle("F{$r}:AG{$r}")->applyFromArray([
+                'font' => ['bold' => true],
+                'borders' => ['top' => ['borderStyle' => \PhpOffice\PhpSpreadsheet\Style\Border::BORDER_THIN]]
+            ]);
         }
 
         $sheet->getColumnDimension('A')->setWidth(6);
-        foreach (['B', 'C', 'D', 'E', 'F'] as $c) $sheet->getColumnDimension($c)->setWidth(22);
+        $sheet->getColumnDimension('B')->setWidth(30);
+        $sheet->getColumnDimension('C')->setWidth(25);
+        $sheet->getColumnDimension('D')->setWidth(22);
+        $sheet->getColumnDimension('E')->setWidth(15);
+        $sheet->getColumnDimension('F')->setWidth(25);
+        foreach (['G', 'H', 'I', 'J', 'K', 'L'] as $c) $sheet->getColumnDimension($c)->setWidth(18);
+        foreach (['M', 'N', 'O', 'P', 'Q', 'R', 'S', 'T', 'U'] as $c) $sheet->getColumnDimension($c)->setWidth(16);
+        foreach (['V', 'W', 'X', 'Y', 'Z', 'AA', 'AB', 'AC', 'AD'] as $c) $sheet->getColumnDimension($c)->setWidth(16);
+        $sheet->getColumnDimension('AE')->setWidth(22);
+        $sheet->getColumnDimension('AF')->setWidth(16);
+        $sheet->getColumnDimension('AG')->setWidth(14);
         $sheet->freezePane('A3');
     }
 

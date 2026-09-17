@@ -73,7 +73,7 @@
                     class="relative p-2 rounded-lg text-slate-500 dark:text-slate-300 hover:bg-slate-100 dark:hover:bg-slate-700 transition">
               <?= iconsax('notification', 'w-5 h-5') ?>
               <?php if (($notifCount ?? 0) > 0): ?>
-              <span class="absolute top-1.5 right-1.5 w-2 h-2 rounded-full bg-red-500 ring-2 ring-white dark:ring-slate-800"></span>
+              <span class="absolute top-1.5 right-1.5 w-2 h-2 rounded-full bg-rose-400 ring-2 ring-white dark:ring-slate-800"></span>
               <?php endif; ?>
             </button>
             <div id="notif-dropdown" class="hidden absolute right-0 top-full mt-2 w-80 max-w-[90vw] bg-white dark:bg-slate-800 rounded-xl shadow-lift border border-slate-200 dark:border-slate-700 overflow-hidden">

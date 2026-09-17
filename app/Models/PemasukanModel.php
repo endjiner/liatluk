@@ -13,7 +13,8 @@ class PemasukanModel extends Model
     protected $useSoftDeletes = false;
     protected $allowedFields = [
         'tanggal', 'kategori', 'jumlah', 'jumlah_diterima',
-        'status_dana', 'sumber', 'keterangan', 'file_bukti', 'catatan_internal', 'dari_tandai_lunas'
+        'status_dana', 'sumber', 'keterangan', 'file_bukti', 'catatan_internal', 'dari_tandai_lunas',
+        'perjalanan_dinas_id', 'perjalanan_dinas_peserta_id', 'no_surat_tugas', 'kode_mak', 'no_spm'
     ];
     protected $useTimestamps = true;
 
@@ -103,14 +104,21 @@ class PemasukanModel extends Model
      *  jadi terasa tidak menyaring apa-apa. Query 3+ huruf tetap dicari di semua field. */
     private function applyPencarian($builder, ?string $search)
     {
-        if (empty($search)) return $builder;
-        if (mb_strlen($search) < 3) {
-            return $builder->like('sumber', $search);
+        $search = trim((string)$search);
+        if ($search === '') return $builder;
+        if (mb_strlen($search) < 4) {
+            return $builder->groupStart()
+                ->like('sumber', $search)
+                ->orLike('kode_mak', $search)
+                ->orLike('no_surat_tugas', $search)
+                ->groupEnd();
         }
         return $builder->groupStart()
             ->like('kategori', $search)
             ->orLike('sumber', $search)
             ->orLike('keterangan', $search)
+            ->orLike('kode_mak', $search)
+            ->orLike('no_surat_tugas', $search)
             ->groupEnd();
     }
 
