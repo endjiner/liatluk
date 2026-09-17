@@ -5,6 +5,7 @@ namespace App\Controllers\Admin;
 use App\Controllers\BaseController;
 use App\Models\PengaturanModel;
 use App\Models\NotifikasiModel;
+use App\Models\AdminAkunModel;
 
 class Pengaturan extends BaseController
 {
@@ -20,9 +21,15 @@ class Pengaturan extends BaseController
     public function index(): string
     {
         $notifCount = $this->notifikasiModel->countUnread();
+        $daftarAkun = array_map(function ($a) {
+            unset($a['password']);
+            return $a;
+        }, (new AdminAkunModel())->getAllAkun());
+
         return view('admin/pengaturan', [
             'setting'    => $this->pengaturanModel->getSetting(),
             'notifCount' => $notifCount,
+            'daftarAkun' => $daftarAkun,
         ]);
     }
 
@@ -45,32 +52,7 @@ class Pengaturan extends BaseController
             'notif_transaksi_besar' => $this->request->getPost('notif_transaksi_besar') ? 1 : 0,
         ];
 
-        // Update username/password jika benar-benar berubah — aksi kritikal, wajib verifikasi password saat ini
-        $newUsername = $this->request->getPost('admin_username');
-        $newPassword = $this->request->getPost('admin_password');
-        $currentPassword = $this->request->getPost('current_password');
-        $existing = $this->pengaturanModel->getSetting();
-        $usernameBerubah = !empty($newUsername) && $newUsername !== ($existing['admin_username'] ?? '');
-
-        if ($usernameBerubah || !empty($newPassword)) {
-            $currentUsername = session()->get('admin_username');
-            if (empty($currentPassword) || !$this->pengaturanModel->verifyAdmin($currentUsername, $currentPassword)) {
-                return redirect()->back()->with('error', 'Password saat ini salah — perubahan username/password dibatalkan.');
-            }
-            if ($usernameBerubah) {
-                $data['admin_username'] = $newUsername;
-            }
-            if (!empty($newPassword)) {
-                $data['admin_password'] = password_hash($newPassword, PASSWORD_BCRYPT);
-            }
-        }
-
         $this->pengaturanModel->updateSetting($data);
-
-        // Update session username jika berubah
-        if ($usernameBerubah) {
-            session()->set('admin_username', $newUsername);
-        }
 
         return redirect()->back()->with('success', 'Pengaturan berhasil disimpan.');
     }

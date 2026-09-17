@@ -20,31 +20,16 @@ $routes->post('/login', 'Auth::doLogin');
 $routes->get('/logout', 'Auth::logout');
 
 // ── ADMIN ROUTES (protected by auth filter) ───────────────────────────────────
+// Role 'admin' (terbatas) hanya boleh mengelola Perjalanan Dinas & Dana Taktis;
+// 'super_admin' bisa semua. Rute yang harus super_admin dikelompokkan lagi di
+// bawah filter 'superadmin' (ditumpuk di atas 'auth' — lihat SuperAdminFilter).
 $routes->group('admin', ['filter' => 'auth'], function ($routes) {
 
-    // Dashboard
+    // Dashboard (kedua role — kontennya menyesuaikan role di controller/view)
     $routes->get('/', 'Admin\Dashboard::index');
     $routes->get('dashboard', 'Admin\Dashboard::index');
-    $routes->get('dashboard/kpi-periode', 'Admin\Dashboard::kpiPeriode');
-    $routes->get('dashboard/chart-tren', 'Admin\Dashboard::chartTren');
 
-    // Data Keuangan
-    $routes->get('keuangan', 'Admin\DataKeuangan::index');
-    $routes->get('keuangan/ajax', 'Admin\DataKeuangan::ajaxList');
-    $routes->post('keuangan/pemasukan', 'Admin\DataKeuangan::storePemasukan');
-    $routes->post('keuangan/pemasukan/update/(:num)', 'Admin\DataKeuangan::updatePemasukan/$1');
-    $routes->post('keuangan/pemasukan/delete/(:num)', 'Admin\DataKeuangan::deletePemasukan/$1');
-    $routes->post('keuangan/pemasukan/status/(:num)', 'Admin\DataKeuangan::updateStatusDana/$1');
-    $routes->post('keuangan/pengeluaran', 'Admin\DataKeuangan::storePengeluaran');
-    $routes->post('keuangan/pengeluaran/update/(:num)', 'Admin\DataKeuangan::updatePengeluaran/$1');
-    $routes->post('keuangan/pengeluaran/delete/(:num)', 'Admin\DataKeuangan::deletePengeluaran/$1');
-    $routes->post('keuangan/bulk-delete', 'Admin\DataKeuangan::bulkDelete');
-    $routes->post('keuangan/import', 'Admin\DataKeuangan::import');
-    $routes->post('keuangan/import-csv', 'Admin\DataKeuangan::importCsv'); // alias lama
-    $routes->get('keuangan/template-universal-csv', 'Admin\DataKeuangan::downloadTemplateUniversalCsv');
-    $routes->get('keuangan/template-universal-excel', 'Admin\DataKeuangan::downloadTemplateUniversalExcel');
-
-    // Perjalanan Dinas (rekap SPJ & Dana Taktis)
+    // Perjalanan Dinas (rekap SPJ & Dana Taktis) + Kelola Pegawai — kedua role
     $routes->get('perjalanan-dinas', 'Admin\PerjalananDinas::index');
     $routes->get('perjalanan-dinas/ajax', 'Admin\PerjalananDinas::ajaxList');
     $routes->post('perjalanan-dinas', 'Admin\PerjalananDinas::store');
@@ -63,29 +48,62 @@ $routes->group('admin', ['filter' => 'auth'], function ($routes) {
     $routes->post('perjalanan-dinas/pegawai/delete/(:num)', 'Admin\PerjalananDinas::pegawaiDelete/$1');
     $routes->post('perjalanan-dinas/pegawai/nonaktifkan/(:num)', 'Admin\PerjalananDinas::pegawaiNonaktifkan/$1');
 
-    // Rencana Keuangan
-    $routes->get('rencana', 'Admin\RencanaKeuangan::index');
-    $routes->post('rencana/pemasukan', 'Admin\RencanaKeuangan::storeRencanaPemasukan');
-    $routes->post('rencana/pemasukan/update/(:num)', 'Admin\RencanaKeuangan::updateRencanaPemasukan/$1');
-    $routes->post('rencana/pemasukan/delete/(:num)', 'Admin\RencanaKeuangan::deleteRencanaPemasukan/$1');
-    $routes->post('rencana/pemasukan/realisasi/(:num)', 'Admin\RencanaKeuangan::realisasiPemasukan/$1');
-    $routes->post('rencana/pengeluaran', 'Admin\RencanaKeuangan::storeRencanaPengeluaran');
-    $routes->post('rencana/pengeluaran/update/(:num)', 'Admin\RencanaKeuangan::updateRencanaPengeluaran/$1');
-    $routes->post('rencana/pengeluaran/delete/(:num)', 'Admin\RencanaKeuangan::deleteRencanaPengeluaran/$1');
-    $routes->post('rencana/pengeluaran/realisasi/(:num)', 'Admin\RencanaKeuangan::realisasiPengeluaran/$1');
-
-    // Laporan
-    $routes->get('laporan', 'Admin\Laporan::index');
-    $routes->get('laporan/export-pdf', 'Admin\Laporan::exportPdf');
-    $routes->get('laporan/export-excel', 'Admin\Laporan::exportExcel');
-
-    // Pengaturan
-    $routes->get('pengaturan', 'Admin\Pengaturan::index');
-    $routes->post('pengaturan', 'Admin\Pengaturan::update');
-
-    // Notifikasi
+    // Notifikasi (kedua role)
     $routes->get('notifikasi', 'Admin\Notifikasi::getUnread'); // AJAX dropdown
     $routes->get('notifikasi/semua', 'Admin\Notifikasi::index'); // halaman penuh + filter
     $routes->post('notifikasi/read/(:num)', 'Admin\Notifikasi::markRead/$1');
     $routes->post('notifikasi/read-all', 'Admin\Notifikasi::markAllRead');
+
+    // Akun sendiri (kedua role — ganti password sendiri)
+    $routes->post('ganti-password', 'Admin\Akun::gantiPasswordSaya');
+
+    // ── Fitur khusus Super Admin ───────────────────────────────────────────
+    $routes->group('', ['filter' => 'superadmin'], function ($routes) {
+
+        // Dashboard: AJAX finansial (KPI period-picker & chart arus kas)
+        $routes->get('dashboard/kpi-periode', 'Admin\Dashboard::kpiPeriode');
+        $routes->get('dashboard/chart-tren', 'Admin\Dashboard::chartTren');
+
+        // Data Keuangan
+        $routes->get('keuangan', 'Admin\DataKeuangan::index');
+        $routes->get('keuangan/ajax', 'Admin\DataKeuangan::ajaxList');
+        $routes->post('keuangan/pemasukan', 'Admin\DataKeuangan::storePemasukan');
+        $routes->post('keuangan/pemasukan/update/(:num)', 'Admin\DataKeuangan::updatePemasukan/$1');
+        $routes->post('keuangan/pemasukan/delete/(:num)', 'Admin\DataKeuangan::deletePemasukan/$1');
+        $routes->post('keuangan/pemasukan/status/(:num)', 'Admin\DataKeuangan::updateStatusDana/$1');
+        $routes->post('keuangan/pengeluaran', 'Admin\DataKeuangan::storePengeluaran');
+        $routes->post('keuangan/pengeluaran/update/(:num)', 'Admin\DataKeuangan::updatePengeluaran/$1');
+        $routes->post('keuangan/pengeluaran/delete/(:num)', 'Admin\DataKeuangan::deletePengeluaran/$1');
+        $routes->post('keuangan/bulk-delete', 'Admin\DataKeuangan::bulkDelete');
+        $routes->post('keuangan/import', 'Admin\DataKeuangan::import');
+        $routes->post('keuangan/import-csv', 'Admin\DataKeuangan::importCsv'); // alias lama
+        $routes->get('keuangan/template-universal-csv', 'Admin\DataKeuangan::downloadTemplateUniversalCsv');
+        $routes->get('keuangan/template-universal-excel', 'Admin\DataKeuangan::downloadTemplateUniversalExcel');
+
+        // Rencana Keuangan
+        $routes->get('rencana', 'Admin\RencanaKeuangan::index');
+        $routes->post('rencana/pemasukan', 'Admin\RencanaKeuangan::storeRencanaPemasukan');
+        $routes->post('rencana/pemasukan/update/(:num)', 'Admin\RencanaKeuangan::updateRencanaPemasukan/$1');
+        $routes->post('rencana/pemasukan/delete/(:num)', 'Admin\RencanaKeuangan::deleteRencanaPemasukan/$1');
+        $routes->post('rencana/pemasukan/realisasi/(:num)', 'Admin\RencanaKeuangan::realisasiPemasukan/$1');
+        $routes->post('rencana/pengeluaran', 'Admin\RencanaKeuangan::storeRencanaPengeluaran');
+        $routes->post('rencana/pengeluaran/update/(:num)', 'Admin\RencanaKeuangan::updateRencanaPengeluaran/$1');
+        $routes->post('rencana/pengeluaran/delete/(:num)', 'Admin\RencanaKeuangan::deleteRencanaPengeluaran/$1');
+        $routes->post('rencana/pengeluaran/realisasi/(:num)', 'Admin\RencanaKeuangan::realisasiPengeluaran/$1');
+
+        // Laporan
+        $routes->get('laporan', 'Admin\Laporan::index');
+        $routes->get('laporan/export-pdf', 'Admin\Laporan::exportPdf');
+        $routes->get('laporan/export-excel', 'Admin\Laporan::exportExcel');
+
+        // Pengaturan
+        $routes->get('pengaturan', 'Admin\Pengaturan::index');
+        $routes->post('pengaturan', 'Admin\Pengaturan::update');
+
+        // Kelola Akun Admin
+        $routes->get('admin-akun', 'Admin\AdminAkun::list');
+        $routes->post('admin-akun', 'Admin\AdminAkun::store');
+        $routes->post('admin-akun/update/(:num)', 'Admin\AdminAkun::update/$1');
+        $routes->post('admin-akun/toggle-aktif/(:num)', 'Admin\AdminAkun::toggleAktif/$1');
+    });
 });

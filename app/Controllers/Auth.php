@@ -2,7 +2,7 @@
 
 namespace App\Controllers;
 
-use App\Models\PengaturanModel;
+use App\Models\AdminAkunModel;
 
 class Auth extends BaseController
 {
@@ -42,16 +42,19 @@ class Auth extends BaseController
             return redirect()->back()->with('error', 'Terlalu banyak percobaan login. Coba lagi dalam beberapa menit.')->withInput();
         }
 
-        $pengaturanModel = new PengaturanModel();
+        $adminAkunModel = new AdminAkunModel();
+        $akun = $adminAkunModel->verifyLogin($username, $password);
 
-        if ($pengaturanModel->verifyAdmin($username, $password)) {
+        if ($akun !== false) {
             $throttler->remove('login_ip_' . $ip)->remove('login_user_' . $userKey);
             session()->regenerate(true);
             session()->set([
                 'is_admin'       => true,
-                'admin_username' => $username,
+                'admin_id'       => $akun['id'],
+                'admin_username' => $akun['username'],
+                'admin_role'     => $akun['role'],
             ]);
-            return redirect()->to('/admin')->with('success', 'Selamat datang kembali, ' . $username . '!');
+            return redirect()->to('/admin')->with('success', 'Selamat datang kembali, ' . $akun['username'] . '!');
         }
 
         return redirect()->back()->with('error', 'Username atau password yang Anda masukkan salah.')->withInput();

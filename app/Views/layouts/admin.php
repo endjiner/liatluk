@@ -23,11 +23,13 @@
 <div class="min-h-screen flex flex-col">
 
   <?php
+    $isSuperAdminLayout = session()->get('admin_role') === 'super_admin';
     $navLinks = [
       ['url' => 'admin',           'label' => 'Dashboard',        'icon' => 'category2', 'match' => ['admin', 'admin/dashboard']],
-      ['url' => 'admin/rencana',   'label' => 'Rencana Keuangan', 'icon' => 'calendar-tick', 'match' => ['rencana']],
-      ['url' => 'admin/laporan',   'label' => 'Laporan',          'icon' => 'document-text', 'match' => ['laporan']],
+      ['url' => 'admin/rencana',   'label' => 'Rencana Keuangan', 'icon' => 'calendar-tick', 'match' => ['rencana'], 'superadmin' => true],
+      ['url' => 'admin/laporan',   'label' => 'Laporan',          'icon' => 'document-text', 'match' => ['laporan'], 'superadmin' => true],
     ];
+    $navLinks = array_values(array_filter($navLinks, fn($nl) => empty($nl['superadmin']) || $isSuperAdminLayout));
     $isNavActive = function ($nl) {
       foreach ($nl['match'] as $m) { if (str_contains(current_url(), $m)) return true; }
       return false;
@@ -110,12 +112,19 @@
                 </div>
                 <div class="min-w-0 flex-1">
                   <div class="text-sm font-semibold truncate"><?= esc(session()->get('admin_username') ?? 'Administrator') ?></div>
-                  <div class="text-[11px] text-slate-500 dark:text-slate-400">Administrator</div>
+                  <div class="text-[11px] text-slate-500 dark:text-slate-400">
+                    <?= $isSuperAdminLayout ? 'Super Admin' : 'Admin' ?>
+                  </div>
                 </div>
               </div>
+              <button type="button" onclick="openModal('modal-ganti-password')" class="w-full text-left flex items-center gap-3 px-4 py-2.5 text-sm text-slate-700 dark:text-slate-200 hover:bg-slate-100 dark:hover:bg-slate-700">
+                <?= iconsax('lock-1', 'w-4 h-4') ?> Ganti Password
+              </button>
+              <?php if ($isSuperAdminLayout): ?>
               <a href="<?= base_url('admin/pengaturan') ?>" class="flex items-center gap-3 px-4 py-2.5 text-sm text-slate-700 dark:text-slate-200 hover:bg-slate-100 dark:hover:bg-slate-700">
                 <?= iconsax('setting-2', 'w-4 h-4') ?> Pengaturan
               </a>
+              <?php endif; ?>
               <a href="<?= base_url('/') ?>" target="_blank" class="flex items-center gap-3 px-4 py-2.5 text-sm text-slate-700 dark:text-slate-200 hover:bg-slate-100 dark:hover:bg-slate-700">
                 <?= iconsax('global', 'w-4 h-4') ?> Lihat Publik
               </a>
@@ -198,6 +207,58 @@
           <?= iconsax('logout', '') ?> Ya, Keluar
         </a>
       </div>
+    </div>
+  </div>
+</div>
+
+<!-- ═══════════ MODAL: GANTI PASSWORD SAYA (kedua role) ═══════════ -->
+<div id="modal-ganti-password" class="hidden">
+  <div class="modal-backdrop" onclick="closeModal('modal-ganti-password')"></div>
+  <div class="modal-container">
+    <div class="modal-box modal-box-sm">
+      <form action="<?= base_url('admin/ganti-password') ?>" method="POST">
+        <?= csrf_field() ?>
+        <div class="modal-header">
+          <div class="flex items-start gap-3">
+            <div class="w-10 h-10 shrink-0 rounded-full bg-primary-100 dark:bg-primary-900/40 text-primary-600 dark:text-primary-400 flex items-center justify-center">
+              <?= iconsax('lock-1', 'w-5 h-5') ?>
+            </div>
+            <div>
+              <h3 class="text-base font-semibold text-slate-800 dark:text-slate-100">Ganti Password</h3>
+              <p class="text-sm text-slate-500 dark:text-slate-400 mt-0.5">Untuk akun Anda sendiri</p>
+            </div>
+          </div>
+        </div>
+        <div class="modal-body space-y-4">
+          <div>
+            <label class="form-label">Password Saat Ini <span class="text-red-500">*</span></label>
+            <div class="relative">
+              <input type="password" name="current_password" id="gp-current-password" class="form-control pr-10" required autocomplete="current-password">
+              <button type="button" onclick="togglePasswordVisibility('gp-current-password', this)" tabindex="-1"
+                      class="absolute inset-y-0 right-2 flex items-center px-2 text-slate-400 hover:text-slate-600 dark:hover:text-slate-200">
+                <?= iconsax('eye', 'w-4 h-4') ?>
+              </button>
+            </div>
+          </div>
+          <div>
+            <label class="form-label">Password Baru <span class="text-red-500">*</span></label>
+            <div class="relative">
+              <input type="password" name="new_password" id="gp-new-password" class="form-control pr-10" required minlength="6" autocomplete="new-password">
+              <button type="button" onclick="togglePasswordVisibility('gp-new-password', this)" tabindex="-1"
+                      class="absolute inset-y-0 right-2 flex items-center px-2 text-slate-400 hover:text-slate-600 dark:hover:text-slate-200">
+                <?= iconsax('eye', 'w-4 h-4') ?>
+              </button>
+            </div>
+            <p class="form-hint">Minimal 6 karakter.</p>
+          </div>
+        </div>
+        <div class="modal-footer">
+          <button type="button" class="btn btn-ghost" onclick="closeModal('modal-ganti-password')">Batal</button>
+          <button type="submit" class="btn btn-primary">
+            <?= iconsax('save-2', '') ?> Simpan
+          </button>
+        </div>
+      </form>
     </div>
   </div>
 </div>

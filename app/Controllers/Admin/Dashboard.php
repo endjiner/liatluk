@@ -17,90 +17,87 @@ class Dashboard extends BaseController
 {
     public function index(): string
     {
-        $pemasukanModel      = new PemasukanModel();
-        $pengeluaranModel    = new PengeluaranModel();
-        $rencanaPemasukan    = new RencanaPemasukanModel();
-        $rencanaPengeluaran  = new RencanaPengeluaranModel();
-        $pengaturanModel     = new PengaturanModel();
-        $notifikasiModel     = new NotifikasiModel();
+        $notifikasiModel = new NotifikasiModel();
+        $isSuperAdmin    = session()->get('admin_role') === 'super_admin';
 
-        $setting  = $pengaturanModel->getSetting();
+        // Data Dana Taktis/Perjadin dibutuhkan kedua role
+        $data = [
+            'isSuperAdmin'           => $isSuperAdmin,
+            'danaTaktisBelumDisetor' => (new PerjalananDinasPesertaModel())->getBelumDibayarSummary(),
+            'notifCount'             => $notifikasiModel->countUnread(),
+            'pegawaiList'            => (new PegawaiModel())->getAktifList(),
+            'tahunListPerjadin'      => (new PerjalananDinasModel())->getAvailableYears(),
+        ];
 
-        $bulan = (int)date('m');
-        $tahun = (int)date('Y');
+        // Data finansial (Transaksi/Rencana Keuangan) hanya dihitung & dikirim untuk
+        // super_admin — role 'admin' terbatas tidak boleh melihat angka ini sama sekali,
+        // bukan cuma disembunyikan di tampilan.
+        if ($isSuperAdmin) {
+            $pemasukanModel     = new PemasukanModel();
+            $pengeluaranModel   = new PengeluaranModel();
+            $rencanaPemasukan   = new RencanaPemasukanModel();
+            $rencanaPengeluaran = new RencanaPengeluaranModel();
+            $pengaturanModel    = new PengaturanModel();
 
-        $totalPemasukan      = $pemasukanModel->getTotalDiterima();
-        $totalPengeluaran    = $pengeluaranModel->getTotalPengeluaran();
-        $saldoAkhir          = $totalPemasukan - $totalPengeluaran;
-        $pemasukanTahunIni   = $pemasukanModel->getTotalDiterima(null, $tahun);
-        $pengeluaranTahunIni = $pengeluaranModel->getTotalPengeluaran(null, $tahun);
-        $pemasukanBulanIni   = $pemasukanModel->getTotalDiterima($bulan, $tahun);
-        $pengeluaranBulanIni = $pengeluaranModel->getTotalPengeluaran($bulan, $tahun);
-        $rasio               = $totalPemasukan > 0 ? round(($totalPengeluaran / $totalPemasukan) * 100, 1) : 0;
+            $setting = $pengaturanModel->getSetting();
+            $bulan   = (int)date('m');
+            $tahun   = (int)date('Y');
 
-        // Chart data
-        $pBulan = $pemasukanModel->getDataPerBulan($tahun);
-        $eBulan = $pengeluaranModel->getDataPerBulan($tahun);
-        $chartPemasukan  = array_fill(0, 12, 0);
-        $chartPengeluaran = array_fill(0, 12, 0);
-        foreach ($pBulan as $row) $chartPemasukan[(int)$row['bulan'] - 1] = (float)$row['total'];
-        foreach ($eBulan as $row) $chartPengeluaran[(int)$row['bulan'] - 1] = (float)$row['total'];
+            $totalPemasukan   = $pemasukanModel->getTotalDiterima();
+            $totalPengeluaran = $pengeluaranModel->getTotalPengeluaran();
+            $saldoAkhir       = $totalPemasukan - $totalPengeluaran;
 
-        // Pie chart kategori pengeluaran
-        $pieData = $pengeluaranModel->getDataPerKategori(null, $tahun);
+            $pBulan = $pemasukanModel->getDataPerBulan($tahun);
+            $eBulan = $pengeluaranModel->getDataPerBulan($tahun);
+            $chartPemasukan   = array_fill(0, 12, 0);
+            $chartPengeluaran = array_fill(0, 12, 0);
+            foreach ($pBulan as $row) $chartPemasukan[(int)$row['bulan'] - 1] = (float)$row['total'];
+            foreach ($eBulan as $row) $chartPengeluaran[(int)$row['bulan'] - 1] = (float)$row['total'];
 
-        // Nilai untuk kartu peringatan (hanya tampil jika nilainya > 0, lihat view)
-        $danaBelumDiterima = $pemasukanModel->getTotalBelumDiterima();
-        $totalRencanaPemasukan = $rencanaPemasukan->getTotalRencana();
-        $totalRencanaPengeluaran = $rencanaPengeluaran->getTotalRencana();
-        $danaTaktisBelumDisetor = (new PerjalananDinasPesertaModel())->getBelumDibayarSummary();
+            $totalRencanaPemasukan   = $rencanaPemasukan->getTotalRencana();
+            $totalRencanaPengeluaran = $rencanaPengeluaran->getTotalRencana();
 
-        // Rencana aktif mendatang
-        $rencanaAktif = array_merge(
-            array_map(fn($r) => array_merge($r, ['tipe' => 'pemasukan']), $rencanaPemasukan->getAktif()),
-            array_map(fn($r) => array_merge($r, ['tipe' => 'pengeluaran']), $rencanaPengeluaran->getAktif())
-        );
-        usort($rencanaAktif, fn($a, $b) => strtotime($a['tanggal_rencana']) - strtotime($b['tanggal_rencana']));
-        $rencanaAktif = array_slice($rencanaAktif, 0, 5);
+            $rencanaAktif = array_merge(
+                array_map(fn($r) => array_merge($r, ['tipe' => 'pemasukan']), $rencanaPemasukan->getAktif()),
+                array_map(fn($r) => array_merge($r, ['tipe' => 'pengeluaran']), $rencanaPengeluaran->getAktif())
+            );
+            usort($rencanaAktif, fn($a, $b) => strtotime($a['tanggal_rencana']) - strtotime($b['tanggal_rencana']));
+            $rencanaAktif = array_slice($rencanaAktif, 0, 5);
 
-        // Notifikasi
-        $notifCount = $notifikasiModel->countUnread();
+            $data += [
+                'saldoAkhir'          => $saldoAkhir,
+                'totalPemasukan'      => $totalPemasukan,
+                'totalPengeluaran'    => $totalPengeluaran,
+                'pemasukanTahunIni'   => $pemasukanModel->getTotalDiterima(null, $tahun),
+                'pengeluaranTahunIni' => $pengeluaranModel->getTotalPengeluaran(null, $tahun),
+                'pemasukanBulanIni'   => $pemasukanModel->getTotalDiterima($bulan, $tahun),
+                'pengeluaranBulanIni' => $pengeluaranModel->getTotalPengeluaran($bulan, $tahun),
+                'rasio'               => $totalPemasukan > 0 ? round(($totalPengeluaran / $totalPemasukan) * 100, 1) : 0,
+                'chartPemasukan'      => json_encode($chartPemasukan),
+                'chartPengeluaran'    => json_encode($chartPengeluaran),
+                'pieData'             => json_encode($pengeluaranModel->getDataPerKategori(null, $tahun)),
+                'rencanaAktif'        => $rencanaAktif,
+                'danaBelumDiterima'       => $pemasukanModel->getTotalBelumDiterima(),
+                'totalRencanaPemasukan'   => $totalRencanaPemasukan,
+                'totalRencanaPengeluaran' => $totalRencanaPengeluaran,
+            ];
 
-        // Cek threshold
-        if ($setting && $saldoAkhir < (float)$setting['threshold_notif'] && $setting['notif_saldo_rendah']) {
-            if ($notifikasiModel->where('tipe', 'saldo_rendah')->where('is_read', 0)->countAllResults() === 0) {
-                $notifikasiModel->tambahNotifikasi(
-                    'Perhatian: Saldo kas mendekati batas minimum (Rp ' . number_format($setting['threshold_notif'], 0, ',', '.') . ')',
-                    'saldo_rendah',
-                    'sistem'
-                );
+            // Cek threshold saldo rendah
+            if ($setting && $saldoAkhir < (float)$setting['threshold_notif'] && $setting['notif_saldo_rendah']) {
+                if ($notifikasiModel->where('tipe', 'saldo_rendah')->where('is_read', 0)->countAllResults() === 0) {
+                    $notifikasiModel->tambahNotifikasi(
+                        'Perhatian: Saldo kas mendekati batas minimum (Rp ' . number_format($setting['threshold_notif'], 0, ',', '.') . ')',
+                        'saldo_rendah',
+                        'sistem'
+                    );
+                }
             }
+
+            // Pengingat rencana keuangan yang akan jatuh tempo dalam 3 hari ke depan
+            $this->cekPengingatRencana($rencanaPemasukan, $rencanaPengeluaran, $notifikasiModel);
         }
 
-        // Pengingat rencana keuangan yang akan jatuh tempo dalam 3 hari ke depan
-        $this->cekPengingatRencana($rencanaPemasukan, $rencanaPengeluaran, $notifikasiModel);
-
-        return view('admin/dashboard', [
-            'saldoAkhir'          => $saldoAkhir,
-            'totalPemasukan'      => $totalPemasukan,
-            'totalPengeluaran'    => $totalPengeluaran,
-            'pemasukanTahunIni'   => $pemasukanTahunIni,
-            'pengeluaranTahunIni' => $pengeluaranTahunIni,
-            'pemasukanBulanIni'   => $pemasukanBulanIni,
-            'pengeluaranBulanIni' => $pengeluaranBulanIni,
-            'rasio'               => $rasio,
-            'chartPemasukan'      => json_encode($chartPemasukan),
-            'chartPengeluaran'    => json_encode($chartPengeluaran),
-            'pieData'             => json_encode($pieData),
-            'rencanaAktif'        => $rencanaAktif,
-            'danaBelumDiterima'   => $danaBelumDiterima,
-            'totalRencanaPemasukan'   => $totalRencanaPemasukan,
-            'totalRencanaPengeluaran' => $totalRencanaPengeluaran,
-            'danaTaktisBelumDisetor'  => $danaTaktisBelumDisetor,
-            'notifCount'          => $notifCount,
-            'pegawaiList'         => (new PegawaiModel())->getAktifList(),
-            'tahunListPerjadin'   => (new PerjalananDinasModel())->getAvailableYears(),
-        ]);
+        return view('admin/dashboard', $data);
     }
 
     /**

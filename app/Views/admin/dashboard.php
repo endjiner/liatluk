@@ -14,14 +14,17 @@ $tahunOpsi = range($tahunSekarang, $tahunSekarang - 5);
     <h1 class="text-xl lg:text-2xl font-bold text-slate-800 dark:text-slate-100">Dashboard</h1>
     <p class="text-sm text-slate-500 dark:text-slate-400 mt-1">Ringkasan pengelolaan keuangan internal</p>
   </div>
+  <?php if ($isSuperAdmin): ?>
   <button onclick="openMainDrawer()" class="btn btn-primary">
     <?= iconsax('add', '') ?> <span class="hidden sm:inline">Input Baru</span>
   </button>
+  <?php endif; ?>
 </div>
 
 <!-- KPI Cards: 4 kartu sejajar (2 kolom di mobile, 4 kolom di desktop) -->
-<div class="grid grid-cols-2 lg:grid-cols-4 gap-2.5 sm:gap-3 mb-6">
+<div class="grid <?= $isSuperAdmin ? 'grid-cols-2 lg:grid-cols-4' : 'grid-cols-1 sm:max-w-sm' ?> gap-2.5 sm:gap-3 mb-6">
 
+  <?php if ($isSuperAdmin): ?>
   <!-- Saldo Akhir -->
   <div class="kpi p-3 sm:p-5">
     <div class="kpi-label">
@@ -34,6 +37,7 @@ $tahunOpsi = range($tahunSekarang, $tahunSekarang - 5);
       Total pemasukan − pengeluaran keseluruhan
     </div>
   </div>
+  <?php endif; ?>
 
   <!-- Dana Taktis Belum Dibayar -->
   <div class="kpi p-3 sm:p-5 bg-amber-50/70 dark:bg-amber-900/20">
@@ -49,6 +53,7 @@ $tahunOpsi = range($tahunSekarang, $tahunSekarang - 5);
     </div>
   </div>
 
+  <?php if ($isSuperAdmin): ?>
   <!-- Total Pemasukan dengan period picker -->
   <div class="kpi p-3 sm:p-5" data-kpi="pemasukan">
     <div class="flex items-start justify-between gap-2">
@@ -74,9 +79,11 @@ $tahunOpsi = range($tahunSekarang, $tahunSekarang - 5);
     </div>
     <?= view('admin/_partials/kpi_period_picker', ['id' => 'pengeluaran']) ?>
   </div>
+  <?php endif; ?>
 
 </div>
 
+<?php if ($isSuperAdmin): ?>
 <!-- Kartu Tambahan (dinamis, hanya muncul kalau nilainya > 0; style disamakan dengan KPI di atas) -->
 <?php
   $extraCards = [];
@@ -174,13 +181,16 @@ $tahunOpsi = range($tahunSekarang, $tahunSekarang - 5);
   </div>
 </div>
 <?php endif; ?>
+<?php endif; // isSuperAdmin (Kartu Tambahan + Charts + Rencana ringkas) ?>
 
 <!-- Tab: Transaksi Keuangan / Perjalanan Dinas / Dana Taktis -->
 <div id="segment-tabs" class="segment w-full scroll-mt-24">
+  <?php if ($isSuperAdmin): ?>
   <button type="button" id="tab-btn-transaksi" class="segment-btn active flex-1 flex items-center justify-center gap-1.5" onclick="aktifkanTab('transaksi')">
     <?= iconsax('receipt-item', 'w-3.5 h-3.5 shrink-0') ?> <span class="truncate">Transaksi</span>
   </button>
-  <button type="button" id="tab-btn-perjadin" class="segment-btn flex-1 flex items-center justify-center gap-1.5" onclick="aktifkanTab('perjadin')">
+  <?php endif; ?>
+  <button type="button" id="tab-btn-perjadin" class="segment-btn <?= $isSuperAdmin ? '' : 'active' ?> flex-1 flex items-center justify-center gap-1.5" onclick="aktifkanTab('perjadin')">
     <?= iconsax('airplane', 'w-3.5 h-3.5 shrink-0') ?> <span class="truncate">Perjalanan Dinas</span>
   </button>
   <button type="button" id="tab-btn-dana-taktis" class="segment-btn flex-1 flex items-center justify-center gap-1.5" onclick="aktifkanTab('dana-taktis')">
@@ -188,11 +198,13 @@ $tahunOpsi = range($tahunSekarang, $tahunSekarang - 5);
   </button>
 </div>
 
+<?php if ($isSuperAdmin): ?>
 <div id="panel-transaksi" class="mt-4">
   <?= $this->include('admin/_partials/tab_transaksi') ?>
 </div>
+<?php endif; ?>
 
-<div id="panel-perjadin" class="mt-4 hidden">
+<div id="panel-perjadin" class="mt-4 <?= $isSuperAdmin ? 'hidden' : '' ?>">
   <?= $this->include('admin/_partials/tab_perjadin') ?>
 </div>
 
@@ -203,8 +215,8 @@ $tahunOpsi = range($tahunSekarang, $tahunSekarang - 5);
 <?= $this->endSection() ?>
 
 <?= $this->section('scripts') ?>
+<?php if ($isSuperAdmin): ?>
 <script>
-const ADMIN_BASE_URL = '<?= base_url() ?>';
 const ADMIN_CHART_TREN_URL = '<?= base_url('admin/dashboard/chart-tren') ?>';
 
 let chartArus, chartKat;
@@ -344,7 +356,10 @@ document.addEventListener('DOMContentLoaded', () => {
     }
   }
 })();
+</script>
+<?php endif; // isSuperAdmin (chart & KPI period-picker scripts) ?>
 
+<script>
 /* ── Tab: Transaksi Keuangan / Perjalanan Dinas / Dana Taktis ── */
 let perjadinSudahDimuat = false;
 let danaTaktisSudahDimuat = false;
@@ -385,6 +400,9 @@ window.scrollKeDanaTaktis = scrollKeDanaTaktis;
 document.addEventListener('DOMContentLoaded', () => {
   if (location.hash === '#perjadin') aktifkanTab('perjadin', true);
   else if (location.hash === '#dana-taktis') aktifkanTab('dana-taktis', true);
+  <?php if (!$isSuperAdmin): ?>
+  else aktifkanTab('perjadin');
+  <?php endif; ?>
 });
 </script>
 <?= $this->endSection() ?>
