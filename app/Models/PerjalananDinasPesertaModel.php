@@ -366,7 +366,8 @@ class PerjalananDinasPesertaModel extends Model
         $offset     = ($page - 1) * $perPage;
 
         $rows = $this->applyFilterPesertaTrip($filters, true)
-            ->orderBy('perjalanan_dinas.id', 'ASC')
+            ->orderBy('perjalanan_dinas_peserta.nama_peserta', 'ASC')
+            ->orderBy('perjalanan_dinas.tanggal_surat_tugas', 'ASC')
             ->orderBy('perjalanan_dinas_peserta.id', 'ASC')
             ->findAll($perPage, $offset);
 
