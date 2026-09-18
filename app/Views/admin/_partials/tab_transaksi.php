@@ -1,29 +1,17 @@
-<?= $this->extend('layouts/admin') ?>
-<?= $this->section('content') ?>
-
 <?php
 $namaBulan = [1=>'Januari',2=>'Februari',3=>'Maret',4=>'April',5=>'Mei',6=>'Juni',7=>'Juli',8=>'Agustus',9=>'September',10=>'Oktober',11=>'November',12=>'Desember'];
 $tahunSekarang = (int)date('Y');
-$tahunOpsi = range($tahunSekarang, $tahunSekarang - 5);
+$tahunOpsi = range($tahunSekarang, 2016);
 ?>
 
-<!-- Header -->
-<div class="mb-6 flex flex-wrap items-center justify-between gap-3">
-  <div>
-    <h1 class="text-xl lg:text-2xl font-bold text-slate-800 dark:text-slate-100">Data Keuangan</h1>
-    <p class="text-sm text-slate-500 dark:text-slate-400 mt-1">Kelola pemasukan & pengeluaran</p>
-  </div>
-  <div class="flex flex-wrap items-center gap-2">
-    <button onclick="openModal('modal-import')" class="btn btn-outline btn-sm">
-      <i data-lucide="upload"></i> <span class="hidden sm:inline">Import CSV</span>
-    </button>
-    <button onclick="openExportMenu()" class="btn btn-outline btn-sm">
-      <i data-lucide="download"></i> <span class="hidden sm:inline">Export</span>
-    </button>
-    <button onclick="openMainDrawer()" class="btn btn-primary btn-sm">
-      <i data-lucide="plus"></i> <span class="hidden sm:inline">Input Baru</span>
-    </button>
-  </div>
+<?php if ($isSuperAdmin): ?>
+<div class="mb-3 flex items-center justify-end gap-2">
+  <button onclick="openModal('modal-import')" class="btn btn-outline btn-sm">
+    <?= iconsax('document-upload', '') ?> Import CSV
+  </button>
+  <button onclick="openExportMenu()" class="btn btn-outline btn-sm">
+    <?= iconsax('document-download', '') ?> Export
+  </button>
 </div>
 
 <!-- Bulk action bar -->
@@ -34,63 +22,68 @@ $tahunOpsi = range($tahunSekarang, $tahunSekarang - 5);
   <div class="flex items-center gap-2">
     <button type="button" onclick="clearAllSelection()" class="btn btn-ghost btn-sm">Batal</button>
     <button type="button" onclick="openModal('modal-bulk-hapus')" class="btn btn-danger btn-sm">
-      <i data-lucide="trash-2"></i> Hapus Terpilih
+      <?= iconsax('trash', '') ?> Hapus Terpilih
     </button>
   </div>
 </div>
+<?php endif; ?>
 
 <!-- Tabel Gabungan -->
 <div class="card">
   <div class="card-header">
     <h3 class="text-sm font-semibold text-slate-700 dark:text-slate-200 flex items-center gap-2">
-      <i data-lucide="list" class="w-4 h-4"></i> Daftar Transaksi
+      <?= iconsax('task-square', 'w-4 h-4') ?> Daftar Transaksi
     </h3>
     <span class="text-xs text-slate-500">Total: <span id="txn-total">-</span></span>
   </div>
 
   <!-- Filter compact -->
-  <div class="p-3 border-b border-slate-200 dark:border-slate-700 bg-slate-50 dark:bg-slate-900/40">
+  <div class="p-3 border-b border-slate-200 dark:border-slate-700 bg-slate-50 dark:bg-slate-900/40 space-y-2">
+    <!-- Baris 1: Toggle tipe + Search -->
     <div class="flex flex-wrap items-center gap-2">
-      <!-- Tipe checkbox -->
-      <div class="flex items-center gap-3 pr-3 border-r border-slate-200 dark:border-slate-700">
-        <label class="inline-flex items-center gap-1.5 cursor-pointer text-xs">
-          <input type="checkbox" id="filter-pemasukan" checked class="form-checkbox text-emerald-600">
-          <span class="text-slate-700 dark:text-slate-300">Pemasukan</span>
-        </label>
-        <label class="inline-flex items-center gap-1.5 cursor-pointer text-xs">
-          <input type="checkbox" id="filter-pengeluaran" checked class="form-checkbox text-red-600">
-          <span class="text-slate-700 dark:text-slate-300">Pengeluaran</span>
-        </label>
+      <!-- Toggle tipe styled (sama persis dengan public) -->
+      <div class="flex items-center gap-1 p-0.5 bg-slate-200/70 dark:bg-slate-700/50 rounded-lg shrink-0">
+        <button type="button" id="adm-toggle-pemasukan"
+          onclick="admToggleTipeTxn('pemasukan')"
+          class="adm-txn-toggle inline-flex items-center gap-1.5 px-2.5 py-1 rounded-md text-xs font-medium transition-all bg-emerald-100 dark:bg-emerald-900/40 text-emerald-700 dark:text-emerald-300 shadow-sm">
+          <?= iconsax('trend-up', 'w-3 h-3') ?> Pemasukan
+        </button>
+        <button type="button" id="adm-toggle-pengeluaran"
+          onclick="admToggleTipeTxn('pengeluaran')"
+          class="adm-txn-toggle inline-flex items-center gap-1.5 px-2.5 py-1 rounded-md text-xs font-medium transition-all bg-red-100 dark:bg-red-900/40 text-red-700 dark:text-red-300 shadow-sm">
+          <?= iconsax('trend-down', 'w-3 h-3') ?> Pengeluaran
+        </button>
       </div>
-
+      <!-- Hidden checkboxes untuk kompatibilitas JS lama -->
+      <input type="checkbox" id="filter-pemasukan" checked class="hidden">
+      <input type="checkbox" id="filter-pengeluaran" checked class="hidden">
       <!-- Search -->
-      <div class="relative flex-1 min-w-[160px] max-w-xs">
+      <div class="relative flex-1 min-w-[200px]">
         <span class="absolute inset-y-0 left-3 flex items-center text-slate-400">
-          <i data-lucide="search" class="w-3.5 h-3.5"></i>
+          <?= iconsax('search-normal-1', 'w-3.5 h-3.5') ?>
         </span>
-        <input type="text" id="filter-search" placeholder="Cari kategori/keterangan..."
-               class="form-control form-control-sm pl-8">
+        <input type="text" id="filter-search" placeholder="Cari kategori, keterangan, MAK, no. ST..."
+               class="form-control form-control-sm pl-8 w-full">
       </div>
-
-      <!-- Bulan -->
-      <select id="filter-bulan" class="form-control form-control-sm w-auto">
-        <option value="">Semua Bulan</option>
-        <?php foreach ($namaBulan as $n => $nm): ?>
-        <option value="<?= $n ?>"><?= $nm ?></option>
-        <?php endforeach; ?>
-      </select>
-
-      <!-- Tahun -->
-      <select id="filter-tahun" class="form-control form-control-sm w-auto">
-        <option value="">Semua Tahun</option>
-        <?php foreach ($tahunOpsi as $t): ?>
-        <option value="<?= $t ?>"><?= $t ?></option>
-        <?php endforeach; ?>
-      </select>
-
-      <!-- Per page -->
-      <div class="flex items-center gap-1.5 pl-3 border-l border-slate-200 dark:border-slate-700">
-        <span class="text-xs text-slate-600 dark:text-slate-400">Tampilkan</span>
+    </div>
+    <!-- Baris 2: Bulan, Tahun, Per page -->
+    <div class="flex flex-wrap items-center justify-between gap-2.5">
+      <div class="flex items-center gap-2 flex-wrap">
+        <select id="filter-bulan" class="form-control form-control-sm w-auto">
+          <option value="">Semua Bulan</option>
+          <?php foreach ($namaBulan as $n => $nm): ?>
+          <option value="<?= $n ?>"><?= $nm ?></option>
+          <?php endforeach; ?>
+        </select>
+        <select id="filter-tahun" class="form-control form-control-sm w-auto">
+          <option value="">Semua Tahun</option>
+          <?php foreach ($tahunOpsi as $t): ?>
+          <option value="<?= $t ?>"><?= $t ?></option>
+          <?php endforeach; ?>
+        </select>
+      </div>
+      <div class="flex items-center gap-1.5 shrink-0 text-xs text-slate-500">
+        <span>Tampilkan</span>
         <select id="filter-perpage" class="form-control form-control-sm w-auto">
           <option value="10">10</option>
           <option value="15" selected>15</option>
@@ -98,28 +91,36 @@ $tahunOpsi = range($tahunSekarang, $tahunSekarang - 5);
           <option value="50">50</option>
           <option value="100">100</option>
         </select>
-        <span class="text-xs text-slate-600 dark:text-slate-400">baris</span>
+        <span>baris</span>
       </div>
     </div>
   </div>
 
+  <div class="sm:hidden flex items-center gap-1.5 px-3 py-1.5 text-[11px] text-slate-400 dark:text-slate-500 border-t border-slate-100 dark:border-slate-800">
+    <?= iconsax('arrow-swap-horizontal', 'w-3 h-3') ?> Geser tabel untuk melihat kolom lainnya
+  </div>
   <div class="overflow-x-auto">
     <table class="table">
       <thead>
         <tr>
+          <?php if ($isSuperAdmin): ?>
           <th class="w-10">
             <input type="checkbox" id="select-all-txn" onclick="toggleSelectAllTxn()" class="form-checkbox">
           </th>
+          <?php endif; ?>
           <th class="w-12 text-center">No</th>
           <th>Tanggal</th>
           <th>Kategori</th>
+          <th>Sumber</th>
           <th>Tipe</th>
           <th class="text-right">Nominal</th>
-          <th class="w-28 text-center">Aksi</th>
+          <th class="<?= $isSuperAdmin ? 'w-28 min-w-[100px]' : 'w-16' ?> text-center whitespace-nowrap">
+            <?= $isSuperAdmin ? 'Aksi' : 'Detail' ?>
+          </th>
         </tr>
       </thead>
       <tbody id="txn-tbody">
-        <tr><td colspan="7" class="text-center py-8 text-slate-500">Memuat data...</td></tr>
+        <tr><td colspan="<?= $isSuperAdmin ? 8 : 7 ?>" class="text-center py-8 text-slate-500">Memuat data...</td></tr>
       </tbody>
     </table>
   </div>
@@ -128,8 +129,7 @@ $tahunOpsi = range($tahunSekarang, $tahunSekarang - 5);
   <div id="pagination-wrap" class="flex items-center justify-between gap-3 p-3 border-t border-slate-200 dark:border-slate-700 flex-wrap"></div>
 </div>
 
-
-
+<?php if ($isSuperAdmin): ?>
 <!-- ═══════ MODAL: EDIT PEMASUKAN ═══════ -->
 <div id="modal-edit-pemasukan" class="hidden">
   <div class="modal-backdrop" onclick="closeModal('modal-edit-pemasukan')"></div>
@@ -137,9 +137,9 @@ $tahunOpsi = range($tahunSekarang, $tahunSekarang - 5);
     <div class="modal-box modal-box-lg">
       <div class="modal-header">
         <div>
-          <h3 class="modal-title"><i data-lucide="pencil" class="w-5 h-5 text-primary-600"></i> Edit Pemasukan</h3>
+          <h3 class="modal-title"><?= iconsax('edit-2', 'w-5 h-5 text-primary-600') ?> Edit Pemasukan</h3>
         </div>
-        <button class="btn btn-ghost btn-icon" onclick="closeModal('modal-edit-pemasukan')"><i data-lucide="x"></i></button>
+        <button class="btn btn-ghost btn-icon" onclick="closeModal('modal-edit-pemasukan')"><?= iconsax('close-circle', '') ?></button>
       </div>
       <form id="form-edit-pemasukan" onsubmit="submitEditPemasukan(event)" enctype="multipart/form-data">
         <div class="modal-body">
@@ -184,6 +184,20 @@ $tahunOpsi = range($tahunSekarang, $tahunSekarang - 5);
               <input type="text" name="sumber" id="edit-p-sumber" class="form-control">
             </div>
           </div>
+          <div class="grid grid-cols-1 md:grid-cols-3 gap-4 mt-4">
+            <div>
+              <label class="form-label">Kode MAK</label>
+              <input type="text" name="kode_mak" id="edit-p-mak" class="form-control font-mono" placeholder="cth: 524111.001">
+            </div>
+            <div>
+              <label class="form-label">No. Surat Tugas</label>
+              <input type="text" name="no_surat_tugas" id="edit-p-st" class="form-control" placeholder="cth: ST-001/...">
+            </div>
+            <div>
+              <label class="form-label">No. SPM</label>
+              <input type="text" name="no_spm" id="edit-p-spm" class="form-control" placeholder="cth: SPM-001/...">
+            </div>
+          </div>
           <div class="mt-4">
             <label class="form-label">Keterangan</label>
             <input type="text" name="keterangan" id="edit-p-ket" class="form-control">
@@ -198,7 +212,7 @@ $tahunOpsi = range($tahunSekarang, $tahunSekarang - 5);
         </div>
         <div class="modal-footer">
           <button type="button" class="btn btn-ghost" onclick="closeModal('modal-edit-pemasukan')">Batal</button>
-          <button type="submit" class="btn btn-primary"><i data-lucide="save"></i> Simpan Perubahan</button>
+          <button type="submit" class="btn btn-primary"><?= iconsax('save-2', '') ?> Simpan Perubahan</button>
         </div>
       </form>
     </div>
@@ -211,8 +225,8 @@ $tahunOpsi = range($tahunSekarang, $tahunSekarang - 5);
   <div class="modal-container">
     <div class="modal-box modal-box-lg">
       <div class="modal-header">
-        <div><h3 class="modal-title"><i data-lucide="pencil" class="w-5 h-5 text-primary-600"></i> Edit Pengeluaran</h3></div>
-        <button class="btn btn-ghost btn-icon" onclick="closeModal('modal-edit-pengeluaran')"><i data-lucide="x"></i></button>
+        <div><h3 class="modal-title"><?= iconsax('edit-2', 'w-5 h-5 text-primary-600') ?> Edit Pengeluaran</h3></div>
+        <button class="btn btn-ghost btn-icon" onclick="closeModal('modal-edit-pengeluaran')"><?= iconsax('close-circle', '') ?></button>
       </div>
       <form id="form-edit-pengeluaran" onsubmit="submitEditPengeluaran(event)" enctype="multipart/form-data">
         <div class="modal-body">
@@ -255,12 +269,13 @@ $tahunOpsi = range($tahunSekarang, $tahunSekarang - 5);
         </div>
         <div class="modal-footer">
           <button type="button" class="btn btn-ghost" onclick="closeModal('modal-edit-pengeluaran')">Batal</button>
-          <button type="submit" class="btn btn-primary"><i data-lucide="save"></i> Simpan Perubahan</button>
+          <button type="submit" class="btn btn-primary"><?= iconsax('save-2', '') ?> Simpan Perubahan</button>
         </div>
       </form>
     </div>
   </div>
 </div>
+<?php endif; ?>
 
 <!-- ═══════ MODAL: DETAIL ═══════ -->
 <div id="modal-detail" class="hidden">
@@ -269,10 +284,10 @@ $tahunOpsi = range($tahunSekarang, $tahunSekarang - 5);
     <div class="modal-box modal-box-lg">
       <div class="modal-header">
         <div>
-          <h3 class="modal-title"><i data-lucide="file-text" class="w-5 h-5 text-primary-600"></i> Detail Transaksi</h3>
+          <h3 class="modal-title"><?= iconsax('document-text', 'w-5 h-5 text-primary-600') ?> Detail Transaksi</h3>
           <p class="text-sm text-slate-500 dark:text-slate-400 mt-0.5" id="detail-subtitle"></p>
         </div>
-        <button class="btn btn-ghost btn-icon" onclick="closeModal('modal-detail')"><i data-lucide="x"></i></button>
+        <button class="btn btn-ghost btn-icon" onclick="closeModal('modal-detail')"><?= iconsax('close-circle', '') ?></button>
       </div>
       <div class="modal-body">
         <dl class="grid grid-cols-1 md:grid-cols-2 gap-x-6 gap-y-3 text-sm" id="detail-list"></dl>
@@ -285,6 +300,7 @@ $tahunOpsi = range($tahunSekarang, $tahunSekarang - 5);
   </div>
 </div>
 
+<?php if ($isSuperAdmin): ?>
 <!-- ═══════ MODAL: HAPUS (single) ═══════ -->
 <div id="modal-hapus" class="hidden">
   <div class="modal-backdrop" onclick="closeModal('modal-hapus')"></div>
@@ -293,7 +309,7 @@ $tahunOpsi = range($tahunSekarang, $tahunSekarang - 5);
       <div class="modal-header">
         <div class="flex items-start gap-3">
           <div class="w-10 h-10 shrink-0 rounded-full bg-red-100 dark:bg-red-900/40 text-red-600 dark:text-red-400 flex items-center justify-center">
-            <i data-lucide="alert-triangle" class="w-5 h-5"></i>
+            <?= iconsax('warning-2', 'w-5 h-5') ?>
           </div>
           <div>
             <h3 class="text-base font-semibold text-slate-800 dark:text-slate-100">Hapus Data?</h3>
@@ -309,34 +325,8 @@ $tahunOpsi = range($tahunSekarang, $tahunSekarang - 5);
       <div class="modal-footer">
         <button type="button" class="btn btn-ghost" onclick="closeModal('modal-hapus')">Batal</button>
         <button type="button" class="btn btn-danger" id="btn-confirm-hapus">
-          <i data-lucide="trash-2"></i> Ya, Hapus
+          <?= iconsax('trash', '') ?> Ya, Hapus
         </button>
-      </div>
-    </div>
-  </div>
-</div>
-
-<!-- ═══════ MODAL: KONFIRMASI UMUM ═══════ -->
-<div id="modal-konfirmasi" class="hidden">
-  <div class="modal-backdrop" onclick="closeModal('modal-konfirmasi')"></div>
-  <div class="modal-container">
-    <div class="modal-box modal-box-sm">
-      <div class="modal-header">
-        <div class="flex items-start gap-3">
-          <div class="w-10 h-10 shrink-0 rounded-full bg-emerald-100 dark:bg-emerald-900/40 text-emerald-600 dark:text-emerald-400 flex items-center justify-center">
-            <i data-lucide="check-check" class="w-5 h-5"></i>
-          </div>
-          <div>
-            <h3 class="text-base font-semibold text-slate-800 dark:text-slate-100" id="konfirmasi-title">Konfirmasi</h3>
-          </div>
-        </div>
-      </div>
-      <div class="modal-body">
-        <p class="text-sm text-slate-600 dark:text-slate-300" id="konfirmasi-text">Yakin ingin melanjutkan?</p>
-      </div>
-      <div class="modal-footer">
-        <button type="button" class="btn btn-ghost" onclick="closeModal('modal-konfirmasi')">Batal</button>
-        <button type="button" class="btn btn-primary" id="btn-konfirmasi-ya">Ya, Lanjutkan</button>
       </div>
     </div>
   </div>
@@ -350,7 +340,7 @@ $tahunOpsi = range($tahunSekarang, $tahunSekarang - 5);
       <div class="modal-header">
         <div class="flex items-start gap-3">
           <div class="w-10 h-10 shrink-0 rounded-full bg-red-100 dark:bg-red-900/40 text-red-600 dark:text-red-400 flex items-center justify-center">
-            <i data-lucide="alert-triangle" class="w-5 h-5"></i>
+            <?= iconsax('warning-2', 'w-5 h-5') ?>
           </div>
           <div>
             <h3 class="text-base font-semibold text-slate-800 dark:text-slate-100">Hapus Data Terpilih?</h3>
@@ -366,7 +356,7 @@ $tahunOpsi = range($tahunSekarang, $tahunSekarang - 5);
       <div class="modal-footer">
         <button type="button" class="btn btn-ghost" onclick="closeModal('modal-bulk-hapus')">Batal</button>
         <button type="button" class="btn btn-danger" id="btn-confirm-bulk-hapus">
-          <i data-lucide="trash-2"></i> Ya, Hapus Semua
+          <?= iconsax('trash', '') ?> Ya, Hapus Semua
         </button>
       </div>
     </div>
@@ -379,8 +369,8 @@ $tahunOpsi = range($tahunSekarang, $tahunSekarang - 5);
   <div class="modal-container">
     <div class="modal-box modal-box-lg">
       <div class="modal-header">
-        <div><h3 class="modal-title"><i data-lucide="upload" class="w-5 h-5 text-primary-600"></i> Import CSV</h3></div>
-        <button class="btn btn-ghost btn-icon" onclick="closeModal('modal-import')"><i data-lucide="x"></i></button>
+        <div><h3 class="modal-title"><?= iconsax('document-upload', 'w-5 h-5 text-primary-600') ?> Import CSV</h3></div>
+        <button class="btn btn-ghost btn-icon" onclick="closeModal('modal-import')"><?= iconsax('close-circle', '') ?></button>
       </div>
       <form id="form-import" onsubmit="submitImport(event)" enctype="multipart/form-data">
         <input type="hidden" name="tipe" value="gabungan">
@@ -401,7 +391,7 @@ $tahunOpsi = range($tahunSekarang, $tahunSekarang - 5);
         </div>
         <div class="modal-footer">
           <button type="button" class="btn btn-ghost" onclick="closeModal('modal-import')">Batal</button>
-          <button type="submit" class="btn btn-primary"><i data-lucide="upload"></i> Proses</button>
+          <button type="submit" class="btn btn-primary"><?= iconsax('document-upload', '') ?> Proses</button>
         </div>
       </form>
     </div>
@@ -414,17 +404,17 @@ $tahunOpsi = range($tahunSekarang, $tahunSekarang - 5);
   <div class="modal-container">
     <div class="modal-box modal-box-sm">
       <div class="modal-header">
-        <div><h3 class="modal-title"><i data-lucide="download" class="w-5 h-5 text-primary-600"></i> Export Data</h3></div>
-        <button class="btn btn-ghost btn-icon" onclick="closeModal('modal-export')"><i data-lucide="x"></i></button>
+        <div><h3 class="modal-title"><?= iconsax('document-download', 'w-5 h-5 text-primary-600') ?> Export Data</h3></div>
+        <button class="btn btn-ghost btn-icon" onclick="closeModal('modal-export')"><?= iconsax('close-circle', '') ?></button>
       </div>
       <div class="modal-body">
         <p class="text-sm text-slate-600 dark:text-slate-300 mb-3">Pilih format export data gabungan (pemasukan &amp; pengeluaran).</p>
         <div class="space-y-2">
           <a href="<?= base_url('admin/laporan/export-excel') ?>" class="btn btn-outline w-full justify-start">
-            <i data-lucide="file-spreadsheet" class="text-emerald-600"></i> Export Excel
+            <?= iconsax('export-square', 'text-emerald-600') ?> Export Excel
           </a>
           <a href="<?= base_url('admin/laporan/export-pdf') ?>" class="btn btn-outline w-full justify-start">
-            <i data-lucide="file-text" class="text-red-600"></i> Export PDF
+            <?= iconsax('document-text', 'text-red-600') ?> Export PDF
           </a>
         </div>
       </div>
@@ -434,16 +424,15 @@ $tahunOpsi = range($tahunSekarang, $tahunSekarang - 5);
     </div>
   </div>
 </div>
+<?php endif; ?>
 
-<?= $this->endSection() ?>
-
-<?= $this->section('scripts') ?>
 <script>
+(function() {
 const BASE_URL = '<?= base_url() ?>';
+const IS_SUPER_ADMIN = <?= $isSuperAdmin ? 'true' : 'false' ?>;
 
 /* ── Helpers ── */
 function openExportMenu() { openModal('modal-export'); }
-function bulanNama(m) { return ['','Jan','Feb','Mar','Apr','Mei','Jun','Jul','Ags','Sep','Okt','Nov','Des'][m] || ''; }
 function fmtRp(v) { return 'Rp ' + new Intl.NumberFormat('id-ID').format(Math.round(parseFloat(v) || 0)); }
 function fmtDate(s) { if (!s) return '-'; const d = new Date(s); return d.toLocaleDateString('id-ID', { day: '2-digit', month: 'long', year: 'numeric' }); }
 function statusBadge(s) {
@@ -462,7 +451,7 @@ function buktiPreviewHTML(url, filename) {
   }
   if (ext === 'pdf') {
     return `<a href="${url}" target="_blank" class="inline-flex items-center gap-2 px-4 py-3 rounded-lg border border-slate-200 hover:border-primary-500 hover:bg-primary-50/50 dark:hover:bg-primary-900/20 transition">
-              <i data-lucide="file-text" class="w-8 h-8 text-red-600"></i>
+              ${iconsax('document-text', 'w-8 h-8 text-red-600')}
               <div>
                 <div class="font-medium text-sm">${filename}</div>
                 <div class="text-xs text-primary-600">Klik untuk buka PDF</div>
@@ -478,6 +467,10 @@ function escapeHtml(s) { return String(s).replace(/[&<>"']/g, m => ({ '&':'&amp;
    berarti "biarkan backend pilih default" — yaitu halaman TERAKHIR (transaksi terbaru). */
 let currentPage = null;
 
+// Nomor urut request — kalau user ketik cepat, respons yang lebih lama (mis. dari huruf
+// pertama) bisa balik BELAKANGAN dari respons huruf terakhir dan menimpa hasil yang lebih
+// baru dengan yang basi. Cuma respons dari request PALING TERAKHIR yang boleh dirender.
+let txnRequestSeq = 0;
 function refreshTxn() {
   const showP  = document.getElementById('filter-pemasukan').checked;
   const showE  = document.getElementById('filter-pengeluaran').checked;
@@ -494,11 +487,20 @@ function refreshTxn() {
   });
   if (currentPage) params.set('page', currentPage);
 
-  document.getElementById('txn-tbody').innerHTML = '<tr><td colspan="7" class="text-center py-8 text-slate-500">Memuat...</td></tr>';
+  const colSpan = IS_SUPER_ADMIN ? 8 : 7;
+  const tbody = document.getElementById('txn-tbody');
+  const seq = ++txnRequestSeq;
+  if (!tbody.hasChildNodes() || tbody.querySelector('.loading-placeholder')) {
+    tbody.innerHTML = `<tr><td colspan="${colSpan}" class="loading-placeholder text-center py-8 text-slate-500">Memuat data...</td></tr>`;
+  } else {
+    tbody.classList.add('opacity-40', 'pointer-events-none', 'transition-opacity', 'duration-200');
+  }
 
   fetch(BASE_URL + 'admin/keuangan/ajax?' + params.toString())
     .then(r => r.json())
     .then(data => {
+      if (seq !== txnRequestSeq) return; // ada request lebih baru yang menyusul, respons ini basi
+      tbody.classList.remove('opacity-40', 'pointer-events-none');
       currentPage = data.page || 1;
       renderTxn(data.data || []);
       document.getElementById('txn-total').textContent = new Intl.NumberFormat('id-ID').format(data.total || 0);
@@ -506,14 +508,18 @@ function refreshTxn() {
       clearAllSelection();
     })
     .catch(() => {
-      document.getElementById('txn-tbody').innerHTML = '<tr><td colspan="7" class="text-center py-8 text-red-500">Gagal memuat data.</td></tr>';
+      if (seq !== txnRequestSeq) return;
+      tbody.classList.remove('opacity-40', 'pointer-events-none');
+      document.getElementById('txn-tbody').innerHTML = `<tr><td colspan="${colSpan}" class="text-center py-8 text-red-500">Gagal memuat data.</td></tr>`;
     });
 }
+window.refreshTxn = refreshTxn;
 
 function renderTxn(rows) {
   const tbody = document.getElementById('txn-tbody');
+  const colSpan = IS_SUPER_ADMIN ? 8 : 7;
   if (!rows.length) {
-    tbody.innerHTML = '<tr><td colspan="7" class="text-center py-8 text-slate-500">Tidak ada data yang cocok.</td></tr>';
+    tbody.innerHTML = `<tr><td colspan="${colSpan}" class="text-center py-8 text-slate-500"><img src="https://img.icons8.com/3d-fluency/64/empty-box.png" alt="" class="w-10 h-10 mx-auto mb-2 opacity-80"><br>Tidak ada data yang cocok.</td></tr>`;
     return;
   }
   tbody.innerHTML = rows.map(r => {
@@ -521,32 +527,46 @@ function renderTxn(rows) {
     const nominal = isP ? (parseFloat(r.jumlah_diterima) || parseFloat(r.jumlah)) : parseFloat(r.jumlah);
     const dateFormatted = new Date(r.tanggal).toLocaleDateString('id-ID', { day: '2-digit', month: 'short', year: 'numeric' });
     const badge = isP
-      ? '<span class="badge badge-success"><i data-lucide="arrow-up-right" class="w-3 h-3"></i>Pemasukan</span>'
-      : '<span class="badge badge-danger"><i data-lucide="arrow-down-right" class="w-3 h-3"></i>Pengeluaran</span>';
+      ? '<span class="badge badge-success">' + iconsax('trend-up', 'w-3 h-3') + 'Pemasukan</span>'
+      : '<span class="badge badge-danger">' + iconsax('trend-down', 'w-3 h-3') + 'Pengeluaran</span>';
     const rowJson = JSON.stringify(r).replace(/'/g, "&#39;");
     const editFn = isP ? 'editPemasukan' : 'editPengeluaran';
     const deleteFn = isP ? 'deletePemasukan' : 'deletePengeluaran';
     const selesaiBtn = (isP && (r.status_dana === 'sebagian' || r.status_dana === 'belum_diterima'))
-      ? `<button onclick="tandaiSelesai(${r.id}, ${r.jumlah})" title="Tandai Selesai/Lunas" class="p-1.5 rounded hover:bg-emerald-50 dark:hover:bg-emerald-900/30 text-slate-500 hover:text-emerald-600"><i data-lucide="check-check" class="w-4 h-4"></i></button>`
+      ? `<button type="button" onclick="event.stopPropagation(); tandaiSelesai(${r.id}, ${r.jumlah})" title="Tandai Selesai/Lunas" class="w-7 h-7 inline-flex items-center justify-center rounded hover:bg-emerald-50 dark:hover:bg-emerald-900/30 text-slate-500 hover:text-emerald-600 shrink-0">${iconsax('tick-circle', 'w-4 h-4 shrink-0')}</button>`
       : '';
-    return `<tr data-id="${r.id}" data-type="${r.tipe}">
-      <td><input type="checkbox" class="row-checkbox row-checkbox-${r.tipe} form-checkbox" onclick="onRowCheck(this)"></td>
+
+    const checkboxTd = IS_SUPER_ADMIN
+      ? `<td onclick="event.stopPropagation()"><input type="checkbox" class="row-checkbox row-checkbox-${r.tipe} form-checkbox" onclick="event.stopPropagation(); onRowCheck(this)"></td>`
+      : '';
+
+    const actionTd = IS_SUPER_ADMIN
+      ? `<td class="text-center whitespace-nowrap min-w-[100px]" onclick="event.stopPropagation()">
+          <div class="inline-flex items-center justify-center gap-1">
+            <button type="button" onclick='event.stopPropagation(); showDetailRow(${rowJson})' title="Detail" class="w-7 h-7 inline-flex items-center justify-center rounded hover:bg-slate-100 dark:hover:bg-slate-700 text-slate-500 hover:text-primary-600 shrink-0">${iconsax('eye', 'w-4 h-4 shrink-0')}</button>
+            <button type="button" onclick='event.stopPropagation(); ${editFn}(${rowJson})' title="Edit" class="w-7 h-7 inline-flex items-center justify-center rounded hover:bg-slate-100 dark:hover:bg-slate-700 text-slate-500 hover:text-primary-600 shrink-0">${iconsax('edit-2', 'w-4 h-4 shrink-0')}</button>
+            ${selesaiBtn}
+            <button type="button" onclick="event.stopPropagation(); ${deleteFn}(${r.id})" title="Hapus" class="w-7 h-7 inline-flex items-center justify-center rounded hover:bg-red-50 dark:hover:bg-red-900/30 text-slate-500 hover:text-red-600 shrink-0">${iconsax('trash', 'w-4 h-4 shrink-0')}</button>
+          </div>
+        </td>`
+      : `<td class="text-center whitespace-nowrap" onclick="event.stopPropagation()">
+          <button type="button" onclick='event.stopPropagation(); showDetailRow(${rowJson})' title="Detail" class="w-7 h-7 inline-flex items-center justify-center rounded hover:bg-slate-100 dark:hover:bg-slate-700 text-slate-500 hover:text-primary-600 shrink-0">${iconsax('eye', 'w-4 h-4 shrink-0')}</button>
+        </td>`;
+
+    return `<tr data-id="${r.id}" data-type="${r.tipe}" class="cursor-pointer hover:bg-slate-50/80 dark:hover:bg-slate-800/40 transition-colors" onclick='showDetailRow(${rowJson})'>
+      ${checkboxTd}
       <td class="text-center text-slate-500">${r.nomor ?? '-'}</td>
       <td class="whitespace-nowrap">${dateFormatted}</td>
-      <td class="truncate max-w-[180px]">${escapeHtml(r.kategori || '-')}</td>
-      <td>${badge}</td>
-      <td class="text-right font-medium text-currency ${isP ? 'text-emerald-600' : 'text-red-600'}">Rp ${new Intl.NumberFormat('id-ID').format(Math.round(nominal))}</td>
-      <td>
-        <div class="flex items-center justify-center gap-1">
-          <button onclick='showDetailRow(${rowJson})' title="Detail" class="p-1.5 rounded hover:bg-slate-100 dark:hover:bg-slate-700 text-slate-500 hover:text-primary-600"><i data-lucide="eye" class="w-4 h-4"></i></button>
-          <button onclick='${editFn}(${rowJson})' title="Edit" class="p-1.5 rounded hover:bg-slate-100 dark:hover:bg-slate-700 text-slate-500 hover:text-primary-600"><i data-lucide="pencil" class="w-4 h-4"></i></button>
-          ${selesaiBtn}
-          <button onclick="${deleteFn}(${r.id})" title="Hapus" class="p-1.5 rounded hover:bg-red-50 dark:hover:bg-red-900/30 text-slate-500 hover:text-red-600"><i data-lucide="trash-2" class="w-4 h-4"></i></button>
-        </div>
+      <td class="min-w-[120px] max-w-[200px] break-words whitespace-normal">
+        <div class="font-medium text-slate-700 dark:text-slate-200">${escapeHtml(r.kategori || '-')}</div>
+        ${r.kode_mak ? `<div class="text-[11px] font-mono text-slate-500 dark:text-slate-400">MAK: ${escapeHtml(r.kode_mak)}</div>` : ''}
       </td>
+      <td class="min-w-[120px] max-w-[180px] break-words whitespace-normal">${escapeHtml(r.sumber || r.tujuan || '-')}</td>
+      <td>${badge}</td>
+      <td class="text-right font-medium text-currency ${isP ? 'text-income' : 'text-expense'}">Rp ${new Intl.NumberFormat('id-ID').format(Math.round(nominal))}</td>
+      ${actionTd}
     </tr>`;
   }).join('');
-  lucide.createIcons({ props: { search: tbody } });
 }
 
 function renderPagination(total, perPage, page) {
@@ -603,17 +623,34 @@ function gotoPage(p) {
 }
 window.gotoPage = gotoPage;
 
+/* ── Toggle tipe transaksi admin (styled button → sync hidden checkbox) ── */
+const ADM_TOGGLE_ACTIVE = {
+  pemasukan:   'bg-emerald-100 dark:bg-emerald-900/40 text-emerald-700 dark:text-emerald-300 shadow-sm',
+  pengeluaran: 'bg-red-100 dark:bg-red-900/40 text-red-700 dark:text-red-300 shadow-sm',
+};
+const ADM_TOGGLE_INACTIVE = 'text-slate-500 dark:text-slate-400 hover:text-slate-700';
+function admToggleTipeTxn(tipe) {
+  const btn = document.getElementById('adm-toggle-' + tipe);
+  const cb  = document.getElementById('filter-' + tipe);
+  cb.checked = !cb.checked;
+  const isActive = cb.checked;
+  btn.className = 'adm-txn-toggle inline-flex items-center gap-1.5 px-2.5 py-1 rounded-md text-xs font-medium transition-all ' +
+    (isActive ? ADM_TOGGLE_ACTIVE[tipe] : ADM_TOGGLE_INACTIVE);
+  currentPage = null;
+  refreshTxn();
+}
+window.admToggleTipeTxn = admToggleTipeTxn;
+
 let filterTimer;
 function scheduleFilterReset() {
   clearTimeout(filterTimer);
-  filterTimer = setTimeout(() => { currentPage = null; refreshTxn(); }, 300);
+  filterTimer = setTimeout(() => { currentPage = null; refreshTxn(); }, 350);
 }
 ['filter-pemasukan','filter-pengeluaran','filter-bulan','filter-tahun','filter-perpage'].forEach(id => {
   document.getElementById(id).addEventListener('change', scheduleFilterReset);
 });
 document.getElementById('filter-search').addEventListener('input', scheduleFilterReset);
 
-document.addEventListener('DOMContentLoaded', () => { refreshTxn(); });
 
 /* ── Detail modal ── */
 function showDetailRow(row) {
@@ -622,7 +659,7 @@ function showDetailRow(row) {
   const items = [
     ['Tanggal', fmtDate(row.tanggal)],
     ['Kategori', row.kategori ? escapeHtml(row.kategori) : '-'],
-    ['Nominal', `<span class="font-semibold ${isP ? 'text-emerald-600' : 'text-red-600'}">${fmtRp(row.jumlah)}</span>`],
+    ['Nominal', `<span class="font-semibold ${isP ? 'text-income' : 'text-expense'}">${fmtRp(row.jumlah)}</span>`],
   ];
   if (isP) {
     items.push(['Jumlah Diterima', fmtRp(row.jumlah_diterima)]);
@@ -631,6 +668,9 @@ function showDetailRow(row) {
   } else {
     items.push(['Tujuan / Penerima', row.tujuan ? escapeHtml(row.tujuan) : '-']);
   }
+  if (row.kode_mak) items.push(['Kode MAK', `<span class="font-mono text-xs font-semibold text-slate-700 dark:text-slate-300">${escapeHtml(row.kode_mak)}</span>`]);
+  if (row.no_surat_tugas) items.push(['No. Surat Tugas', escapeHtml(row.no_surat_tugas)]);
+  if (row.no_spm) items.push(['No. SPM', escapeHtml(row.no_spm)]);
   items.push(['Keterangan', row.keterangan ? escapeHtml(row.keterangan) : '-']);
   if (row.catatan_internal) items.push(['Catatan Internal', escapeHtml(row.catatan_internal)]);
   items.push(['Dibuat', row.created_at || '-']);
@@ -654,8 +694,8 @@ function showDetailRow(row) {
     buktiWrap.innerHTML = '';
   }
   openModal('modal-detail');
-  lucide.createIcons({ props: { search: document.getElementById('modal-detail') } });
 }
+window.showDetailRow = showDetailRow;
 
 /* ── Edit Pemasukan ── */
 function editPemasukan(row) {
@@ -667,6 +707,9 @@ function editPemasukan(row) {
   setRupiahValue(document.getElementById('edit-p-diterima'), row.jumlah_diterima);
   document.getElementById('edit-p-status').value = row.status_dana;
   document.getElementById('edit-p-sumber').value = row.sumber || '';
+  document.getElementById('edit-p-mak').value = row.kode_mak || '';
+  document.getElementById('edit-p-st').value = row.no_surat_tugas || '';
+  document.getElementById('edit-p-spm').value = row.no_spm || '';
   document.getElementById('edit-p-ket').value = row.keterangan || '';
   // Preview bukti
   const prev = document.getElementById('edit-p-bukti-preview');
@@ -677,8 +720,8 @@ function editPemasukan(row) {
     prev.innerHTML = '<div class="text-xs text-slate-500">Belum ada bukti terlampir.</div>';
   }
   openModal('modal-edit-pemasukan');
-  lucide.createIcons({ props: { search: document.getElementById('modal-edit-pemasukan') } });
 }
+window.editPemasukan = editPemasukan;
 
 async function submitEditPemasukan(e) {
   e.preventDefault();
@@ -689,6 +732,7 @@ async function submitEditPemasukan(e) {
   if (json.success) { showToast(json.message, 'success'); closeModal('modal-edit-pemasukan'); setTimeout(() => location.reload(), 800); }
   else showToast(json.message || 'Gagal update', 'error');
 }
+window.submitEditPemasukan = submitEditPemasukan;
 
 /* ── Edit Pengeluaran ── */
 function editPengeluaran(row) {
@@ -706,8 +750,8 @@ function editPengeluaran(row) {
     prev.innerHTML = '<div class="text-xs text-slate-500">Belum ada bukti terlampir.</div>';
   }
   openModal('modal-edit-pengeluaran');
-  lucide.createIcons({ props: { search: document.getElementById('modal-edit-pengeluaran') } });
 }
+window.editPengeluaran = editPengeluaran;
 
 async function submitEditPengeluaran(e) {
   e.preventDefault();
@@ -718,16 +762,10 @@ async function submitEditPengeluaran(e) {
   if (json.success) { showToast(json.message, 'success'); closeModal('modal-edit-pengeluaran'); setTimeout(() => location.reload(), 800); }
   else showToast(json.message || 'Gagal update', 'error');
 }
+window.submitEditPengeluaran = submitEditPengeluaran;
 
 /* ── Delete (single) ── */
 let pendingDelete = null;
-/* ── Konfirmasi umum (reusable, ganti native confirm() browser) ── */
-function tampilkanKonfirmasi(pesan, aksi) {
-  document.getElementById('konfirmasi-text').textContent = pesan;
-  const btn = document.getElementById('btn-konfirmasi-ya');
-  btn.onclick = async function() { closeModal('modal-konfirmasi'); await aksi(); };
-  openModal('modal-konfirmasi');
-}
 
 /* ── Tandai Selesai (shortcut: sebagian/belum diterima -> lunas sekaligus) ── */
 function tandaiSelesai(id, jumlah) {
@@ -741,17 +779,24 @@ function tandaiSelesai(id, jumlah) {
     else showToast(json.message || 'Gagal menandai selesai', 'error');
   });
 }
+window.tandaiSelesai = tandaiSelesai;
 
 function deletePemasukan(id)   { pendingDelete = BASE_URL + 'admin/keuangan/pemasukan/delete/' + id;   openModal('modal-hapus'); }
 function deletePengeluaran(id) { pendingDelete = BASE_URL + 'admin/keuangan/pengeluaran/delete/' + id; openModal('modal-hapus'); }
-document.getElementById('btn-confirm-hapus').onclick = async function() {
-  if (!pendingDelete) return;
-  const res = await fetch(pendingDelete, { method: 'POST' });
-  const json = await res.json();
-  if (json.success) { showToast(json.message, 'success'); closeModal('modal-hapus'); setTimeout(() => location.reload(), 800); }
-  else showToast(json.message || 'Gagal menghapus', 'error');
-  pendingDelete = null;
-};
+window.deletePemasukan = deletePemasukan;
+window.deletePengeluaran = deletePengeluaran;
+
+const btnHapus = document.getElementById('btn-confirm-hapus');
+if (btnHapus) {
+  btnHapus.onclick = async function() {
+    if (!pendingDelete) return;
+    const res = await fetch(pendingDelete, { method: 'POST' });
+    const json = await res.json();
+    if (json.success) { showToast(json.message, 'success'); closeModal('modal-hapus'); setTimeout(() => location.reload(), 800); }
+    else showToast(json.message || 'Gagal menghapus', 'error');
+    pendingDelete = null;
+  };
+}
 
 /* ── Bulk select (satu tabel gabungan, satu master checkbox) ── */
 function toggleSelectAllTxn() {
@@ -768,6 +813,7 @@ function onRowCheck(cb) {
   cb.closest('tr')?.classList.toggle('selected', cb.checked);
   updateBulkBar();
 }
+window.onRowCheck = onRowCheck;
 
 function getSelectedIds() {
   const p = Array.from(document.querySelectorAll('.row-checkbox-pemasukan:checked')).map(cb => cb.closest('tr').dataset.id);
@@ -789,18 +835,22 @@ function clearAllSelection() {
   if (master) master.checked = false;
   updateBulkBar();
 }
+window.clearAllSelection = clearAllSelection;
 
-document.getElementById('btn-confirm-bulk-hapus').onclick = async function() {
-  const { pemasukan, pengeluaran } = getSelectedIds();
-  if (pemasukan.length + pengeluaran.length === 0) return;
-  const fd = new FormData();
-  pemasukan.forEach(id => fd.append('pemasukan_ids[]', id));
-  pengeluaran.forEach(id => fd.append('pengeluaran_ids[]', id));
-  const res = await fetch(BASE_URL + 'admin/keuangan/bulk-delete', { method: 'POST', body: fd });
-  const json = await res.json();
-  if (json.success) { showToast(json.message, 'success'); closeModal('modal-bulk-hapus'); setTimeout(() => location.reload(), 800); }
-  else showToast(json.message || 'Gagal menghapus', 'error');
-};
+const btnBulkHapus = document.getElementById('btn-confirm-bulk-hapus');
+if (btnBulkHapus) {
+  btnBulkHapus.onclick = async function() {
+    const { pemasukan, pengeluaran } = getSelectedIds();
+    if (pemasukan.length + pengeluaran.length === 0) return;
+    const fd = new FormData();
+    pemasukan.forEach(id => fd.append('pemasukan_ids[]', id));
+    pengeluaran.forEach(id => fd.append('pengeluaran_ids[]', id));
+    const res = await fetch(BASE_URL + 'admin/keuangan/bulk-delete', { method: 'POST', body: fd });
+    const json = await res.json();
+    if (json.success) { showToast(json.message, 'success'); closeModal('modal-bulk-hapus'); setTimeout(() => location.reload(), 800); }
+    else showToast(json.message || 'Gagal menghapus', 'error');
+  };
+}
 
 /* ── Import ── */
 async function submitImport(e) {
@@ -811,5 +861,9 @@ async function submitImport(e) {
   if (json.success) { showToast(json.message, 'success'); closeModal('modal-import'); setTimeout(() => location.reload(), 800); }
   else showToast(json.message || 'Gagal import', 'error');
 }
+window.submitImport = submitImport;
+window.openExportMenu = openExportMenu;
+
+document.addEventListener('DOMContentLoaded', () => { refreshTxn(); });
+})();
 </script>
-<?= $this->endSection() ?>

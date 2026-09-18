@@ -34,8 +34,6 @@ class NotifikasiModel extends Model
 
     public function tambahNotifikasi($pesan, $tipe = 'info', $kategori = 'sistem')
     {
-        // Dibungkus try/catch agar jika migration kategori belum dijalankan,
-        // seluruh halaman tidak ikut error — cukup notifikasi ini yang gagal dicatat.
         try {
             return $this->insert(['pesan' => $pesan, 'tipe' => $tipe, 'kategori' => $kategori, 'is_read' => 0]);
         } catch (\Throwable $e) {
@@ -44,10 +42,6 @@ class NotifikasiModel extends Model
         }
     }
 
-    /**
-     * Cek apakah sebuah pengingat (identitas unik di dalam pesan, mis. "#12")
-     * sudah pernah dikirim, agar tidak dobel setiap request.
-     */
     public function pengingatSudahAda(string $penanda): bool
     {
         try {
@@ -55,22 +49,18 @@ class NotifikasiModel extends Model
                 ->like('pesan', $penanda)
                 ->countAllResults() > 0;
         } catch (\Throwable $e) {
-            return true; // aman: anggap sudah ada agar tidak spam insert saat kolom belum siap
+            return true;
         }
     }
 
-    /**
-     * Terapkan filter jangka waktu (tahunan / 6 bulan terakhir / bulanan) + jenis notifikasi.
-     */
     private function applyFilters($builder, array $filters)
     {
         $tahun   = $filters['tahun'] ?? date('Y');
-        $periode = $filters['periode'] ?? 'tahun'; // tahun | semester (6 bulan terakhir) | bulan
+        $periode = $filters['periode'] ?? 'tahun';
         $bulan   = $filters['bulan'] ?? null;
-        $jenis   = $filters['jenis'] ?? 'semua'; // semua | pemasukan | pengeluaran | rencana | sistem
+        $jenis   = $filters['jenis'] ?? 'semua';
 
         if ($periode === 'semester') {
-            // "Per 6 Bulan" = 6 bulan terakhir dihitung mundur dari hari ini (bukan semester kalender)
             $batasAwal = date('Y-m-d 00:00:00', strtotime('-6 months'));
             $builder->where('created_at >=', $batasAwal);
         } elseif ($periode === 'bulan' && $bulan) {

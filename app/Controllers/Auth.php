@@ -2,13 +2,12 @@
 
 namespace App\Controllers;
 
-use App\Models\PengaturanModel;
+use App\Models\AdminAkunModel;
 
 class Auth extends BaseController
 {
     public function login()
     {
-        // Parameter logout paksa
         if ($this->request->getGet('logout') === '1') {
             session()->destroy();
             return redirect()->to('/login')->with('info', 'Sesi Anda telah diakhiri. Silakan login kembali.');
@@ -17,6 +16,13 @@ class Auth extends BaseController
         return view('auth/login', [
             'isAlreadyLoggedIn' => (bool) session()->get('is_admin'),
         ]);
+    }
+
+    /** Cache key CI4 menolak karakter {}()/\@: — IPv6 loopback (::1) mengandung ':',
+     *  jadi harus disaring dulu sebelum dipakai sebagai bagian key throttler. */
+    private function sanitizeCacheKeyPart(string $part): string
+    {
+        return preg_replace('/[{}()\/\\\\@:]/', '_', $part);
     }
 
     public function doLogin()
@@ -28,25 +34,27 @@ class Auth extends BaseController
             return redirect()->back()->with('error', 'Username dan password wajib diisi.')->withInput();
         }
 
-        // Batasi percobaan login per-IP (10/5 menit) dan per-username (5/5 menit — lebih
-        // ketat karena cuma ada satu akun admin sah) supaya tidak bisa di-brute-force.
         $throttler = service('throttler');
-        $ip = $this->request->getIPAddress();
+        $ip = $this->sanitizeCacheKeyPart($this->request->getIPAddress());
+        $userKey = $this->sanitizeCacheKeyPart(strtolower($username));
         if ($throttler->check('login_ip_' . $ip, 10, 300) === false
-            || $throttler->check('login_user_' . strtolower($username), 5, 300) === false) {
+            || $throttler->check('login_user_' . $userKey, 5, 300) === false) {
             return redirect()->back()->with('error', 'Terlalu banyak percobaan login. Coba lagi dalam beberapa menit.')->withInput();
         }
 
-        $pengaturanModel = new PengaturanModel();
+        $adminAkunModel = new AdminAkunModel();
+        $akun = $adminAkunModel->verifyLogin($username, $password);
 
-        if ($pengaturanModel->verifyAdmin($username, $password)) {
-            $throttler->remove('login_ip_' . $ip)->remove('login_user_' . strtolower($username));
-            session()->regenerate(true); // rotasi session ID, buang sesi lama sepenuhnya
+        if ($akun !== false) {
+            $throttler->remove('login_ip_' . $ip)->remove('login_user_' . $userKey);
+            session()->regenerate(true);
             session()->set([
                 'is_admin'       => true,
-                'admin_username' => $username,
+                'admin_id'       => $akun['id'],
+                'admin_username' => $akun['username'],
+                'admin_role'     => $akun['role'],
             ]);
-            return redirect()->to('/admin')->with('success', 'Selamat datang kembali, ' . $username . '!');
+            return redirect()->to('/admin')->with('success', 'Selamat datang kembali, ' . $akun['username'] . '!');
         }
 
         return redirect()->back()->with('error', 'Username atau password yang Anda masukkan salah.')->withInput();
@@ -55,7 +63,6 @@ class Auth extends BaseController
     public function logout()
     {
         session()->destroy();
-        // Pastikan cookie sesi lama dihapus dari browser sepenuhnya
         return redirect()->to('/login?logout=1')
             ->setHeader('Clear-Site-Data', '"cookies","storage"');
     }

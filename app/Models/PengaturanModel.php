@@ -10,8 +10,7 @@ class PengaturanModel extends Model
     protected $primaryKey = 'id';
     protected $returnType = 'array';
     protected $allowedFields = [
-        'threshold_notif', 'admin_username',
-        'admin_password', 'notif_saldo_rendah', 'notif_transaksi_besar'
+        'threshold_notif', 'notif_saldo_rendah', 'notif_transaksi_besar'
     ];
     protected $useTimestamps = true;
 
@@ -33,15 +32,5 @@ class PengaturanModel extends Model
             return $this->update($existing['id'], $data);
         }
         return $this->insert($data);
-    }
-
-    /**
-     * Verifikasi password admin
-     */
-    public function verifyAdmin($username, $password)
-    {
-        $setting = $this->where('admin_username', $username)->first();
-        if (!$setting) return false;
-        return password_verify($password, $setting['admin_password']);
     }
 }

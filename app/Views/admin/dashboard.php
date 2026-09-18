@@ -5,7 +5,7 @@
 $tahunSekarang = (int)date('Y');
 $bulanSekarang = (int)date('m');
 $namaBulan = ['','Januari','Februari','Maret','April','Mei','Juni','Juli','Agustus','September','Oktober','November','Desember'];
-$tahunOpsi = range($tahunSekarang, $tahunSekarang - 5);
+$tahunOpsi = range($tahunSekarang, 2016);
 ?>
 
 <!-- Header -->
@@ -14,20 +14,22 @@ $tahunOpsi = range($tahunSekarang, $tahunSekarang - 5);
     <h1 class="text-xl lg:text-2xl font-bold text-slate-800 dark:text-slate-100">Dashboard</h1>
     <p class="text-sm text-slate-500 dark:text-slate-400 mt-1">Ringkasan pengelolaan keuangan internal</p>
   </div>
+  <?php if ($isSuperAdmin): ?>
   <button onclick="openMainDrawer()" class="btn btn-primary">
-    <i data-lucide="plus"></i> <span class="hidden sm:inline">Input Baru</span>
+    <?= iconsax('add', '') ?> <span class="hidden sm:inline">Input Baru</span>
   </button>
+  <?php endif; ?>
 </div>
 
-<!-- KPI Cards -->
-<div class="grid grid-cols-2 md:grid-cols-2 lg:grid-cols-4 gap-3 mb-6">
+<!-- KPI Cards: 4 kartu sejajar (2 kolom di mobile, 4 kolom di desktop) -->
+<div class="grid grid-cols-2 lg:grid-cols-4 gap-2.5 sm:gap-3 mb-6">
 
   <!-- Saldo Akhir -->
-  <div class="kpi">
+  <div class="kpi p-3 sm:p-5">
     <div class="kpi-label">
-      <i data-lucide="wallet" class="w-4 h-4"></i> Saldo Akhir
+      <img src="<?= icons8('wallet') ?>" alt="" class="w-5 h-5"> <span class="truncate">Saldo Akhir</span>
     </div>
-    <div class="kpi-value text-primary-700 dark:text-primary-300 text-currency">
+    <div class="kpi-value text-lg sm:text-2xl text-primary-700 dark:text-primary-300 text-currency">
       Rp <?= number_format($saldoAkhir, 0, ',', '.') ?>
     </div>
     <div class="text-xs text-slate-500 dark:text-slate-400">
@@ -35,44 +37,44 @@ $tahunOpsi = range($tahunSekarang, $tahunSekarang - 5);
     </div>
   </div>
 
+  <!-- Dana Taktis Belum Dibayar -->
+  <div class="kpi p-3 sm:p-5 bg-amber-50/70 dark:bg-amber-900/20">
+    <div class="kpi-label">
+      <?= iconsax('moneys', 'w-5 h-5 text-amber-600') ?> <span class="truncate">Dana Taktis Belum Dibayar</span>
+    </div>
+    <div class="kpi-value text-lg sm:text-2xl text-amber-700 dark:text-amber-400 text-currency">
+      Rp <?= number_format($danaTaktisBelumDisetor['total'], 0, ',', '.') ?>
+    </div>
+    <div class="text-xs text-slate-500 dark:text-slate-400">
+      <?= $danaTaktisBelumDisetor['jumlah'] ?> peserta belum menyetor &middot;
+      <a href="#dana-taktis" onclick="scrollKeDanaTaktis(event)" class="text-amber-600 hover:underline cursor-pointer">Lihat detail</a>
+    </div>
+  </div>
+
   <!-- Total Pemasukan dengan period picker -->
-  <div class="kpi" data-kpi="pemasukan">
+  <div class="kpi p-3 sm:p-5" data-kpi="pemasukan">
     <div class="flex items-start justify-between gap-2">
       <div class="kpi-label">
-        <i data-lucide="trending-up" class="w-4 h-4 text-emerald-600"></i> Total Pemasukan
+        <img src="<?= icons8('bullish') ?>" alt="" class="w-5 h-5"> <span class="truncate">Total Pemasukan</span>
       </div>
     </div>
-    <div class="kpi-value text-emerald-700 dark:text-emerald-400 text-currency" id="kpi-pemasukan-value">
+    <div class="kpi-value text-lg sm:text-2xl text-emerald-700 dark:text-emerald-400 text-currency" id="kpi-pemasukan-value">
       Rp <?= number_format($totalPemasukan, 0, ',', '.') ?>
     </div>
     <?= view('admin/_partials/kpi_period_picker', ['id' => 'pemasukan']) ?>
   </div>
 
   <!-- Total Pengeluaran dengan period picker -->
-  <div class="kpi" data-kpi="pengeluaran">
+  <div class="kpi p-3 sm:p-5" data-kpi="pengeluaran">
     <div class="flex items-start justify-between gap-2">
       <div class="kpi-label">
-        <i data-lucide="trending-down" class="w-4 h-4 text-red-600"></i> Total Pengeluaran
+        <img src="<?= icons8('bearish') ?>" alt="" class="w-5 h-5"> <span class="truncate">Total Pengeluaran</span>
       </div>
     </div>
-    <div class="kpi-value text-red-700 dark:text-red-400 text-currency" id="kpi-pengeluaran-value">
+    <div class="kpi-value text-lg sm:text-2xl text-red-700 dark:text-red-400 text-currency" id="kpi-pengeluaran-value">
       Rp <?= number_format($totalPengeluaran, 0, ',', '.') ?>
     </div>
     <?= view('admin/_partials/kpi_period_picker', ['id' => 'pengeluaran']) ?>
-  </div>
-
-  <!-- Saldo Bulan Ini -->
-  <?php $selisihBulanIni = $pemasukanBulanIni - $pengeluaranBulanIni; ?>
-  <div class="kpi">
-    <div class="kpi-label">
-      <i data-lucide="calendar-clock" class="w-4 h-4"></i> Saldo Bulan Ini
-    </div>
-    <div class="kpi-value <?= $selisihBulanIni >= 0 ? 'text-emerald-700 dark:text-emerald-400' : 'text-red-700 dark:text-red-400' ?> text-currency">
-      Rp <?= number_format(abs($selisihBulanIni), 0, ',', '.') ?>
-    </div>
-    <div class="text-xs text-slate-500 dark:text-slate-400">
-      Periode <?= $namaBulan[$bulanSekarang] ?> <?= $tahunSekarang ?>
-    </div>
   </div>
 
 </div>
@@ -81,23 +83,17 @@ $tahunOpsi = range($tahunSekarang, $tahunSekarang - 5);
 <?php
   $extraCards = [];
   if ($danaBelumDiterima > 0) {
-    $extraCards[] = ['icon' => 'alert-triangle', 'color' => 'amber', 'label' => 'Dana Belum Diterima', 'value' => $danaBelumDiterima, 'caption' => 'Total pemasukan yang belum masuk ke kas'];
-  }
-  if ($totalRencanaPemasukan > 0) {
-    $extraCards[] = ['icon' => 'calendar-clock', 'color' => 'emerald', 'label' => 'Rencana Pemasukan', 'value' => $totalRencanaPemasukan, 'caption' => 'Total rencana pemasukan aktif'];
-  }
-  if ($totalRencanaPengeluaran > 0) {
-    $extraCards[] = ['icon' => 'calendar-clock', 'color' => 'primary', 'label' => 'Rencana Pengeluaran', 'value' => $totalRencanaPengeluaran, 'caption' => 'Total rencana pengeluaran aktif'];
+    $extraCards[] = ['icon' => 'high-priority', 'color' => 'amber', 'label' => 'Dana Belum Diterima', 'value' => $danaBelumDiterima, 'caption' => 'Total pemasukan yang belum masuk ke kas'];
   }
 ?>
 <?php if (!empty($extraCards)): ?>
-<div class="grid grid-cols-2 md:grid-cols-2 lg:grid-cols-3 gap-3 mb-6">
+<div class="grid grid-cols-2 lg:grid-cols-3 gap-2.5 sm:gap-3 mb-6">
   <?php foreach ($extraCards as $c): ?>
-  <div class="kpi">
+  <div class="kpi p-3 sm:p-5">
     <div class="kpi-label">
-      <i data-lucide="<?= $c['icon'] ?>" class="w-4 h-4 text-<?= $c['color'] ?>-600"></i> <?= $c['label'] ?>
+      <img src="<?= icons8($c['icon']) ?>" alt="" class="w-5 h-5"> <span class="truncate"><?= $c['label'] ?></span>
     </div>
-    <div class="kpi-value text-<?= $c['color'] ?>-700 dark:text-<?= $c['color'] ?>-400 text-currency">
+    <div class="kpi-value text-lg sm:text-2xl text-<?= $c['color'] ?>-700 dark:text-<?= $c['color'] ?>-400 text-currency">
       Rp <?= number_format($c['value'], 0, ',', '.') ?>
     </div>
     <div class="text-xs text-slate-500 dark:text-slate-400">
@@ -109,8 +105,8 @@ $tahunOpsi = range($tahunSekarang, $tahunSekarang - 5);
 <?php endif; ?>
 
 <!-- Charts -->
-<div class="grid grid-cols-1 lg:grid-cols-3 gap-4 mb-6">
-  <div class="card lg:col-span-2">
+<div class="grid grid-cols-1 lg:grid-cols-2 gap-4 mb-6 items-start">
+  <div class="card">
     <div class="card-header">
       <h3 class="text-sm font-semibold text-slate-700 dark:text-slate-200">Arus Kas Bulanan</h3>
       <select id="arus-kas-tahun" class="form-control form-control-sm w-24">
@@ -129,85 +125,46 @@ $tahunOpsi = range($tahunSekarang, $tahunSekarang - 5);
       <h3 class="text-sm font-semibold text-slate-700 dark:text-slate-200">Kategori Pengeluaran</h3>
     </div>
     <div class="card-body">
-      <canvas id="chart-kategori" class="chart-canvas"></canvas>
+      <div id="chart-kategori-wrap" class="flex flex-col items-center">
+        <canvas id="chart-kategori" style="max-height:260px"></canvas>
+      </div>
+      <div id="chart-kategori-empty" class="hidden flex-col items-center justify-center text-center text-slate-400 dark:text-slate-500 py-10">
+        <img src="<?= icons8('pie-chart', '3d-fluency', 96) ?>" alt="" class="w-12 h-12 mb-2 opacity-80">
+        <p class="text-sm">Belum ada data pengeluaran.</p>
+      </div>
     </div>
   </div>
 </div>
 
-<!-- Recent + Rencana -->
-<div class="grid grid-cols-1 lg:grid-cols-2 gap-4">
-  <div class="card">
-    <div class="card-header">
-      <h3 class="text-sm font-semibold text-slate-700 dark:text-slate-200">Transaksi Terbaru</h3>
-      <a href="<?= base_url('admin/keuangan') ?>" class="text-xs text-primary-600 dark:text-primary-400 hover:underline">Lihat semua</a>
-    </div>
-    <div class="overflow-x-auto">
-      <table class="table">
-        <thead>
-          <tr><th>Tanggal</th><th>Kategori</th><th>Tipe</th><th class="text-right">Nominal</th></tr>
-        </thead>
-        <tbody>
-        <?php if (empty($transaksiRecent)): ?>
-          <tr><td colspan="4" class="text-center py-6 text-slate-500">Belum ada transaksi.</td></tr>
-        <?php else: foreach ($transaksiRecent as $t): ?>
-          <tr>
-            <td><?= date('d M Y', strtotime($t['tanggal'])) ?></td>
-            <td class="truncate max-w-[200px]"><?= esc($t['kategori']) ?></td>
-            <td>
-              <?php if ($t['tipe'] === 'pemasukan'): ?>
-                <span class="badge badge-success"><i data-lucide="arrow-up-right" class="w-3 h-3"></i> Pemasukan</span>
-              <?php else: ?>
-                <span class="badge badge-danger"><i data-lucide="arrow-down-right" class="w-3 h-3"></i> Pengeluaran</span>
-              <?php endif; ?>
-            </td>
-            <td class="text-right font-medium text-currency <?= $t['tipe'] === 'pemasukan' ? 'text-emerald-600' : 'text-red-600' ?>">
-              Rp <?= number_format($t['jumlah'], 0, ',', '.') ?>
-            </td>
-          </tr>
-        <?php endforeach; endif; ?>
-        </tbody>
-      </table>
-    </div>
-  </div>
+<!-- Tab: Transaksi Keuangan / Perjalanan Dinas / Dana Taktis -->
+<div id="segment-tabs" class="segment w-full scroll-mt-24">
+  <button type="button" id="tab-btn-transaksi" class="segment-btn <?= $isSuperAdmin ? 'active' : '' ?> flex-1 flex items-center justify-center gap-1.5" onclick="aktifkanTab('transaksi')">
+    <?= iconsax('receipt-item', 'w-3.5 h-3.5 shrink-0') ?> <span class="truncate">Transaksi</span>
+  </button>
+  <button type="button" id="tab-btn-perjadin" class="segment-btn <?= $isSuperAdmin ? '' : 'active' ?> flex-1 flex items-center justify-center gap-1.5" onclick="aktifkanTab('perjadin')">
+    <?= iconsax('airplane', 'w-3.5 h-3.5 shrink-0') ?> <span class="truncate">Perjalanan Dinas</span>
+  </button>
+  <button type="button" id="tab-btn-dana-taktis" class="segment-btn flex-1 flex items-center justify-center gap-1.5" onclick="aktifkanTab('dana-taktis')">
+    <?= iconsax('moneys', 'w-3.5 h-3.5 shrink-0') ?> <span class="truncate">Dana Taktis</span>
+  </button>
+</div>
 
-  <div class="card">
-    <div class="card-header">
-      <h3 class="text-sm font-semibold text-slate-700 dark:text-slate-200">Rencana Mendatang</h3>
-      <a href="<?= base_url('admin/rencana') ?>" class="text-xs text-primary-600 dark:text-primary-400 hover:underline">Lihat semua</a>
-    </div>
-    <div class="overflow-x-auto">
-      <table class="table">
-        <thead>
-          <tr><th>Tanggal</th><th>Kategori</th><th>Tipe</th><th class="text-right">Nominal</th></tr>
-        </thead>
-        <tbody>
-        <?php if (empty($rencanaAktif)): ?>
-          <tr><td colspan="4" class="text-center py-6 text-slate-500">Belum ada rencana aktif.</td></tr>
-        <?php else: foreach ($rencanaAktif as $r): ?>
-          <tr>
-            <td><?= date('d M Y', strtotime($r['tanggal_rencana'])) ?></td>
-            <td class="truncate max-w-[200px]"><?= esc($r['kategori']) ?></td>
-            <td>
-              <?php if ($r['tipe'] === 'pemasukan'): ?>
-                <span class="badge badge-info">Pemasukan</span>
-              <?php else: ?>
-                <span class="badge badge-warning">Pengeluaran</span>
-              <?php endif; ?>
-            </td>
-            <td class="text-right font-medium text-currency">Rp <?= number_format($r['jumlah_rencana'], 0, ',', '.') ?></td>
-          </tr>
-        <?php endforeach; endif; ?>
-        </tbody>
-      </table>
-    </div>
-  </div>
+<div id="panel-transaksi" class="mt-4 <?= $isSuperAdmin ? '' : 'hidden' ?>">
+  <?= $this->include('admin/_partials/tab_transaksi') ?>
+</div>
+
+<div id="panel-perjadin" class="mt-4 <?= $isSuperAdmin ? 'hidden' : '' ?>">
+  <?= $this->include('admin/_partials/tab_perjadin') ?>
+</div>
+
+<div id="panel-dana-taktis" class="mt-4 hidden">
+  <?= $this->include('admin/_partials/tab_dana_taktis') ?>
 </div>
 
 <?= $this->endSection() ?>
 
 <?= $this->section('scripts') ?>
 <script>
-const ADMIN_BASE_URL = '<?= base_url() ?>';
 const ADMIN_CHART_TREN_URL = '<?= base_url('admin/dashboard/chart-tren') ?>';
 
 let chartArus, chartKat;
@@ -247,10 +204,23 @@ function buildArus(pemasukan, pengeluaran) {
 function buildKat() {
   const colors = chartColors();
   const data = <?= $pieData ?>;
+  const wrap = document.getElementById('chart-kategori-wrap');
+  const canvas = document.getElementById('chart-kategori');
+  const empty = document.getElementById('chart-kategori-empty');
+  if (!data.length) {
+    if (wrap) wrap.classList.add('hidden');
+    empty.classList.remove('hidden');
+    empty.classList.add('flex');
+    if (chartKat) { chartKat.destroy(); chartKat = null; }
+    return;
+  }
+  if (wrap) wrap.classList.remove('hidden');
+  empty.classList.add('hidden');
+  empty.classList.remove('flex');
   const labels = data.map(d => d.kategori);
   const values = data.map(d => d.total);
   if (chartKat) chartKat.destroy();
-  chartKat = new Chart(document.getElementById('chart-kategori'), {
+  chartKat = new Chart(canvas, {
     type: 'doughnut',
     data: {
       labels,
@@ -260,8 +230,9 @@ function buildKat() {
       }]
     },
     options: {
-      responsive: true, maintainAspectRatio: false,
-      plugins: { legend: { position: 'bottom', labels: { color: colors.text, font: { size: 10 }, padding: 8 } } }
+      responsive: true,
+      maintainAspectRatio: true,
+      plugins: { legend: { position: 'bottom', labels: { color: colors.text, font: { size: 11 }, padding: 12, boxWidth: 14 } } }
     }
   });
 }
@@ -333,5 +304,53 @@ document.addEventListener('DOMContentLoaded', () => {
     }
   }
 })();
+</script>
+
+<script>
+/* ── Tab: Transaksi Keuangan / Perjalanan Dinas / Dana Taktis ── */
+let perjadinSudahDimuat = false;
+let danaTaktisSudahDimuat = false;
+function aktifkanTab(nama, scroll = false) {
+  ['transaksi', 'perjadin', 'dana-taktis'].forEach(n => {
+    const p = document.getElementById('panel-' + n);
+    const b = document.getElementById('tab-btn-' + n);
+    if (p) p.classList.toggle('hidden', n !== nama);
+    if (b) b.classList.toggle('active', n === nama);
+  });
+  if (nama === 'perjadin' && !perjadinSudahDimuat) {
+    perjadinSudahDimuat = true;
+    muatDaftarTrip();
+  }
+  if (nama === 'dana-taktis' && !danaTaktisSudahDimuat) {
+    danaTaktisSudahDimuat = true;
+    muatDaftarDanaTaktis();
+  }
+  if (scroll) {
+    setTimeout(() => {
+      const target = document.getElementById('segment-tabs') || document.getElementById('tab-btn-' + nama) || document.getElementById('panel-' + nama);
+      if (target) {
+        target.scrollIntoView({ behavior: 'smooth', block: 'start' });
+      }
+    }, 50);
+  }
+}
+function scrollKeDanaTaktis(e) {
+  if (e) e.preventDefault();
+  aktifkanTab('dana-taktis', true);
+  if (history.replaceState) {
+    history.replaceState(null, '', '#dana-taktis');
+  }
+}
+window.aktifkanTab = aktifkanTab;
+window.scrollKeDanaTaktis = scrollKeDanaTaktis;
+
+document.addEventListener('DOMContentLoaded', () => {
+  if (location.hash === '#transaksi') aktifkanTab('transaksi', true);
+  else if (location.hash === '#perjadin') aktifkanTab('perjadin', true);
+  else if (location.hash === '#dana-taktis') aktifkanTab('dana-taktis', true);
+  <?php if (!$isSuperAdmin): ?>
+  else aktifkanTab('perjadin');
+  <?php endif; ?>
+});
 </script>
 <?= $this->endSection() ?>
