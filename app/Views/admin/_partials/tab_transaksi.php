@@ -1,9 +1,10 @@
 <?php
 $namaBulan = [1=>'Januari',2=>'Februari',3=>'Maret',4=>'April',5=>'Mei',6=>'Juni',7=>'Juli',8=>'Agustus',9=>'September',10=>'Oktober',11=>'November',12=>'Desember'];
 $tahunSekarang = (int)date('Y');
-$tahunOpsi = range($tahunSekarang, $tahunSekarang - 5);
+$tahunOpsi = range($tahunSekarang, 2016);
 ?>
 
+<?php if ($isSuperAdmin): ?>
 <div class="mb-3 flex items-center justify-end gap-2">
   <button onclick="openModal('modal-import')" class="btn btn-outline btn-sm">
     <?= iconsax('document-upload', '') ?> Import CSV
@@ -25,6 +26,7 @@ $tahunOpsi = range($tahunSekarang, $tahunSekarang - 5);
     </button>
   </div>
 </div>
+<?php endif; ?>
 
 <!-- Tabel Gabungan -->
 <div class="card">
@@ -101,20 +103,24 @@ $tahunOpsi = range($tahunSekarang, $tahunSekarang - 5);
     <table class="table">
       <thead>
         <tr>
+          <?php if ($isSuperAdmin): ?>
           <th class="w-10">
             <input type="checkbox" id="select-all-txn" onclick="toggleSelectAllTxn()" class="form-checkbox">
           </th>
+          <?php endif; ?>
           <th class="w-12 text-center">No</th>
           <th>Tanggal</th>
           <th>Kategori</th>
           <th>Sumber</th>
           <th>Tipe</th>
           <th class="text-right">Nominal</th>
-          <th class="w-28 min-w-[100px] text-center whitespace-nowrap">Aksi</th>
+          <th class="<?= $isSuperAdmin ? 'w-28 min-w-[100px]' : 'w-16' ?> text-center whitespace-nowrap">
+            <?= $isSuperAdmin ? 'Aksi' : 'Detail' ?>
+          </th>
         </tr>
       </thead>
       <tbody id="txn-tbody">
-        <tr><td colspan="8" class="text-center py-8 text-slate-500">Memuat data...</td></tr>
+        <tr><td colspan="<?= $isSuperAdmin ? 8 : 7 ?>" class="text-center py-8 text-slate-500">Memuat data...</td></tr>
       </tbody>
     </table>
   </div>
@@ -123,6 +129,7 @@ $tahunOpsi = range($tahunSekarang, $tahunSekarang - 5);
   <div id="pagination-wrap" class="flex items-center justify-between gap-3 p-3 border-t border-slate-200 dark:border-slate-700 flex-wrap"></div>
 </div>
 
+<?php if ($isSuperAdmin): ?>
 <!-- ═══════ MODAL: EDIT PEMASUKAN ═══════ -->
 <div id="modal-edit-pemasukan" class="hidden">
   <div class="modal-backdrop" onclick="closeModal('modal-edit-pemasukan')"></div>
@@ -268,6 +275,7 @@ $tahunOpsi = range($tahunSekarang, $tahunSekarang - 5);
     </div>
   </div>
 </div>
+<?php endif; ?>
 
 <!-- ═══════ MODAL: DETAIL ═══════ -->
 <div id="modal-detail" class="hidden">
@@ -292,6 +300,7 @@ $tahunOpsi = range($tahunSekarang, $tahunSekarang - 5);
   </div>
 </div>
 
+<?php if ($isSuperAdmin): ?>
 <!-- ═══════ MODAL: HAPUS (single) ═══════ -->
 <div id="modal-hapus" class="hidden">
   <div class="modal-backdrop" onclick="closeModal('modal-hapus')"></div>
@@ -415,10 +424,12 @@ $tahunOpsi = range($tahunSekarang, $tahunSekarang - 5);
     </div>
   </div>
 </div>
+<?php endif; ?>
 
 <script>
 (function() {
 const BASE_URL = '<?= base_url() ?>';
+const IS_SUPER_ADMIN = <?= $isSuperAdmin ? 'true' : 'false' ?>;
 
 /* ── Helpers ── */
 function openExportMenu() { openModal('modal-export'); }
@@ -476,10 +487,11 @@ function refreshTxn() {
   });
   if (currentPage) params.set('page', currentPage);
 
+  const colSpan = IS_SUPER_ADMIN ? 8 : 7;
   const tbody = document.getElementById('txn-tbody');
   const seq = ++txnRequestSeq;
   if (!tbody.hasChildNodes() || tbody.querySelector('.loading-placeholder')) {
-    tbody.innerHTML = '<tr><td colspan="8" class="loading-placeholder text-center py-8 text-slate-500">Memuat data...</td></tr>';
+    tbody.innerHTML = `<tr><td colspan="${colSpan}" class="loading-placeholder text-center py-8 text-slate-500">Memuat data...</td></tr>`;
   } else {
     tbody.classList.add('opacity-40', 'pointer-events-none', 'transition-opacity', 'duration-200');
   }
@@ -498,15 +510,16 @@ function refreshTxn() {
     .catch(() => {
       if (seq !== txnRequestSeq) return;
       tbody.classList.remove('opacity-40', 'pointer-events-none');
-      document.getElementById('txn-tbody').innerHTML = '<tr><td colspan="8" class="text-center py-8 text-red-500">Gagal memuat data.</td></tr>';
+      document.getElementById('txn-tbody').innerHTML = `<tr><td colspan="${colSpan}" class="text-center py-8 text-red-500">Gagal memuat data.</td></tr>`;
     });
 }
 window.refreshTxn = refreshTxn;
 
 function renderTxn(rows) {
   const tbody = document.getElementById('txn-tbody');
+  const colSpan = IS_SUPER_ADMIN ? 8 : 7;
   if (!rows.length) {
-    tbody.innerHTML = '<tr><td colspan="8" class="text-center py-8 text-slate-500"><img src="https://img.icons8.com/3d-fluency/64/empty-box.png" alt="" class="w-10 h-10 mx-auto mb-2 opacity-80"><br>Tidak ada data yang cocok.</td></tr>';
+    tbody.innerHTML = `<tr><td colspan="${colSpan}" class="text-center py-8 text-slate-500"><img src="https://img.icons8.com/3d-fluency/64/empty-box.png" alt="" class="w-10 h-10 mx-auto mb-2 opacity-80"><br>Tidak ada data yang cocok.</td></tr>`;
     return;
   }
   tbody.innerHTML = rows.map(r => {
@@ -522,8 +535,26 @@ function renderTxn(rows) {
     const selesaiBtn = (isP && (r.status_dana === 'sebagian' || r.status_dana === 'belum_diterima'))
       ? `<button type="button" onclick="event.stopPropagation(); tandaiSelesai(${r.id}, ${r.jumlah})" title="Tandai Selesai/Lunas" class="w-7 h-7 inline-flex items-center justify-center rounded hover:bg-emerald-50 dark:hover:bg-emerald-900/30 text-slate-500 hover:text-emerald-600 shrink-0">${iconsax('tick-circle', 'w-4 h-4 shrink-0')}</button>`
       : '';
+
+    const checkboxTd = IS_SUPER_ADMIN
+      ? `<td onclick="event.stopPropagation()"><input type="checkbox" class="row-checkbox row-checkbox-${r.tipe} form-checkbox" onclick="event.stopPropagation(); onRowCheck(this)"></td>`
+      : '';
+
+    const actionTd = IS_SUPER_ADMIN
+      ? `<td class="text-center whitespace-nowrap min-w-[100px]" onclick="event.stopPropagation()">
+          <div class="inline-flex items-center justify-center gap-1">
+            <button type="button" onclick='event.stopPropagation(); showDetailRow(${rowJson})' title="Detail" class="w-7 h-7 inline-flex items-center justify-center rounded hover:bg-slate-100 dark:hover:bg-slate-700 text-slate-500 hover:text-primary-600 shrink-0">${iconsax('eye', 'w-4 h-4 shrink-0')}</button>
+            <button type="button" onclick='event.stopPropagation(); ${editFn}(${rowJson})' title="Edit" class="w-7 h-7 inline-flex items-center justify-center rounded hover:bg-slate-100 dark:hover:bg-slate-700 text-slate-500 hover:text-primary-600 shrink-0">${iconsax('edit-2', 'w-4 h-4 shrink-0')}</button>
+            ${selesaiBtn}
+            <button type="button" onclick="event.stopPropagation(); ${deleteFn}(${r.id})" title="Hapus" class="w-7 h-7 inline-flex items-center justify-center rounded hover:bg-red-50 dark:hover:bg-red-900/30 text-slate-500 hover:text-red-600 shrink-0">${iconsax('trash', 'w-4 h-4 shrink-0')}</button>
+          </div>
+        </td>`
+      : `<td class="text-center whitespace-nowrap" onclick="event.stopPropagation()">
+          <button type="button" onclick='event.stopPropagation(); showDetailRow(${rowJson})' title="Detail" class="w-7 h-7 inline-flex items-center justify-center rounded hover:bg-slate-100 dark:hover:bg-slate-700 text-slate-500 hover:text-primary-600 shrink-0">${iconsax('eye', 'w-4 h-4 shrink-0')}</button>
+        </td>`;
+
     return `<tr data-id="${r.id}" data-type="${r.tipe}" class="cursor-pointer hover:bg-slate-50/80 dark:hover:bg-slate-800/40 transition-colors" onclick='showDetailRow(${rowJson})'>
-      <td onclick="event.stopPropagation()"><input type="checkbox" class="row-checkbox row-checkbox-${r.tipe} form-checkbox" onclick="event.stopPropagation(); onRowCheck(this)"></td>
+      ${checkboxTd}
       <td class="text-center text-slate-500">${r.nomor ?? '-'}</td>
       <td class="whitespace-nowrap">${dateFormatted}</td>
       <td class="min-w-[120px] max-w-[200px] break-words whitespace-normal">
@@ -533,14 +564,7 @@ function renderTxn(rows) {
       <td class="min-w-[120px] max-w-[180px] break-words whitespace-normal">${escapeHtml(r.sumber || r.tujuan || '-')}</td>
       <td>${badge}</td>
       <td class="text-right font-medium text-currency ${isP ? 'text-income' : 'text-expense'}">Rp ${new Intl.NumberFormat('id-ID').format(Math.round(nominal))}</td>
-      <td class="text-center whitespace-nowrap min-w-[100px]" onclick="event.stopPropagation()">
-        <div class="inline-flex items-center justify-center gap-1">
-          <button type="button" onclick='event.stopPropagation(); showDetailRow(${rowJson})' title="Detail" class="w-7 h-7 inline-flex items-center justify-center rounded hover:bg-slate-100 dark:hover:bg-slate-700 text-slate-500 hover:text-primary-600 shrink-0">${iconsax('eye', 'w-4 h-4 shrink-0')}</button>
-          <button type="button" onclick='event.stopPropagation(); ${editFn}(${rowJson})' title="Edit" class="w-7 h-7 inline-flex items-center justify-center rounded hover:bg-slate-100 dark:hover:bg-slate-700 text-slate-500 hover:text-primary-600 shrink-0">${iconsax('edit-2', 'w-4 h-4 shrink-0')}</button>
-          ${selesaiBtn}
-          <button type="button" onclick="event.stopPropagation(); ${deleteFn}(${r.id})" title="Hapus" class="w-7 h-7 inline-flex items-center justify-center rounded hover:bg-red-50 dark:hover:bg-red-900/30 text-slate-500 hover:text-red-600 shrink-0">${iconsax('trash', 'w-4 h-4 shrink-0')}</button>
-        </div>
-      </td>
+      ${actionTd}
     </tr>`;
   }).join('');
 }
@@ -762,14 +786,17 @@ function deletePengeluaran(id) { pendingDelete = BASE_URL + 'admin/keuangan/peng
 window.deletePemasukan = deletePemasukan;
 window.deletePengeluaran = deletePengeluaran;
 
-document.getElementById('btn-confirm-hapus').onclick = async function() {
-  if (!pendingDelete) return;
-  const res = await fetch(pendingDelete, { method: 'POST' });
-  const json = await res.json();
-  if (json.success) { showToast(json.message, 'success'); closeModal('modal-hapus'); setTimeout(() => location.reload(), 800); }
-  else showToast(json.message || 'Gagal menghapus', 'error');
-  pendingDelete = null;
-};
+const btnHapus = document.getElementById('btn-confirm-hapus');
+if (btnHapus) {
+  btnHapus.onclick = async function() {
+    if (!pendingDelete) return;
+    const res = await fetch(pendingDelete, { method: 'POST' });
+    const json = await res.json();
+    if (json.success) { showToast(json.message, 'success'); closeModal('modal-hapus'); setTimeout(() => location.reload(), 800); }
+    else showToast(json.message || 'Gagal menghapus', 'error');
+    pendingDelete = null;
+  };
+}
 
 /* ── Bulk select (satu tabel gabungan, satu master checkbox) ── */
 function toggleSelectAllTxn() {
@@ -810,17 +837,20 @@ function clearAllSelection() {
 }
 window.clearAllSelection = clearAllSelection;
 
-document.getElementById('btn-confirm-bulk-hapus').onclick = async function() {
-  const { pemasukan, pengeluaran } = getSelectedIds();
-  if (pemasukan.length + pengeluaran.length === 0) return;
-  const fd = new FormData();
-  pemasukan.forEach(id => fd.append('pemasukan_ids[]', id));
-  pengeluaran.forEach(id => fd.append('pengeluaran_ids[]', id));
-  const res = await fetch(BASE_URL + 'admin/keuangan/bulk-delete', { method: 'POST', body: fd });
-  const json = await res.json();
-  if (json.success) { showToast(json.message, 'success'); closeModal('modal-bulk-hapus'); setTimeout(() => location.reload(), 800); }
-  else showToast(json.message || 'Gagal menghapus', 'error');
-};
+const btnBulkHapus = document.getElementById('btn-confirm-bulk-hapus');
+if (btnBulkHapus) {
+  btnBulkHapus.onclick = async function() {
+    const { pemasukan, pengeluaran } = getSelectedIds();
+    if (pemasukan.length + pengeluaran.length === 0) return;
+    const fd = new FormData();
+    pemasukan.forEach(id => fd.append('pemasukan_ids[]', id));
+    pengeluaran.forEach(id => fd.append('pengeluaran_ids[]', id));
+    const res = await fetch(BASE_URL + 'admin/keuangan/bulk-delete', { method: 'POST', body: fd });
+    const json = await res.json();
+    if (json.success) { showToast(json.message, 'success'); closeModal('modal-bulk-hapus'); setTimeout(() => location.reload(), 800); }
+    else showToast(json.message || 'Gagal menghapus', 'error');
+  };
+}
 
 /* ── Import ── */
 async function submitImport(e) {

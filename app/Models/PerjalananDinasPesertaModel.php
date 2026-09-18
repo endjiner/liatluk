@@ -380,6 +380,58 @@ class PerjalananDinasPesertaModel extends Model
             'per_page'    => $perPage,
             'total_pages' => $totalPages,
             'offset'      => $offset,
+            'summary'     => $this->getSummaryDanaTaktis($filters),
+        ];
+    }
+
+    /**
+     * Ringkasan agregat Dana Taktis untuk summary bar.
+     * Defaultnya adalah ringkasan keseluruhan dana taktis jika field search kosong.
+     * Jika ada kata kunci search, ringkasan menyesuaikan hasil pencarian tersebut.
+     */
+    public function getSummaryDanaTaktis(array $filters): array
+    {
+        $builder = $this->db->table('perjalanan_dinas_peserta')
+            ->join('perjalanan_dinas', 'perjalanan_dinas.id = perjalanan_dinas_peserta.perjalanan_dinas_id')
+            ->where('perjalanan_dinas_peserta.dana_taktis >', 0);
+
+        if (!empty($filters['status'])) {
+            if ($filters['status'] === 'belum') {
+                $builder->whereIn('perjalanan_dinas_peserta.status_lunas', ['belum', 'sebagian'])
+                        ->where('perjalanan_dinas_peserta.dana_taktis >', 0);
+            } else {
+                $builder->groupStart()
+                        ->where('perjalanan_dinas_peserta.status_lunas', $filters['status'])
+                        ->orWhere('perjalanan_dinas_peserta.dana_taktis <=', 0)
+                        ->groupEnd();
+            }
+        }
+        if (!empty($filters['tahun'])) {
+            $builder->where('YEAR(perjalanan_dinas.tanggal_surat_tugas)', (int)$filters['tahun']);
+        }
+        if (!empty($filters['bulan'])) {
+            $builder->where('MONTH(perjalanan_dinas.tanggal_surat_tugas)', (int)$filters['bulan']);
+        }
+
+        $searchFields = ['perjalanan_dinas.no_pd', 'perjalanan_dinas.no_surat_tugas', 'perjalanan_dinas.kode_mak', 'perjalanan_dinas.no_spm'];
+        $this->applyPencarian($builder, $filters['search'] ?? null, $searchFields);
+
+        $row = $builder->select("
+            COALESCE(SUM(perjalanan_dinas_peserta.uang_harian), 0) as sum_uang_harian,
+            COALESCE(SUM(perjalanan_dinas_peserta.total_spj), 0) as sum_total_spj,
+            COALESCE(SUM(perjalanan_dinas_peserta.dana_taktis), 0) as sum_dana_taktis,
+            COALESCE(SUM(CASE 
+                WHEN perjalanan_dinas_peserta.status_lunas = 'lunas' THEN 0 
+                WHEN perjalanan_dinas_peserta.status_lunas = 'sebagian' THEN (perjalanan_dinas_peserta.dana_taktis - COALESCE(perjalanan_dinas_peserta.jumlah_disetor, 0))
+                ELSE perjalanan_dinas_peserta.dana_taktis 
+            END), 0) as sum_belum_dibayar
+        ", false)->get()->getRowArray();
+
+        return [
+            'sum_uang_harian'   => (float)($row['sum_uang_harian'] ?? 0),
+            'sum_total_spj'     => (float)($row['sum_total_spj'] ?? 0),
+            'sum_dana_taktis'   => (float)($row['sum_dana_taktis'] ?? 0),
+            'sum_belum_dibayar' => (float)($row['sum_belum_dibayar'] ?? 0),
         ];
     }
 

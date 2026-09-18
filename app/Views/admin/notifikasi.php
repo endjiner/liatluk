@@ -37,7 +37,6 @@
       <option value="semua" <?= $jenis === 'semua' ? 'selected' : '' ?>>Semua Jenis</option>
       <option value="pemasukan" <?= $jenis === 'pemasukan' ? 'selected' : '' ?>>Pemasukan</option>
       <option value="pengeluaran" <?= $jenis === 'pengeluaran' ? 'selected' : '' ?>>Pengeluaran</option>
-      <option value="rencana" <?= $jenis === 'rencana' ? 'selected' : '' ?>>Pengingat Rencana</option>
       <option value="sistem" <?= $jenis === 'sistem' ? 'selected' : '' ?>>Sistem</option>
     </select>
   </div>

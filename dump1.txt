@@ -1,4 +1,4 @@
-<?php
+﻿<?php
 $namaBulanDt = ['', 'Januari', 'Februari', 'Maret', 'April', 'Mei', 'Juni', 'Juli', 'Agustus', 'September', 'Oktober', 'November', 'Desember'];
 $tahunSekarangDt = (int)date('Y');
 ?>
@@ -24,21 +24,11 @@ $tahunSekarangDt = (int)date('Y');
 </div>
 
 <div class="card mb-4">
-  <div class="card-header flex items-center justify-between gap-2 flex-wrap">
-    <div class="flex items-center gap-2">
-      <h3 class="text-sm font-semibold text-slate-700 dark:text-slate-200">
-        Daftar Setoran Dana Taktis <span class="text-slate-400 font-normal">(semua pegawai)</span>
-      </h3>
-      <span class="text-xs text-slate-500">Total: <span id="dt-total">-</span></span>
-    </div>
-    <div class="flex items-center gap-1.5 flex-wrap">
-      <button type="button" class="btn btn-outline btn-xs sm:btn-sm gap-1.5 text-emerald-700 dark:text-emerald-400 hover:bg-emerald-50 dark:hover:bg-emerald-950/30 border-emerald-300 dark:border-emerald-800" onclick="exportDanaTaktis('excel')">
-        <?= iconsax('document-text', 'w-3.5 h-3.5 sm:w-4 sm:h-4 text-emerald-600') ?> Export Excel
-      </button>
-      <button type="button" class="btn btn-outline btn-xs sm:btn-sm gap-1.5 text-rose-700 dark:text-rose-400 hover:bg-rose-50 dark:hover:bg-rose-950/30 border-rose-300 dark:border-rose-800" onclick="exportDanaTaktis('pdf')">
-        <?= iconsax('document-text', 'w-3.5 h-3.5 sm:w-4 sm:h-4 text-rose-600') ?> Export PDF
-      </button>
-    </div>
+  <div class="card-header">
+    <h3 class="text-sm font-semibold text-slate-700 dark:text-slate-200">
+      Daftar Setoran Dana Taktis <span class="text-slate-400 font-normal">(semua pegawai)</span>
+    </h3>
+    <span class="text-xs text-slate-500">Total: <span id="dt-total">-</span></span>
   </div>
 
   <div class="p-3 border-b border-slate-200 dark:border-slate-700 bg-slate-50 dark:bg-slate-900/40 space-y-2">
@@ -90,7 +80,7 @@ $tahunSekarangDt = (int)date('Y');
         </select>
         <select id="dt-filter-tahun" onchange="muatDaftarDanaTaktis(1)" class="form-control form-control-sm w-auto">
           <option value="">Semua Tahun</option>
-          <?php foreach (range($tahunSekarangDt, 2016) as $th): ?>
+          <?php foreach (range($tahunSekarangDt, $tahunSekarangDt - 5) as $th): ?>
           <option value="<?= $th ?>"><?= $th ?></option>
           <?php endforeach; ?>
         </select>
@@ -222,16 +212,9 @@ window.dtAdmHideSuggestions = dtAdmHideSuggestions;
 window.dtAdmPickSuggestion   = dtAdmPickSuggestion;
 
 /* Summary */
-function dtAdmUpdateSummary(summary, rows) {
-  if (summary) {
-    document.getElementById('dt-sum-uh').textContent     = rupiah(summary.sum_uang_harian);
-    document.getElementById('dt-sum-spj').textContent    = rupiah(summary.sum_total_spj);
-    document.getElementById('dt-sum-taktis').textContent = rupiah(summary.sum_dana_taktis);
-    document.getElementById('dt-sum-belum').textContent  = rupiah(summary.sum_belum_dibayar);
-    return;
-  }
+function dtAdmUpdateSummary(rows) {
   let sumUH = 0, sumSpj = 0, sumTaktis = 0, sumBelum = 0;
-  (rows || []).forEach(r => {
+  rows.forEach(r => {
     sumUH     += parseFloat(r.uang_harian)  || 0;
     sumSpj    += parseFloat(r.total_spj)    || 0;
     sumTaktis += parseFloat(r.dana_taktis)  || 0;
@@ -321,7 +304,7 @@ async function muatDaftarDanaTaktis(page) {
       if (r.kode_mak)       namaSet.add(r.kode_mak);
     });
     dtAdmSuggestionCache = [...namaSet];
-    dtAdmUpdateSummary(json.summary, json.data);
+    dtAdmUpdateSummary(json.data);
     dtHalamanSaatIni = json.page;
     renderDanaTaktisTable(json.data, json.page, json.per_page);
     renderPaginasiHalaman(document.getElementById('dt-pagination-wrap'), {
@@ -343,6 +326,7 @@ function renderDanaTaktisTable(rows, page, perPage) {
     tbody.innerHTML = '<tr><td colspan="9" class="text-center py-8 text-slate-500"><img src="https://img.icons8.com/3d-fluency/64/empty-box.png" alt="" class="w-10 h-10 mx-auto mb-2 opacity-80"><br>Tidak ada data yang cocok.</td></tr>';
     return;
   }
+<<<<<<< HEAD
   const curPage = page || dtHalamanSaatIni || 1;
   const curPerPage = perPage || 10;
   tbody.innerHTML = rows.map((r, idx) => {
@@ -382,6 +366,26 @@ function renderDanaTaktisTable(rows, page, perPage) {
       </td>
       <td class="text-right text-currency">${rupiah(r.uang_harian)}</td>
       <td class="text-right text-currency">${rupiah(r.total_spj)}</td>
+=======
+  tbody.innerHTML = rows.map(r => {
+    const tgl = r.tanggal_surat_tugas ? new Date(r.tanggal_surat_tugas).toLocaleDateString('id-ID', { day: 'numeric', month: 'short', year: 'numeric' }) : '-';
+    // Dana taktis Rp 0 tidak ada apa-apa untuk disetor â€” dianggap lunas apa pun status_lunas
+    // yang tersimpan (baris begini seharusnya sudah tersaring lewat query, ini jaga-jaga saja).
+    const danaTaktisKosong = !(parseFloat(r.dana_taktis) > 0);
+    const statusBadge = danaTaktisKosong || r.status_lunas === 'lunas'
+      ? '<span class="badge badge-success">Lunas</span>'
+      : r.status_lunas === 'sebagian'
+      ? `<span class="badge badge-info" title="Disetor ${rupiah(r.jumlah_disetor)} dari ${rupiah(r.dana_taktis)}">Sebagian</span>`
+      : '<span class="badge badge-warning">Belum Lunas</span>';
+    const aksi = danaTaktisKosong ? '' : r.status_lunas === 'belum'
+      ? `<button type="button" class="btn btn-success btn-sm" onclick="dtBukaModalLunas(${r.id}, ${r.dana_taktis})">${iconsax('check', 'w-3.5 h-3.5')}</button>`
+      : `<button type="button" class="block text-xs text-primary-600 hover:underline" onclick="dtBukaModalLunas(${r.id}, ${r.dana_taktis})">${r.status_lunas === 'sebagian' ? 'Lanjutkan' : 'Ubah'}</button>` +
+        `<button type="button" class="block text-xs text-slate-400 hover:text-red-600" onclick="dtBatalkanLunas(${r.id})">Batalkan</button>`;
+    return `<tr>
+      <td class="font-medium text-slate-700 dark:text-slate-200">${escapeHtmlDt(r.nama_peserta)}</td>
+      <td class="max-w-[280px] truncate" title="${escapeHtmlDt(r.maksud)}">${escapeHtmlDt(r.maksud)}</td>
+      <td class="whitespace-nowrap text-xs">${escapeHtmlDt(r.no_surat_tugas || '-')}<br>${tgl}</td>
+>>>>>>> 9ebc303ffaa6d056b9f553caa0711a4c421b4e3a
       <td class="text-right text-currency font-semibold text-emerald-600">${rupiah(r.dana_taktis)}</td>
       <td>${statusBadge}</td>
     </tr>`;
@@ -397,7 +401,7 @@ function dtBukaDetail(rowEnc) {
   dtDetailRow = r;
   const isLunas    = r.status_lunas === 'lunas' || parseFloat(r.dana_taktis) === 0;
   const isSebagian = r.status_lunas === 'sebagian';
-  document.getElementById('dt-detail-subtitle').textContent = (r.nama_peserta || '') + ' · ' + (r.maksud || '');
+  document.getElementById('dt-detail-subtitle').textContent = (r.nama_peserta || '') + ' Â· ' + (r.maksud || '');
   const statusLabel = isLunas ? 'Lunas' : isSebagian ? 'Sebagian' : 'Belum Lunas';
   const items = [];
   if (r.no_pd) {
@@ -503,31 +507,53 @@ function dtBatalkanLunas(pesertaId) {
 }
 window.dtBatalkanLunas = dtBatalkanLunas;
 
-// ── Export Dana Taktis (Excel / PDF) ───────────────────────────────────────
-function exportDanaTaktis(format) {
-
-  const tahun  = document.getElementById('dt-filter-tahun')?.value || '';
-  const bulan  = document.getElementById('dt-filter-bulan')?.value || '';
-  const status = document.getElementById('dt-filter-status')?.value || '';
-  const search = document.getElementById('dt-filter-search')?.value || '';
-
-  const params = new URLSearchParams();
-  params.set('tipe', 'dana_taktis');
-  if (tahun)  params.set('tahun', tahun);
-  if (bulan)  params.set('bulan', bulan);
-  if (status) params.set('status', status);
-  if (search) params.set('search', search);
-
-  const endpoint = format === 'pdf' ? 'admin/laporan/export-pdf' : 'admin/laporan/export-excel';
-  const url = BASE + endpoint + '?' + params.toString();
-
-  if (format === 'pdf') {
-    window.open(url, '_blank');
-  } else {
-    window.location.href = url;
+<<<<<<< HEAD
+=======
+async function muatRekap() {
+  const id = document.getElementById('pegawai-select').value;
+  if (!id) {
+    document.getElementById('rekap-wrap').classList.add('hidden');
+    document.getElementById('rekap-empty').classList.remove('hidden');
+    return;
   }
-}
-window.exportDanaTaktis = exportDanaTaktis;
+  const res = await fetch(BASE + 'admin/perjalanan-dinas/dana-taktis/data/' + id);
+  const json = await res.json();
+  if (!json.success) { showToast(json.message || 'Gagal memuat rekap', 'error'); return; }
 
+  document.getElementById('rekap-empty').classList.add('hidden');
+  document.getElementById('rekap-wrap').classList.remove('hidden');
+  document.getElementById('rekap-uang-harian').textContent = rupiah(json.total_uang_harian);
+  document.getElementById('rekap-total-spj').textContent = rupiah(json.total_spj);
+  document.getElementById('rekap-dana-taktis').textContent = rupiah(json.total_dana_taktis);
+  document.getElementById('rekap-belum-dibayar').textContent = rupiah(json.belum_dibayar);
+
+  const tbody = document.getElementById('rekap-tbody');
+  tbody.innerHTML = '';
+  if (!json.rows || json.rows.length === 0) {
+    tbody.innerHTML = '<tr><td colspan="7" class="text-center py-8 text-slate-500"><img src="https://img.icons8.com/3d-fluency/64/empty-box.png" alt="" class="w-10 h-10 mx-auto mb-2 opacity-80"><br>Belum pernah ikut perjalanan dinas.</td></tr>';
+    return;
+  }
+  json.rows.forEach(r => {
+    const tgl = r.tanggal_surat_tugas ? new Date(r.tanggal_surat_tugas).toLocaleDateString('id-ID', { day: 'numeric', month: 'short', year: 'numeric' }) : '-';
+    // Dana taktis Rp 0 (mis. ikut trip tanpa uang harian) tidak ada apa-apa untuk disetor â€”
+    // dianggap lunas apa pun status_lunas yang tersimpan.
+    const statusBadge = !(parseFloat(r.dana_taktis) > 0) || r.status_lunas === 'lunas'
+      ? '<span class="badge badge-success">Lunas</span>'
+      : r.status_lunas === 'sebagian'
+      ? `<span class="badge badge-info" title="Disetor ${rupiah(r.jumlah_disetor)} dari ${rupiah(r.dana_taktis)}">Sebagian</span>`
+      : '<span class="badge badge-warning">Belum Lunas</span>';
+    const tr = document.createElement('tr');
+    tr.innerHTML = `<td class="max-w-[280px] truncate" title="${(r.maksud || '').replace(/"/g, '&quot;')}">${r.maksud || '-'}</td>` +
+      `<td class="whitespace-nowrap text-xs">${r.no_surat_tugas || '-'}<br>${tgl}</td>` +
+      `<td>${r.kode_mak || '-'}</td>` +
+      `<td class="text-right text-currency">${rupiah(r.uang_harian)}</td>` +
+      `<td class="text-right text-currency">${rupiah(r.total_spj)}</td>` +
+      `<td class="text-right text-currency font-semibold text-emerald-600">${rupiah(r.dana_taktis)}</td>` +
+      `<td>${statusBadge}</td>`;
+    tbody.appendChild(tr);
+  });
+}
+window.muatRekap = muatRekap;
+>>>>>>> 9ebc303ffaa6d056b9f553caa0711a4c421b4e3a
 })();
 </script>

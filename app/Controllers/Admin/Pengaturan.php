@@ -20,7 +20,6 @@ class Pengaturan extends BaseController
 
     public function index(): string
     {
-        $notifCount = $this->notifikasiModel->countUnread();
         $daftarAkun = array_map(function ($a) {
             unset($a['password']);
             return $a;
@@ -28,7 +27,6 @@ class Pengaturan extends BaseController
 
         return view('admin/pengaturan', [
             'setting'    => $this->pengaturanModel->getSetting(),
-            'notifCount' => $notifCount,
             'daftarAkun' => $daftarAkun,
         ]);
     }

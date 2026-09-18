@@ -1,6 +1,12 @@
 <?php $namaBulan = ['', 'Januari', 'Februari', 'Maret', 'April', 'Mei', 'Juni', 'Juli', 'Agustus', 'September', 'Oktober', 'November', 'Desember']; ?>
 
-<div class="mb-3 flex items-center justify-end gap-2">
+<div class="mb-3 flex items-center justify-end gap-2 flex-wrap">
+  <button type="button" class="btn btn-outline btn-sm gap-1.5 text-emerald-700 dark:text-emerald-400 hover:bg-emerald-50 dark:hover:bg-emerald-950/30 border-emerald-300 dark:border-emerald-800" onclick="exportPerjadin('excel')">
+    <?= iconsax('document-text', 'w-4 h-4 text-emerald-600') ?> Export Excel
+  </button>
+  <button type="button" class="btn btn-outline btn-sm gap-1.5 text-rose-700 dark:text-rose-400 hover:bg-rose-50 dark:hover:bg-rose-950/30 border-rose-300 dark:border-rose-800" onclick="exportPerjadin('pdf')">
+    <?= iconsax('document-text', 'w-4 h-4 text-rose-600') ?> Export PDF
+  </button>
   <button class="btn btn-outline btn-sm" onclick="bukaModalPegawai()">
     <?= iconsax('people', '') ?> Kelola Pegawai
   </button>
@@ -1154,5 +1160,32 @@ async function segarkanOpsiPegawai() {
     sel.value = current;
   });
 }
+
+// ── Export Perjalanan Dinas (Excel / PDF) ──────────────────────────────────
+function exportPerjadin(format) {
+
+  const tahun  = document.getElementById('filter-tahun-perjadin')?.value || '';
+  const bulan  = document.getElementById('filter-bulan-perjadin')?.value || '';
+  const status = document.getElementById('filter-status-perjadin')?.value || '';
+  const search = document.getElementById('filter-search-perjadin')?.value || '';
+
+  const params = new URLSearchParams();
+  params.set('tipe', 'perjadin');
+  if (tahun)  params.set('tahun', tahun);
+  if (bulan)  params.set('bulan', bulan);
+  if (status) params.set('status', status);
+  if (search) params.set('search', search);
+
+  const endpoint = format === 'pdf' ? 'admin/laporan/export-pdf' : 'admin/laporan/export-excel';
+  const url = BASE + endpoint + '?' + params.toString();
+
+  if (format === 'pdf') {
+    window.open(url, '_blank');
+  } else {
+    window.location.href = url;
+  }
+}
+window.exportPerjadin = exportPerjadin;
+
 })();
 </script>

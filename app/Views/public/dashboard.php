@@ -3,7 +3,7 @@
 
 <?php
 $tahunSekarang = (int)date('Y');
-$tahunOpsi = range($tahunSekarang, $tahunSekarang - 5);
+$tahunOpsi = range($tahunSekarang, 2016);
 $namaBulan = [1=>'Januari',2=>'Februari',3=>'Maret',4=>'April',5=>'Mei',6=>'Juni',7=>'Juli',8=>'Agustus',9=>'September',10=>'Oktober',11=>'November',12=>'Desember'];
 ?>
 
@@ -14,7 +14,7 @@ $namaBulan = [1=>'Januari',2=>'Februari',3=>'Maret',4=>'April',5=>'Mei',6=>'Juni
       <div class="max-w-3xl">
         <h1 class="text-2xl lg:text-3xl font-bold leading-tight">Pengelolaan Keuangan Internal</h1>
         <p class="text-primary-100 mt-2 text-sm lg:text-base">
-          Publikasi arus kas dan rencana anggaran Balai Besar POM di Pangkal Pinang secara terbuka.
+          Publikasi arus kas Balai Besar POM di Pangkal Pinang secara terbuka.
         </p>
       </div>
       <img src="https://img.icons8.com/clouds/500/wallet.png" alt="" class="hidden md:block w-28 lg:w-36 shrink-0">
@@ -98,39 +98,7 @@ $namaBulan = [1=>'Januari',2=>'Februari',3=>'Maret',4=>'April',5=>'Mei',6=>'Juni
     </div>
   </div>
 
-  <!-- Rencana ringkas -->
-  <?php if (!empty($rencanaAktif)): ?>
-  <div class="card">
-    <div class="card-header">
-      <h3 class="text-sm font-semibold text-slate-700 dark:text-slate-200 flex items-center gap-2">
-        <?= iconsax('calendar-tick', 'w-4 h-4 text-primary-600') ?> Rencana Keuangan Aktif
-      </h3>
-    </div>
-    <div class="overflow-x-auto">
-      <table class="table">
-        <thead>
-          <tr><th>Tanggal Rencana</th><th>Kategori</th><th>Tipe</th><th class="text-right">Nominal</th></tr>
-        </thead>
-        <tbody>
-          <?php foreach ($rencanaAktif as $r): ?>
-          <tr>
-            <td class="whitespace-nowrap"><?= date('d M Y', strtotime($r['tanggal_rencana'])) ?></td>
-            <td><?= esc($r['kategori']) ?></td>
-            <td>
-              <?php if ($r['tipe'] === 'pemasukan'): ?>
-                <span class="badge badge-info">Pemasukan</span>
-              <?php else: ?>
-                <span class="badge badge-warning">Pengeluaran</span>
-              <?php endif; ?>
-            </td>
-            <td class="text-right font-medium text-currency">Rp <?= number_format($r['jumlah_rencana'], 0, ',', '.') ?></td>
-          </tr>
-          <?php endforeach; ?>
-        </tbody>
-      </table>
-    </div>
-  </div>
-  <?php endif; ?>
+
 
   <!-- Tab: Transaksi Keuangan / Perjalanan Dinas / Dana Taktis -->
   <div id="segment-tabs" class="segment w-full scroll-mt-24">
@@ -1171,6 +1139,7 @@ async function muatDaftarDanaTaktisPub(page) {
     if (!json.success) { tbody.innerHTML = '<tr><td colspan="9" class="text-center py-8 text-red-500">Gagal memuat data.</td></tr>'; return; }
     dtHalamanPub = json.page;
     renderDanaTaktisTablePub(json.data, json.page, json.per_page);
+    dtUpdateSummary(json.summary, json.data);
     renderPaginasiHalaman(document.getElementById('dt-pagination-wrap-pub'), {
       total: json.total, perPage: json.per_page, page: json.page,
       itemLabel: 'baris', onPageChange: muatDaftarDanaTaktisPub,
@@ -1183,9 +1152,16 @@ async function muatDaftarDanaTaktisPub(page) {
   }
 }
 
-function dtUpdateSummary(rows) {
+function dtUpdateSummary(summary, rows) {
+  if (summary) {
+    document.getElementById('dt-sum-uang-harian').textContent = fmtRp(summary.sum_uang_harian);
+    document.getElementById('dt-sum-spj').textContent         = fmtRp(summary.sum_total_spj);
+    document.getElementById('dt-sum-taktis').textContent      = fmtRp(summary.sum_dana_taktis);
+    document.getElementById('dt-sum-belum').textContent       = fmtRp(summary.sum_belum_dibayar);
+    return;
+  }
   let sumUH = 0, sumSpj = 0, sumTaktis = 0, sumBelum = 0;
-  rows.forEach(r => {
+  (rows || []).forEach(r => {
     sumUH     += parseFloat(r.uang_harian)  || 0;
     sumSpj    += parseFloat(r.total_spj)    || 0;
     sumTaktis += parseFloat(r.dana_taktis)  || 0;
@@ -1210,9 +1186,6 @@ function renderDanaTaktisTablePub(rows, page, perPage) {
     if (r.kode_mak)       namaSet.add(r.kode_mak);
   });
   dtSuggestionCache = [...namaSet];
-
-  // Update summary stats
-  dtUpdateSummary(rows);
 
   const tbody = document.getElementById('dt-tbody-pub');
   if (!rows.length) {

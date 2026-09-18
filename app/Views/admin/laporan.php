@@ -4,7 +4,9 @@
 <div class="mb-8 flex flex-wrap items-center justify-between gap-4">
   <div>
     <h1 class="text-xl lg:text-2xl font-bold text-slate-800 dark:text-slate-100">Laporan &amp; Rekapitulasi</h1>
-    <p class="text-sm text-slate-500 dark:text-slate-400 mt-1">Ringkasan keuangan per periode</p>
+    <p class="text-sm text-slate-500 dark:text-slate-400 mt-1">
+      <?= $isSuperAdmin ? 'Ringkasan keuangan per periode' : 'Rekapitulasi Perjalanan Dinas &amp; Dana Taktis per periode' ?>
+    </p>
   </div>
   <?php
     $qsExport = http_build_query([
@@ -36,8 +38,7 @@
       <label class="form-label">Bulan Sampai</label>
       <input type="month" name="bulan_sampai" class="form-control form-control-sm" value="<?= $bulanSampai ?>">
     </div>
-    <button type="submit" class="btn btn-primary btn-sm"><?= iconsax('filter', '') ?> Tampilkan</button>
-    <div class="flex flex-wrap items-center gap-4 ml-auto pt-1">
+    <div class="flex flex-wrap items-center gap-4 pt-1">
       <label class="flex items-center gap-2 text-sm text-slate-600 dark:text-slate-300 cursor-pointer">
         <input type="checkbox" name="sertakan_perjadin" value="1" class="form-checkbox" <?= $sertakanPerjadin ? 'checked' : '' ?>>
         Sertakan Perjalanan Dinas
@@ -47,10 +48,13 @@
         Sertakan Dana Taktis
       </label>
     </div>
+    <div class="ml-auto">
+      <button type="submit" class="btn btn-primary btn-sm"><?= iconsax('filter', '') ?> Tampilkan</button>
+    </div>
   </div>
   <?php if ($sertakanDanaTaktis): ?>
   <div class="mt-3 pt-3 border-t border-slate-100 dark:border-slate-700">
-    <label class="form-label">Filter Nama (Dana Taktis)</label>
+    <label class="form-label">Filter Nama (Dana Taktis / Pegawai)</label>
     <input type="text" name="filter_nama_taktis" placeholder="Kosongkan untuk semua pegawai..." class="form-control form-control-sm max-w-xs" value="<?= esc($filterNamaTaktis ?? '') ?>">
   </div>
   <?php endif; ?>
@@ -63,7 +67,8 @@
 </div>
 <?php endif; ?>
 
-<!-- KPI Summary -->
+<?php if ($isSuperAdmin): ?>
+<!-- KPI Summary (Super Admin) -->
 <div class="grid grid-cols-2 md:grid-cols-2 lg:grid-cols-4 gap-3 mb-6">
   <div class="kpi">
     <div class="kpi-label"><?= iconsax('wallet', 'w-4 h-4') ?> Saldo Awal Periode</div>
@@ -133,14 +138,52 @@
     </div>
   </div>
 </div>
+<?php endif; ?>
 
 <?php if ($sertakanPerjadin): ?>
-<div class="card mt-4">
-  <div class="card-header">
-    <h3 class="text-sm font-semibold text-slate-700 dark:text-slate-200 flex items-center gap-2">
-      <?= iconsax('airplane', 'w-4 h-4 text-primary-600') ?> Rincian Perjalanan Dinas Periode Ini
-    </h3>
+<?php
+  $perjadinTripCount = !empty($perjadinTrips) ? count($perjadinTrips) : count(array_unique(array_filter(array_column($perjadinRows ?? [], 'perjalanan_dinas_id'))));
+  $perjadinPesertaCount = !empty($perjadinRows) ? count($perjadinRows) : 0;
+  $perjadinTotalTaktis = !empty($perjadinRows) ? array_sum(array_column($perjadinRows, 'dana_taktis')) : 0;
+  $perjadinBelumLunas = 0;
+  if (!empty($perjadinRows)) {
+    foreach ($perjadinRows as $pr) {
+      if (($pr['status_lunas'] ?? '') !== 'lunas') {
+        $perjadinBelumLunas += (float)($pr['dana_taktis'] ?? 0);
+      }
+    }
+  }
+?>
+<div class="mt-6 mb-2 flex items-center justify-between">
+  <h3 class="text-sm font-semibold text-slate-700 dark:text-slate-200 flex items-center gap-2">
+    <?= iconsax('airplane', 'w-4 h-4 text-primary-600') ?> Rincian Perjalanan Dinas Periode Ini
+  </h3>
+</div>
+
+<div class="grid grid-cols-2 lg:grid-cols-5 gap-2.5 sm:gap-3 mb-3">
+  <div class="kpi p-3 sm:p-4">
+    <div class="kpi-label text-[11px]"><?= iconsax('routing', 'w-4 h-4 text-primary-600') ?> Total ST / Trip</div>
+    <div class="kpi-value text-base sm:text-lg text-slate-700 dark:text-slate-200"><?= number_format($perjadinTripCount, 0, ',', '.') ?></div>
   </div>
+  <div class="kpi p-3 sm:p-4">
+    <div class="kpi-label text-[11px]"><?= iconsax('profile-2user', 'w-4 h-4 text-indigo-600') ?> Total Pelaksana</div>
+    <div class="kpi-value text-base sm:text-lg text-slate-700 dark:text-slate-200"><?= number_format($perjadinPesertaCount, 0, ',', '.') ?></div>
+  </div>
+  <div class="kpi p-3 sm:p-4">
+    <div class="kpi-label text-[11px]"><?= iconsax('receipt-2', 'w-4 h-4 text-blue-600') ?> Total SPJ</div>
+    <div class="kpi-value text-base sm:text-lg text-primary-700 dark:text-primary-300 text-currency">Rp <?= number_format($perjadinTotalSpj, 0, ',', '.') ?></div>
+  </div>
+  <div class="kpi p-3 sm:p-4">
+    <div class="kpi-label text-[11px]"><?= iconsax('moneys', 'w-4 h-4 text-emerald-600') ?> Total Dana Taktis</div>
+    <div class="kpi-value text-base sm:text-lg text-emerald-700 dark:text-emerald-400 text-currency">Rp <?= number_format($perjadinTotalTaktis, 0, ',', '.') ?></div>
+  </div>
+  <div class="kpi p-3 sm:p-4 bg-amber-50/70 dark:bg-amber-900/20 col-span-2 lg:col-span-1">
+    <div class="kpi-label text-[11px]"><?= iconsax('warning-2', 'w-4 h-4 text-amber-600') ?> Belum Lunas</div>
+    <div class="kpi-value text-base sm:text-lg text-amber-700 dark:text-amber-400 text-currency">Rp <?= number_format($perjadinBelumLunas, 0, ',', '.') ?></div>
+  </div>
+</div>
+
+<div class="card">
   <div class="overflow-x-auto">
     <table class="table text-xs">
       <thead>

@@ -26,8 +26,7 @@
     $isSuperAdminLayout = session()->get('admin_role') === 'super_admin';
     $navLinks = [
       ['url' => 'admin',           'label' => 'Dashboard',        'icon' => 'category2', 'match' => ['admin', 'admin/dashboard']],
-      ['url' => 'admin/rencana',   'label' => 'Rencana Keuangan', 'icon' => 'calendar-tick', 'match' => ['rencana'], 'superadmin' => true],
-      ['url' => 'admin/laporan',   'label' => 'Laporan',          'icon' => 'document-text', 'match' => ['laporan'], 'superadmin' => true],
+      ['url' => 'admin/laporan',   'label' => 'Laporan',          'icon' => 'document-text', 'match' => ['laporan']],
     ];
     $navLinks = array_values(array_filter($navLinks, fn($nl) => empty($nl['superadmin']) || $isSuperAdminLayout));
     $isNavActive = function ($nl) {
@@ -69,31 +68,6 @@
             <?= iconsax('moon', 'w-5 h-5 dark:hidden', 'theme-icon-moon') ?>
           </button>
 
-          <!-- Notifications -->
-          <div class="relative">
-            <button id="notif-btn" onclick="toggleNotif()" title="Notifikasi"
-                    class="relative p-2 rounded-lg text-slate-500 dark:text-slate-300 hover:bg-slate-100 dark:hover:bg-slate-700 transition">
-              <?= iconsax('notification', 'w-5 h-5') ?>
-              <?php if (($notifCount ?? 0) > 0): ?>
-              <span class="absolute top-1.5 right-1.5 w-2 h-2 rounded-full bg-rose-400 ring-2 ring-white dark:ring-slate-800"></span>
-              <?php endif; ?>
-            </button>
-            <div id="notif-dropdown" class="hidden absolute right-0 top-full mt-2 w-80 max-w-[90vw] bg-white dark:bg-slate-800 rounded-xl shadow-lift border border-slate-200 dark:border-slate-700 overflow-hidden">
-              <div class="flex items-center justify-between px-4 py-3 border-b border-slate-200 dark:border-slate-700">
-                <span class="font-semibold text-sm">Notifikasi</span>
-                <button onclick="markAllRead()" class="text-xs text-primary-600 dark:text-primary-400 hover:underline">Tandai semua</button>
-              </div>
-              <div id="notif-list" class="max-h-72 overflow-y-auto">
-                <div class="px-4 py-8 text-center text-slate-500 dark:text-slate-400 text-sm">
-                  <img src="<?= icons8('bell', '3d-fluency', 64) ?>" alt="" class="w-10 h-10 mx-auto mb-2 opacity-80">
-                  Tidak ada notifikasi
-                </div>
-              </div>
-              <a href="<?= base_url('admin/notifikasi/semua') ?>" class="flex items-center justify-center gap-1 px-4 py-2.5 text-xs font-medium text-primary-600 dark:text-primary-400 border-t border-slate-200 dark:border-slate-700 hover:bg-slate-50 dark:hover:bg-slate-700/50">
-                Lihat Semua <?= iconsax('arrow-right', 'w-3 h-3') ?>
-              </a>
-            </div>
-          </div>
 
           <!-- User Menu -->
           <div class="relative" id="user-menu-wrapper">
@@ -293,14 +267,14 @@
       <div class="modal-header">
         <div>
           <h3 class="text-base font-semibold text-slate-800 dark:text-slate-100">Input Data Baru</h3>
-          <p class="text-sm text-slate-500 dark:text-slate-400 mt-0.5">Tambahkan transaksi atau rencana keuangan</p>
+          <p class="text-sm text-slate-500 dark:text-slate-400 mt-0.5">Tambahkan transaksi keuangan</p>
         </div>
         <button class="btn btn-ghost btn-icon" onclick="closeMainDrawer()"><?= iconsax('close-circle', '') ?></button>
       </div>
       <div class="modal-body">
         <div class="mb-4">
           <label class="form-label">Jenis Data</label>
-          <div class="grid grid-cols-2 md:grid-cols-4 gap-2">
+          <div class="grid grid-cols-3 gap-2">
             <button type="button" onclick="selectJenisData('pemasukan')" id="jcard-pemasukan"
                     class="jenis-card p-3 rounded-lg border-2 text-xs font-medium flex flex-col items-center gap-1.5 transition">
               <?= iconsax('trend-up', 'w-5 h-5 text-emerald-600') ?>
@@ -311,15 +285,10 @@
               <?= iconsax('trend-down', 'w-5 h-5 text-red-600') ?>
               Pengeluaran
             </button>
-            <button type="button" onclick="selectJenisData('rpemasukan')" id="jcard-rpemasukan"
-                    class="jenis-card p-3 rounded-lg border-2 text-xs font-medium flex flex-col items-center gap-1.5 transition">
-              <?= iconsax('calendar', 'w-5 h-5 text-primary-600') ?>
-              Rencana Pemasukan
-            </button>
-            <button type="button" onclick="selectJenisData('rpengeluaran')" id="jcard-rpengeluaran"
-                    class="jenis-card p-3 rounded-lg border-2 text-xs font-medium flex flex-col items-center gap-1.5 transition">
-              <?= iconsax('calendar', 'w-5 h-5 text-amber-600') ?>
-              Rencana Pengeluaran
+            <button type="button" onclick="handlePilihPerjadin()" id="jcard-perjadin"
+                    class="jenis-card p-3 rounded-lg border-2 text-xs font-medium flex flex-col items-center gap-1.5 transition border-slate-200 dark:border-slate-600 text-slate-700 dark:text-slate-300 hover:border-primary-400">
+              <?= iconsax('airplane', 'w-5 h-5 text-primary-600') ?>
+              Perjalanan Dinas
             </button>
           </div>
         </div>
@@ -485,40 +454,18 @@ function toggleMobileNav() {
   icon.outerHTML = iconsax(isOpen ? 'hamberger-menu' : 'close-circle', icon.getAttribute('class'), 'mobile-nav-icon');
 }
 
-/* ── Notif ── */
-function toggleNotif() {
-  const dd = document.getElementById('notif-dropdown');
-  dd.classList.toggle('hidden');
-  if (!dd.classList.contains('hidden')) loadNotif();
+function handlePilihPerjadin() {
+  closeMainDrawer();
+  if (typeof aktifkanTab === 'function') {
+    aktifkanTab('perjadin', true);
+  }
+  if (typeof bukaModalTrip === 'function') {
+    bukaModalTrip();
+  } else {
+    window.location.href = '<?= base_url('admin?tab=perjadin&action=new') ?>';
+  }
 }
-
-async function loadNotif() {
-  try {
-    const res = await fetch('<?= base_url('admin/notifikasi') ?>');
-    const data = await res.json();
-    const list = document.getElementById('notif-list');
-    if (!data.data || data.data.length === 0) {
-      list.innerHTML = '<div class="px-4 py-8 text-center text-slate-500 dark:text-slate-400 text-sm"><img src="https://img.icons8.com/3d-fluency/64/bell.png" alt="" class="w-10 h-10 mx-auto mb-2 opacity-80">Tidak ada notifikasi</div>';
-      return;
-    }
-    list.innerHTML = data.data.map(n => `
-      <div class="px-4 py-3 border-b border-slate-100 dark:border-slate-700 cursor-pointer hover:bg-slate-50 dark:hover:bg-slate-700/50 ${n.is_read == 0 ? 'bg-primary-50/40 dark:bg-primary-900/20' : ''}" onclick="markRead(${n.id}, this)">
-        <div class="text-sm text-slate-700 dark:text-slate-200">${n.pesan}</div>
-        <div class="text-xs text-slate-500 dark:text-slate-400 mt-1">${n.created_at}</div>
-      </div>
-    `).join('');
-  } catch(e) {}
-}
-
-async function markRead(id, el) {
-  await fetch('<?= base_url('admin/notifikasi/read/') ?>' + id, { method: 'POST' });
-  el.classList.remove('bg-primary-50/40', 'dark:bg-primary-900/20');
-}
-
-async function markAllRead() {
-  await fetch('<?= base_url('admin/notifikasi/read-all') ?>', { method: 'POST' });
-  document.querySelectorAll('#notif-list > div').forEach(el => el.classList.remove('bg-primary-50/40', 'dark:bg-primary-900/20'));
-}
+window.handlePilihPerjadin = handlePilihPerjadin;
 
 /* ── User menu ── */
 function toggleUserMenu() {
@@ -526,11 +473,6 @@ function toggleUserMenu() {
 }
 
 document.addEventListener('click', function(e) {
-  const notifDd = document.getElementById('notif-dropdown');
-  const notifBtn = document.getElementById('notif-btn');
-  if (notifDd && !notifDd.classList.contains('hidden') && !notifDd.contains(e.target) && !notifBtn?.contains(e.target)) {
-    notifDd.classList.add('hidden');
-  }
   const userDd = document.getElementById('user-menu-dropdown');
   const userWrap = document.getElementById('user-menu-wrapper');
   if (userDd && !userDd.classList.contains('hidden') && userWrap && !userWrap.contains(e.target)) {
@@ -594,7 +536,7 @@ function selectJenisData(jenis) {
   const diterimaWrap = document.getElementById('field-diterima-wrap');
   const kategoriSel = document.getElementById('drawer-kategori');
 
-  const daftarKategori = (jenis === 'pengeluaran' || jenis === 'rpengeluaran') ? KATEGORI_PENGELUARAN : KATEGORI_PEMASUKAN;
+  const daftarKategori = (jenis === 'pengeluaran') ? KATEGORI_PENGELUARAN : KATEGORI_PEMASUKAN;
   kategoriSel.innerHTML = '<option value="">Pilih kategori...</option>' +
     daftarKategori.map(k => `<option value="${k}">${k}</option>`).join('');
 
@@ -646,9 +588,7 @@ async function handleSingleSubmit(e) {
   const fd = buildFormData(form);
   const jenis = currentJenisData;
   let url = GLOBAL_BASE + 'admin/keuangan/pemasukan';
-  if (jenis === 'pengeluaran')       url = GLOBAL_BASE + 'admin/keuangan/pengeluaran';
-  else if (jenis === 'rpemasukan')   url = GLOBAL_BASE + 'admin/rencana/pemasukan';
-  else if (jenis === 'rpengeluaran') url = GLOBAL_BASE + 'admin/rencana/pengeluaran';
+  if (jenis === 'pengeluaran') url = GLOBAL_BASE + 'admin/keuangan/pengeluaran';
 
   const btn = document.getElementById('drawer-submit-btn');
   btn.disabled = true;

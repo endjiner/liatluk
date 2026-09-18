@@ -2,10 +2,10 @@
 <html lang="id">
 <head>
   <meta charset="UTF-8">
-  <title>Laporan Keuangan BBPOM di Pangkal Pinang (<?= $bulanDari ?> s/d <?= $bulanSampai ?>)</title>
+  <title><?= !empty($hanyaPerjadin) ? 'Laporan Perjalanan Dinas' : (!empty($hanyaDanaTaktis) ? 'Laporan Dana Taktis' : (empty($isSuperAdmin) ? 'Laporan Perjalanan Dinas & Dana Taktis' : 'Laporan Keuangan')) ?> BBPOM di Pangkal Pinang (<?= $bulanDari ?> s/d <?= $bulanSampai ?>)</title>
   <link rel="stylesheet" href="<?= base_url('assets/css/laporan-pdf.css') ?>">
   <style>
-    <?php if (!empty($sertakanPerjadin)): ?>
+    <?php if (!empty($sertakanPerjadin) || !empty($hanyaPerjadin)): ?>
     @page { size: A4 landscape; margin: 10mm; }
     body { padding: 10px; }
     <?php else: ?>
@@ -17,13 +17,25 @@
 
 <div class="header">
   <h2>Balai Besar Pengawas Obat dan Makanan di Pangkal Pinang</h2>
+  <?php if (!empty($hanyaPerjadin)): ?>
+  <h3>LAPORAN REKAPITULASI PERJALANAN DINAS (SPJ)</h3>
+  <?php elseif (!empty($hanyaDanaTaktis)): ?>
+  <h3>LAPORAN REKAPITULASI DANA TAKTIS</h3>
+  <?php elseif (empty($isSuperAdmin)): ?>
+  <h3>LAPORAN REKAPITULASI PERJALANAN DINAS &amp; DANA TAKTIS</h3>
+  <?php else: ?>
   <h3>LAPORAN REKAPITULASI KEUANGAN INTERNAL</h3>
+  <?php endif; ?>
   <p>Periode: <?= date('F Y', strtotime($bulanDari . '-01')) ?> s/d <?= date('F Y', strtotime($bulanSampai . '-01')) ?></p>
+  <?php if (!empty($filterInfo)): ?>
+  <p class="periode-note" style="color:#475569;font-style:normal;font-weight:bold;margin-top:3px;">Filter: <?= esc($filterInfo) ?></p>
+  <?php endif; ?>
   <?php if (!empty($periodeDipangkas)): ?>
   <p class="periode-note">Catatan: rentang periode yang diminta dibatasi maksimal <?= $maxBulanPeriode ?> bulan supaya laporan tetap cepat dibuat.</p>
   <?php endif; ?>
 </div>
 
+<?php if (!empty($isSuperAdmin) && empty($hanyaPerjadin) && empty($hanyaDanaTaktis)): ?>
 <table class="kpi-table">
   <tr>
     <td>
@@ -240,9 +252,47 @@
     <?php endforeach; endif; ?>
   </tbody>
 </table>
+<?php endif; ?>
 
 <?php if (!empty($sertakanPerjadin)): ?>
 <div class="section-head">Rincian Perjalanan Dinas</div>
+<?php
+  $perjadinTripCount = !empty($perjadinTrips) ? count($perjadinTrips) : count(array_unique(array_filter(array_column($perjadinRows ?? [], 'perjalanan_dinas_id'))));
+  $perjadinPesertaCount = !empty($perjadinRows) ? count($perjadinRows) : 0;
+  $perjadinTotalTaktis = !empty($perjadinRows) ? array_sum(array_column($perjadinRows, 'dana_taktis')) : 0;
+  $perjadinBelumLunas = 0;
+  if (!empty($perjadinRows)) {
+    foreach ($perjadinRows as $pr) {
+      if (($pr['status_lunas'] ?? '') !== 'lunas') {
+        $perjadinBelumLunas += (float)($pr['dana_taktis'] ?? 0);
+      }
+    }
+  }
+?>
+<table class="kpi-table">
+  <tr>
+    <td style="width:20%;">
+      <div class="kpi-title">Total Kegiatan (ST)</div>
+      <div class="kpi-val"><?= number_format($perjadinTripCount, 0, ',', '.') ?></div>
+    </td>
+    <td style="width:20%;">
+      <div class="kpi-title">Total Pelaksana</div>
+      <div class="kpi-val"><?= number_format($perjadinPesertaCount, 0, ',', '.') ?></div>
+    </td>
+    <td style="width:20%;">
+      <div class="kpi-title">Total SPJ</div>
+      <div class="kpi-val"><?= 'Rp ' . number_format($perjadinTotalSpj ?? 0, 0, ',', '.') ?></div>
+    </td>
+    <td style="width:20%;">
+      <div class="kpi-title">Total Dana Taktis</div>
+      <div class="kpi-val text-success"><?= 'Rp ' . number_format($perjadinTotalTaktis, 0, ',', '.') ?></div>
+    </td>
+    <td style="width:20%;">
+      <div class="kpi-title">Belum Lunas</div>
+      <div class="kpi-val text-danger"><?= 'Rp ' . number_format($perjadinBelumLunas, 0, ',', '.') ?></div>
+    </td>
+  </tr>
+</table>
 <table class="data-table data-table-perjadin">
   <thead>
     <tr>

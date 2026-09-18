@@ -5,7 +5,7 @@
 $tahunSekarang = (int)date('Y');
 $bulanSekarang = (int)date('m');
 $namaBulan = ['','Januari','Februari','Maret','April','Mei','Juni','Juli','Agustus','September','Oktober','November','Desember'];
-$tahunOpsi = range($tahunSekarang, $tahunSekarang - 5);
+$tahunOpsi = range($tahunSekarang, 2016);
 ?>
 
 <!-- Header -->
@@ -22,9 +22,8 @@ $tahunOpsi = range($tahunSekarang, $tahunSekarang - 5);
 </div>
 
 <!-- KPI Cards: 4 kartu sejajar (2 kolom di mobile, 4 kolom di desktop) -->
-<div class="grid <?= $isSuperAdmin ? 'grid-cols-2 lg:grid-cols-4' : 'grid-cols-1 sm:max-w-sm' ?> gap-2.5 sm:gap-3 mb-6">
+<div class="grid grid-cols-2 lg:grid-cols-4 gap-2.5 sm:gap-3 mb-6">
 
-  <?php if ($isSuperAdmin): ?>
   <!-- Saldo Akhir -->
   <div class="kpi p-3 sm:p-5">
     <div class="kpi-label">
@@ -37,7 +36,6 @@ $tahunOpsi = range($tahunSekarang, $tahunSekarang - 5);
       Total pemasukan − pengeluaran keseluruhan
     </div>
   </div>
-  <?php endif; ?>
 
   <!-- Dana Taktis Belum Dibayar -->
   <div class="kpi p-3 sm:p-5 bg-amber-50/70 dark:bg-amber-900/20">
@@ -53,7 +51,6 @@ $tahunOpsi = range($tahunSekarang, $tahunSekarang - 5);
     </div>
   </div>
 
-  <?php if ($isSuperAdmin): ?>
   <!-- Total Pemasukan dengan period picker -->
   <div class="kpi p-3 sm:p-5" data-kpi="pemasukan">
     <div class="flex items-start justify-between gap-2">
@@ -79,22 +76,14 @@ $tahunOpsi = range($tahunSekarang, $tahunSekarang - 5);
     </div>
     <?= view('admin/_partials/kpi_period_picker', ['id' => 'pengeluaran']) ?>
   </div>
-  <?php endif; ?>
 
 </div>
 
-<?php if ($isSuperAdmin): ?>
 <!-- Kartu Tambahan (dinamis, hanya muncul kalau nilainya > 0; style disamakan dengan KPI di atas) -->
 <?php
   $extraCards = [];
   if ($danaBelumDiterima > 0) {
     $extraCards[] = ['icon' => 'high-priority', 'color' => 'amber', 'label' => 'Dana Belum Diterima', 'value' => $danaBelumDiterima, 'caption' => 'Total pemasukan yang belum masuk ke kas'];
-  }
-  if ($totalRencanaPemasukan > 0) {
-    $extraCards[] = ['icon' => 'budget', 'color' => 'emerald', 'label' => 'Rencana Pemasukan', 'value' => $totalRencanaPemasukan, 'caption' => 'Total rencana pemasukan aktif'];
-  }
-  if ($totalRencanaPengeluaran > 0) {
-    $extraCards[] = ['icon' => 'budget', 'color' => 'primary', 'label' => 'Rencana Pengeluaran', 'value' => $totalRencanaPengeluaran, 'caption' => 'Total rencana pengeluaran aktif'];
   }
 ?>
 <?php if (!empty($extraCards)): ?>
@@ -147,49 +136,11 @@ $tahunOpsi = range($tahunSekarang, $tahunSekarang - 5);
   </div>
 </div>
 
-<!-- Rencana ringkas -->
-<?php if (!empty($rencanaAktif)): ?>
-<div class="card mb-6">
-  <div class="card-header">
-    <h3 class="text-sm font-semibold text-slate-700 dark:text-slate-200 flex items-center gap-2">
-      <?= iconsax('calendar-tick', 'w-4 h-4 text-primary-600') ?> Rencana Keuangan Aktif
-    </h3>
-    <a href="<?= base_url('admin/rencana') ?>" class="text-xs text-primary-600 dark:text-primary-400 hover:underline">Lihat semua</a>
-  </div>
-  <div class="overflow-x-auto">
-    <table class="table">
-      <thead>
-        <tr><th>Tanggal Rencana</th><th>Kategori</th><th>Tipe</th><th class="text-right">Nominal</th></tr>
-      </thead>
-      <tbody>
-        <?php foreach ($rencanaAktif as $r): ?>
-        <tr>
-          <td class="whitespace-nowrap"><?= date('d M Y', strtotime($r['tanggal_rencana'])) ?></td>
-          <td><?= esc($r['kategori']) ?></td>
-          <td>
-            <?php if ($r['tipe'] === 'pemasukan'): ?>
-              <span class="badge badge-info">Pemasukan</span>
-            <?php else: ?>
-              <span class="badge badge-warning">Pengeluaran</span>
-            <?php endif; ?>
-          </td>
-          <td class="text-right font-medium text-currency">Rp <?= number_format($r['jumlah_rencana'], 0, ',', '.') ?></td>
-        </tr>
-        <?php endforeach; ?>
-      </tbody>
-    </table>
-  </div>
-</div>
-<?php endif; ?>
-<?php endif; // isSuperAdmin (Kartu Tambahan + Charts + Rencana ringkas) ?>
-
 <!-- Tab: Transaksi Keuangan / Perjalanan Dinas / Dana Taktis -->
 <div id="segment-tabs" class="segment w-full scroll-mt-24">
-  <?php if ($isSuperAdmin): ?>
-  <button type="button" id="tab-btn-transaksi" class="segment-btn active flex-1 flex items-center justify-center gap-1.5" onclick="aktifkanTab('transaksi')">
+  <button type="button" id="tab-btn-transaksi" class="segment-btn <?= $isSuperAdmin ? 'active' : '' ?> flex-1 flex items-center justify-center gap-1.5" onclick="aktifkanTab('transaksi')">
     <?= iconsax('receipt-item', 'w-3.5 h-3.5 shrink-0') ?> <span class="truncate">Transaksi</span>
   </button>
-  <?php endif; ?>
   <button type="button" id="tab-btn-perjadin" class="segment-btn <?= $isSuperAdmin ? '' : 'active' ?> flex-1 flex items-center justify-center gap-1.5" onclick="aktifkanTab('perjadin')">
     <?= iconsax('airplane', 'w-3.5 h-3.5 shrink-0') ?> <span class="truncate">Perjalanan Dinas</span>
   </button>
@@ -198,11 +149,9 @@ $tahunOpsi = range($tahunSekarang, $tahunSekarang - 5);
   </button>
 </div>
 
-<?php if ($isSuperAdmin): ?>
-<div id="panel-transaksi" class="mt-4">
+<div id="panel-transaksi" class="mt-4 <?= $isSuperAdmin ? '' : 'hidden' ?>">
   <?= $this->include('admin/_partials/tab_transaksi') ?>
 </div>
-<?php endif; ?>
 
 <div id="panel-perjadin" class="mt-4 <?= $isSuperAdmin ? 'hidden' : '' ?>">
   <?= $this->include('admin/_partials/tab_perjadin') ?>
@@ -215,7 +164,6 @@ $tahunOpsi = range($tahunSekarang, $tahunSekarang - 5);
 <?= $this->endSection() ?>
 
 <?= $this->section('scripts') ?>
-<?php if ($isSuperAdmin): ?>
 <script>
 const ADMIN_CHART_TREN_URL = '<?= base_url('admin/dashboard/chart-tren') ?>';
 
@@ -357,7 +305,6 @@ document.addEventListener('DOMContentLoaded', () => {
   }
 })();
 </script>
-<?php endif; // isSuperAdmin (chart & KPI period-picker scripts) ?>
 
 <script>
 /* ── Tab: Transaksi Keuangan / Perjalanan Dinas / Dana Taktis ── */
@@ -398,7 +345,8 @@ window.aktifkanTab = aktifkanTab;
 window.scrollKeDanaTaktis = scrollKeDanaTaktis;
 
 document.addEventListener('DOMContentLoaded', () => {
-  if (location.hash === '#perjadin') aktifkanTab('perjadin', true);
+  if (location.hash === '#transaksi') aktifkanTab('transaksi', true);
+  else if (location.hash === '#perjadin') aktifkanTab('perjadin', true);
   else if (location.hash === '#dana-taktis') aktifkanTab('dana-taktis', true);
   <?php if (!$isSuperAdmin): ?>
   else aktifkanTab('perjadin');
