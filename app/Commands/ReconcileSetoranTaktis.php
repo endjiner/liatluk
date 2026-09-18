@@ -247,6 +247,7 @@ class ReconcileSetoranTaktis extends BaseCommand
                     $identitasSajaCocok[] = [
                         'pemasukan' => $pm, 'pegawai' => $pgCocok, 'trips' => $tripBelumOrangIni, 'total_belum' => $totalBelum,
                         'total_trip_semua' => count($semuaTripOrangIni),
+                        'semua_trip' => $semuaTripOrangIni,
                     ];
                 }
                 continue;
@@ -256,6 +257,7 @@ class ReconcileSetoranTaktis extends BaseCommand
                 'pemasukan' => $pm,
                 'pegawai_unik' => $pgCocok,
                 'total_trip_belum_lunas' => count($semuaTripOrangIni),
+                'semua_trip' => $semuaTripOrangIni,
             ];
         }
 
@@ -341,6 +343,13 @@ class ReconcileSetoranTaktis extends BaseCommand
                 $daftarTrip,
                 $keteranganTotal
             ));
+            if (!empty($m['semua_trip'])) {
+                $semuaTripStr = implode(', ', array_map(
+                    static fn($p) => '#' . $p['id'] . ' (trip #' . $p['perjalanan_dinas_id'] . ', tgl ' . $p['tanggal_surat_tugas'] . ', Rp' . number_format((float) $p['dana_taktis'], 0, ',', '.') . ')',
+                    $m['semua_trip']
+                ));
+                CLI::write('    SEMUA trip belum lunas ' . $m['pegawai']['nama'] . ' (termasuk yang tanggalnya setelah setoran ini): ' . $semuaTripStr);
+            }
         }
         CLI::newLine();
 
@@ -385,6 +394,13 @@ class ReconcileSetoranTaktis extends BaseCommand
                     CLI::write('    Teridentifikasi unik ke pegawai "' . $entry['pegawai_unik']['nama'] . '", tapi pegawai ini tidak punya trip berstatus belum lunas sama sekali.');
                 } else {
                     CLI::write('    Teridentifikasi unik ke pegawai "' . $entry['pegawai_unik']['nama'] . '" — punya ' . $entry['total_trip_belum_lunas'] . ' trip belum lunas, tapi semuanya bertanggal SETELAH setoran ini.');
+                    if (!empty($entry['semua_trip'])) {
+                        $semuaTripStr = implode(', ', array_map(
+                            static fn($p) => '#' . $p['id'] . ' (trip #' . $p['perjalanan_dinas_id'] . ', tgl ' . $p['tanggal_surat_tugas'] . ', Rp' . number_format((float) $p['dana_taktis'], 0, ',', '.') . ')',
+                            $entry['semua_trip']
+                        ));
+                        CLI::write('    Daftar trip tersebut: ' . $semuaTripStr);
+                    }
                 }
             } elseif (!empty($pm['sumber'])) {
                 $kemungkinan = $this->cariKemungkinanPegawai($this->normalisasiNama($pm['sumber']), $semuaPegawai);
