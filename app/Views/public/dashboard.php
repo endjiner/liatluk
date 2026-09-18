@@ -1424,6 +1424,31 @@ function closeDtModalPub() { document.getElementById('modal-detail-dt-pub').clas
 window.showDtModalPub = showDtModalPub;
 window.closeDtModalPub = closeDtModalPub;
 
+/* ── Animasi angka KPI "count up" saat dimuat — bikin dashboard kerasa lebih hidup ── */
+function animateCountUp(el, duration = 900) {
+  const raw = el.textContent;
+  const match = raw.match(/[\d.,]+/);
+  if (!match) return;
+  const target = parseFloat(match[0].replace(/\./g, '').replace(',', '.'));
+  if (!isFinite(target)) return;
+  const prefix = raw.slice(0, match.index);
+  const suffix = raw.slice(match.index + match[0].length);
+  const start = performance.now();
+  const ease = t => 1 - Math.pow(1 - t, 3);
+  function tick(now) {
+    const p = Math.min((now - start) / duration, 1);
+    const val = Math.round(target * ease(p));
+    el.textContent = prefix + val.toLocaleString('id-ID') + suffix;
+    if (p < 1) requestAnimationFrame(tick);
+    else el.textContent = raw;
+  }
+  requestAnimationFrame(tick);
+}
+window.animateCountUp = animateCountUp;
+document.addEventListener('DOMContentLoaded', () => {
+  document.querySelectorAll('.kpi-value').forEach(el => animateCountUp(el));
+});
+
 /* ── Init ── */
 document.addEventListener('DOMContentLoaded', () => {
   buildKat();

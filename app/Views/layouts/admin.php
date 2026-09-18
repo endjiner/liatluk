@@ -620,7 +620,7 @@ function showToast(msg, type = 'info') {
   };
   const icons = { success: 'tick-circle', error: 'info-circle', info: 'info-circle', warning: 'warning-2' };
   const t = document.createElement('div');
-  t.className = `pointer-events-auto flex items-center gap-3 px-4 py-3 rounded-lg border shadow-lift text-sm animate-slide-up ${styles[type] || styles.info}`;
+  t.className = `pointer-events-auto flex items-center gap-3 px-4 py-3 rounded-lg border shadow-lift text-sm animate-bounce-in ${styles[type] || styles.info}`;
   t.innerHTML = `${iconsax(icons[type] || 'info-circle', 'w-5 h-5 shrink-0')}<span class="flex-1">${msg}</span>`;
   c.appendChild(t);
   setTimeout(() => {
@@ -630,6 +630,31 @@ function showToast(msg, type = 'info') {
   }, 4000);
 }
 window.showToast = showToast;
+
+/* ── Animasi angka KPI "count up" saat dimuat — bikin dashboard kerasa lebih hidup ── */
+function animateCountUp(el, duration = 900) {
+  const raw = el.textContent;
+  const match = raw.match(/[\d.,]+/);
+  if (!match) return;
+  const target = parseFloat(match[0].replace(/\./g, '').replace(',', '.'));
+  if (!isFinite(target)) return;
+  const prefix = raw.slice(0, match.index);
+  const suffix = raw.slice(match.index + match[0].length);
+  const start = performance.now();
+  const ease = t => 1 - Math.pow(1 - t, 3);
+  function tick(now) {
+    const p = Math.min((now - start) / duration, 1);
+    const val = Math.round(target * ease(p));
+    el.textContent = prefix + val.toLocaleString('id-ID') + suffix;
+    if (p < 1) requestAnimationFrame(tick);
+    else el.textContent = raw;
+  }
+  requestAnimationFrame(tick);
+}
+window.animateCountUp = animateCountUp;
+document.addEventListener('DOMContentLoaded', () => {
+  document.querySelectorAll('.kpi-value').forEach(el => animateCountUp(el));
+});
 
 /* ── FORMAT RIBUAN (BUG FIXED) ─────────────────────────────────
    BUG SEBELUMNYA: `.value.replace(/\D/g, '')` juga membuang titik decimal
