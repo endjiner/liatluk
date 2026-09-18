@@ -33,14 +33,19 @@ class Pengaturan extends BaseController
 
     public function update()
     {
-        // Normalisasi threshold_notif (input rupiah bisa masuk sebagai "1.000.000")
+        // Normalisasi threshold_notif (input rupiah bisa masuk sebagai "1.000.000" atau "750.000")
         $threshold = $this->request->getPost('threshold_notif');
-        if ($threshold !== null && !is_numeric($threshold)) {
-            $s = (string)$threshold;
-            if (preg_match('/^([\d.]+),(\d{1,2})$/', $s, $m)) {
+        if ($threshold !== null && $threshold !== '') {
+            $s = trim((string)$threshold);
+            if (preg_match('/^(-?[\d.]+),(\d{1,2})$/', $s, $m)) {
+                // Desimal koma format id-ID, mis "1.500.000,50"
                 $threshold = (float)(str_replace('.', '', $m[1]) . '.' . $m[2]);
+            } elseif (substr_count($s, '.') > 1 || (preg_match('/^-?\d+\.(\d+)$/', $s, $m) && strlen($m[1]) === 3)) {
+                // Titik = pemisah ribuan id-ID, mis "1.000.000" atau "750.000" (bukan desimal
+                // — is_numeric() saja salah menganggap "750.000" sebagai 750.0, ÷1000).
+                $threshold = (float)str_replace('.', '', $s);
             } else {
-                $threshold = (float)str_replace(['.', ','], ['', ''], $s);
+                $threshold = is_numeric($s) ? (float)$s : 0.0;
             }
         }
 

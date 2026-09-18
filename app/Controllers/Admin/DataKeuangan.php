@@ -35,14 +35,29 @@ class DataKeuangan extends BaseController
     private function sanitizeNominal($raw): float
     {
         if ($raw === null || $raw === '') return 0.0;
-        if (is_numeric($raw)) return (float)$raw;
-        $s = (string)$raw;
-        // Buang decimal trailing yang formatnya id-ID pakai "," (mis "1000000,50")
-        if (preg_match('/^([\d.]+),(\d{1,2})$/', $s, $m)) {
+        $s = trim((string)$raw);
+        if ($s === '') return 0.0;
+
+        // Format id-ID dengan desimal koma, mis "1.500.000,50"
+        if (preg_match('/^(-?[\d.]+),(\d{1,2})$/', $s, $m)) {
             return (float)(str_replace('.', '', $m[1]) . '.' . $m[2]);
         }
-        // Format id-ID "1.000.000" — titik = thousand separator (buang semua)
-        return (float)str_replace(['.', ','], ['', ''], $s);
+
+        // Lebih dari satu titik hanya mungkin pemisah ribuan id-ID, mis "1.000.000"
+        if (substr_count($s, '.') > 1) {
+            return (float)str_replace('.', '', $s);
+        }
+
+        // Tepat satu titik: id-ID selalu mengelompokkan ribuan PERSIS 3 digit
+        // ("750.000" = 750 ribu), sedangkan desimal asli (mis. dari kolom DECIMAL,
+        // "1000000.50") tidak pernah tepat 3 digit di belakang titik — jumlah digit
+        // itulah yang membedakan keduanya, bukan is_numeric() semata (yang salah
+        // menganggap "750.000" sebagai angka desimal 750.0, ÷1000 dari nilai asli).
+        if (preg_match('/^-?\d+\.(\d+)$/', $s, $m) && strlen($m[1]) === 3) {
+            return (float)str_replace('.', '', $s);
+        }
+
+        return is_numeric($s) ? (float)$s : 0.0;
     }
 
     /**
@@ -103,8 +118,6 @@ class DataKeuangan extends BaseController
         $diterimaBersih = $this->request->getPost('jumlah_diterima')
             ? $this->sanitizeNominal($this->request->getPost('jumlah_diterima'))
             : $jumlahBersih;
-        $_POST['jumlah'] = $jumlahBersih;
-        $_POST['jumlah_diterima'] = $diterimaBersih;
 
         $rules = [
             'tanggal'  => 'required|valid_date',
@@ -112,7 +125,13 @@ class DataKeuangan extends BaseController
             'jumlah'   => 'required|numeric|greater_than[0]',
             'bukti'    => 'max_size[bukti,3072]|ext_in[bukti,jpg,jpeg,png,pdf]|mime_in[bukti,image/jpg,image/jpeg,image/png,application/pdf]',
         ];
-        if (!$this->validate($rules)) {
+        // validateData() dipakai (bukan validate()) supaya nilai jumlah yang sudah
+        // dinormalisasi benar-benar dibaca validator — request->getPost() di-cache oleh
+        // CI4 saat pertama diakses, jadi menimpa $_POST manual tidak pernah terbaca ulang.
+        $validationData = $this->request->getPost() ?? [];
+        $validationData['jumlah']          = $jumlahBersih;
+        $validationData['jumlah_diterima'] = $diterimaBersih;
+        if (!$this->validateData($validationData, $rules)) {
             return $this->response->setJSON(['success' => false, 'errors' => $this->validator->getErrors()]);
         }
 
@@ -145,7 +164,6 @@ class DataKeuangan extends BaseController
         // 'numeric' membaca nilai yang sudah bersih, bukan format id-ID mentah "1.000.000".
         if (isset($data['jumlah'])) $data['jumlah'] = $this->sanitizeNominal($data['jumlah']);
         if (isset($data['jumlah_diterima'])) $data['jumlah_diterima'] = $this->sanitizeNominal($data['jumlah_diterima']);
-        $_POST['jumlah'] = $data['jumlah'] ?? null;
 
         $rules = [
             'tanggal'  => 'required|valid_date',
@@ -153,7 +171,9 @@ class DataKeuangan extends BaseController
             'jumlah'   => 'required|numeric|greater_than[0]',
             'bukti'    => 'max_size[bukti,3072]|ext_in[bukti,jpg,jpeg,png,pdf]|mime_in[bukti,image/jpg,image/jpeg,image/png,application/pdf]',
         ];
-        if (!$this->validate($rules)) {
+        // validateData() dipakai supaya $data yang sudah dinormalisasi di atas benar-benar
+        // divalidasi, bukan request->getPost() mentah yang sudah di-cache oleh CI4.
+        if (!$this->validateData($data, $rules)) {
             return $this->response->setJSON(['success' => false, 'errors' => $this->validator->getErrors()]);
         }
 
@@ -215,7 +235,6 @@ class DataKeuangan extends BaseController
     {
         // Normalisasi nominal terlebih dulu
         $jumlah = $this->sanitizeNominal($this->request->getPost('jumlah'));
-        $_POST['jumlah'] = $jumlah;
 
         $totalP = $this->pemasukanModel->getTotalDiterima();
         $totalE = $this->pengeluaranModel->getTotalPengeluaran();
@@ -234,7 +253,11 @@ class DataKeuangan extends BaseController
             'jumlah'   => 'required|numeric|greater_than[0]',
             'bukti'    => 'max_size[bukti,3072]|ext_in[bukti,jpg,jpeg,png,pdf]|mime_in[bukti,image/jpg,image/jpeg,image/png,application/pdf]',
         ];
-        if (!$this->validate($rules)) {
+        // validateData() dipakai supaya $jumlah yang sudah dinormalisasi benar-benar
+        // divalidasi, bukan request->getPost() mentah yang sudah di-cache oleh CI4.
+        $validationData = $this->request->getPost() ?? [];
+        $validationData['jumlah'] = $jumlah;
+        if (!$this->validateData($validationData, $rules)) {
             return $this->response->setJSON(['success' => false, 'errors' => $this->validator->getErrors()]);
         }
 
@@ -263,7 +286,6 @@ class DataKeuangan extends BaseController
 
         // Normalisasi nominal SEBELUM validasi (sama seperti storePengeluaran)
         if (isset($data['jumlah'])) $data['jumlah'] = $this->sanitizeNominal($data['jumlah']);
-        $_POST['jumlah'] = $data['jumlah'] ?? null;
 
         $rules = [
             'tanggal'  => 'required|valid_date',
@@ -271,7 +293,9 @@ class DataKeuangan extends BaseController
             'jumlah'   => 'required|numeric|greater_than[0]',
             'bukti'    => 'max_size[bukti,3072]|ext_in[bukti,jpg,jpeg,png,pdf]|mime_in[bukti,image/jpg,image/jpeg,image/png,application/pdf]',
         ];
-        if (!$this->validate($rules)) {
+        // validateData() dipakai supaya $data yang sudah dinormalisasi di atas benar-benar
+        // divalidasi, bukan request->getPost() mentah yang sudah di-cache oleh CI4.
+        if (!$this->validateData($data, $rules)) {
             return $this->response->setJSON(['success' => false, 'errors' => $this->validator->getErrors()]);
         }
 
@@ -534,8 +558,8 @@ class DataKeuangan extends BaseController
 
             if ($modeDualKolom) {
                 // Format 2-kolom: isi salah satu kolom "pemasukan" ATAU "pengeluaran" saja
-                $nilaiMasuk  = is_numeric($data['pemasukan'] ?? null) ? (float)$data['pemasukan'] : 0;
-                $nilaiKeluar = is_numeric($data['pengeluaran'] ?? null) ? (float)$data['pengeluaran'] : 0;
+                $nilaiMasuk  = $this->sanitizeNominal($data['pemasukan'] ?? null);
+                $nilaiKeluar = $this->sanitizeNominal($data['pengeluaran'] ?? null);
 
                 if ($nilaiMasuk > 0 && $nilaiKeluar > 0) {
                     $rowErrors[] = 'isi hanya salah satu kolom, pemasukan ATAU pengeluaran (tidak boleh dua-duanya)';
@@ -561,9 +585,7 @@ class DataKeuangan extends BaseController
                     }
                 }
                 $jumlahStr = (string)($data['jumlah'] ?? '');
-                $jumlah    = is_numeric($data['jumlah'] ?? null)
-                    ? (float)$data['jumlah']
-                    : (float) str_replace(['.', ','], ['', '.'], $jumlahStr);
+                $jumlah    = $this->sanitizeNominal($data['jumlah'] ?? null);
                 if ($jumlah <= 0) {
                     $rowErrors[] = "jumlah tidak valid: '{$jumlahStr}'";
                 }
