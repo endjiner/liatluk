@@ -88,6 +88,10 @@ database.sql
 public/uploads/bukti/*
 !public/uploads/bukti/index.html
 backup_*.sql
+/rekap_pd_2026.csv
+
+# Skrip debug sekali-pakai (sering berisi kredensial DB hardcoded) — jangan pernah masuk Git
+/scratch/
 
 #-------------------------
 # Berkas lokal alat bantu, bukan bagian aplikasi
