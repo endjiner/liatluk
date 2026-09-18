@@ -29,6 +29,7 @@ class Dashboard extends BaseController
         $pemasukanModel     = new PemasukanModel();
         $pengeluaranModel   = new PengeluaranModel();
         $pengaturanModel    = new PengaturanModel();
+        $notifikasiModel    = new NotifikasiModel();
 
         $setting = $pengaturanModel->getSetting();
         $bulan   = (int)date('m');
