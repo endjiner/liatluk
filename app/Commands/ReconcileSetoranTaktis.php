@@ -79,6 +79,21 @@ class ReconcileSetoranTaktis extends BaseCommand
      * biar konsisten dengan alasan user sendiri: "kalau namanya hanya 1 berarti itu orang
      * yang sama" — sebaliknya kalau lebih dari 1, memang bukan lagi hal yang pasti.
      */
+    /**
+     * Cari trip dalam daftar (berapapun tanggalnya) yang dana_taktis-nya PERSIS sama dengan
+     * nominal setoran — sinyal kuat biarpun di luar aturan "tanggal trip <= tanggal setoran",
+     * karena bisa jadi office memang kadang menerima setoran di muka. TIDAK PERNAH dipakai
+     * untuk menautkan otomatis (cuma petunjuk tambahan buat tinjauan manual) — kalau ada lebih
+     * dari satu trip dengan nominal sama, semuanya ditampilkan (tidak bisa dipastikan yang mana).
+     */
+    private function cariTripNominalPersisSama(array $semuaTrip, float $nominal): array
+    {
+        return array_values(array_filter(
+            $semuaTrip,
+            static fn($p) => (int) round((float) $p['dana_taktis']) === (int) round($nominal)
+        ));
+    }
+
     private function resolvePegawaiUnik(string $sumberNormal, array $semuaPegawai): ?array
     {
         $kataSumber = array_values(array_filter(explode(' ', $sumberNormal)));
@@ -349,6 +364,14 @@ class ReconcileSetoranTaktis extends BaseCommand
                     $m['semua_trip']
                 ));
                 CLI::write('    SEMUA trip belum lunas ' . $m['pegawai']['nama'] . ' (termasuk yang tanggalnya setelah setoran ini): ' . $semuaTripStr);
+                $tripNominalSama = $this->cariTripNominalPersisSama($m['semua_trip'], (float) $m['pemasukan']['jumlah']);
+                if (!empty($tripNominalSama)) {
+                    $daftarNominalSama = implode(', ', array_map(
+                        static fn($p) => '#' . $p['id'] . ' (trip #' . $p['perjalanan_dinas_id'] . ', tgl ' . $p['tanggal_surat_tugas'] . ')',
+                        $tripNominalSama
+                    ));
+                    CLI::write('    >> NOMINAL SETORAN PERSIS SAMA dengan trip: ' . $daftarNominalSama . ' — cek manual apa ini yang dimaksud (tanggalnya di luar aturan "setelah trip terjadi").', 'light_cyan');
+                }
             }
         }
         CLI::newLine();
@@ -400,6 +423,14 @@ class ReconcileSetoranTaktis extends BaseCommand
                             $entry['semua_trip']
                         ));
                         CLI::write('    Daftar trip tersebut: ' . $semuaTripStr);
+                        $tripNominalSama = $this->cariTripNominalPersisSama($entry['semua_trip'], (float) $pm['jumlah']);
+                        if (!empty($tripNominalSama)) {
+                            $daftarNominalSama = implode(', ', array_map(
+                                static fn($p) => '#' . $p['id'] . ' (trip #' . $p['perjalanan_dinas_id'] . ', tgl ' . $p['tanggal_surat_tugas'] . ')',
+                                $tripNominalSama
+                            ));
+                            CLI::write('    >> NOMINAL SETORAN PERSIS SAMA dengan trip: ' . $daftarNominalSama . ' — cek manual apa ini yang dimaksud (tanggalnya di luar aturan "setelah trip terjadi").', 'light_cyan');
+                        }
                     }
                 }
             } elseif (!empty($pm['sumber'])) {
