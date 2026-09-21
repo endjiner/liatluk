@@ -344,7 +344,7 @@ class LaporanExcelExporter
         foreach ($rows as $peserta) {
             $nomorUrut++;
             $tikets = !empty($peserta['tiket']) ? $peserta['tiket'] : [];
-            $hotel  = !empty($peserta['hotel']) ? $peserta['hotel'] : null;
+            $hotel  = !empty($peserta['hotel']) ? $peserta['hotel'][0] : null;
 
             $totalSpjSum += (float) ($peserta['total_spj'] ?? 0);
             $totalTaktisSum += (float) ($peserta['dana_taktis'] ?? 0);
@@ -368,14 +368,14 @@ class LaporanExcelExporter
                     $sheet->setCellValue("I{$r}", (float) ($peserta['meeting_fullday'] ?? 0));
                     $sheet->setCellValue("J{$r}", (float) ($peserta['uang_representasi'] ?? 0));
                     $sheet->setCellValue("K{$r}", (float) ($peserta['transport_lokal'] ?? 0));
-                    $sheet->setCellValue("L{$r}", (float) ($peserta['biaya_bbm'] ?? 0));
+                    $sheet->setCellValue("L{$r}", (float) ($peserta['bbm'] ?? 0));
 
                     if ($hotel) {
                         $sheet->setCellValue("V{$r}", $hotel['nama_hotel'] ?? '');
                         $sheet->setCellValue("W{$r}", $hotel['alamat_hotel'] ?? '');
-                        $sheet->setCellValue("X{$r}", $hotel['telepon_hotel'] ?? '');
-                        $sheet->setCellValue("Y{$r}", !empty($hotel['check_in']) ? date('d/m/Y', strtotime($hotel['check_in'])) : '');
-                        $sheet->setCellValue("Z{$r}", !empty($hotel['check_out']) ? date('d/m/Y', strtotime($hotel['check_out'])) : '');
+                        $sheet->setCellValue("X{$r}", $hotel['telp_hotel'] ?? '');
+                        $sheet->setCellValue("Y{$r}", !empty($hotel['checkin']) ? date('d/m/Y', strtotime($hotel['checkin'])) : '');
+                        $sheet->setCellValue("Z{$r}", !empty($hotel['checkout']) ? date('d/m/Y', strtotime($hotel['checkout'])) : '');
                         $sheet->setCellValue("AA{$r}", (float) ($hotel['total_bill'] ?? 0));
                         $sheet->setCellValue("AB{$r}", $hotel['no_kamar'] ?? '');
                         $sheet->setCellValue("AC{$r}", $hotel['no_invoice'] ?? '');
@@ -395,13 +395,13 @@ class LaporanExcelExporter
 
                 if ($t) {
                     $sheet->setCellValue("M{$r}", $t['maskapai'] ?? '');
-                    $sheet->setCellValue("N{$r}", $t['tipe_perjalanan'] ?? '');
+                    $sheet->setCellValue("N{$r}", $t['arah'] ?? '');
                     $sheet->setCellValue("O{$r}", $t['no_tiket'] ?? '');
                     $sheet->setCellValue("P{$r}", $t['kode_booking'] ?? '');
                     $sheet->setCellValue("Q{$r}", $t['no_penerbangan'] ?? '');
-                    $sheet->setCellValue("R{$r}", $t['kota_asal'] ?? '');
-                    $sheet->setCellValue("S{$r}", $t['kota_tujuan'] ?? '');
-                    $sheet->setCellValue("T{$r}", !empty($t['tanggal_penerbangan']) ? date('d/m/Y', strtotime($t['tanggal_penerbangan'])) : '');
+                    $sheet->setCellValue("R{$r}", $t['tempat_asal'] ?? '');
+                    $sheet->setCellValue("S{$r}", $t['tempat_tujuan'] ?? '');
+                    $sheet->setCellValue("T{$r}", !empty($t['tanggal_terbang']) ? date('d/m/Y', strtotime($t['tanggal_terbang'])) : '');
                     $sheet->setCellValue("U{$r}", (float) ($t['harga_tiket'] ?? 0));
                 }
 

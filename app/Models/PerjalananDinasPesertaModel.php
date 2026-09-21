@@ -489,16 +489,16 @@ class PerjalananDinasPesertaModel extends Model
         if ($withDetails) {
             $pesertaIds = array_column($rows, 'id');
             $db = \Config\Database::connect();
-            $tiketRows = $db->table('perjalanan_dinas_tiket')->whereIn('perjalanan_dinas_peserta_id', $pesertaIds)->get()->getResultArray();
-            $hotelRows = $db->table('perjalanan_dinas_hotel')->whereIn('perjalanan_dinas_peserta_id', $pesertaIds)->get()->getResultArray();
+            $tiketRows = $db->table('perjalanan_dinas_tiket')->whereIn('peserta_id', $pesertaIds)->get()->getResultArray();
+            $hotelRows = $db->table('perjalanan_dinas_hotel')->whereIn('peserta_id', $pesertaIds)->get()->getResultArray();
 
             $tiketsByPeserta = [];
             foreach ($tiketRows as $t) {
-                $tiketsByPeserta[$t['perjalanan_dinas_peserta_id']][] = $t;
+                $tiketsByPeserta[$t['peserta_id']][] = $t;
             }
             $hotelsByPeserta = [];
             foreach ($hotelRows as $h) {
-                $hotelsByPeserta[$h['perjalanan_dinas_peserta_id']][] = $h;
+                $hotelsByPeserta[$h['peserta_id']][] = $h;
             }
 
             foreach ($rows as &$r) {
