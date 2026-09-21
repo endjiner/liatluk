@@ -10,7 +10,7 @@
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
-  <link rel="stylesheet" href="<?= base_url('assets/css/tailwind.css') ?>">
+  <link rel="stylesheet" href="<?= base_url('assets/css/tailwind.css') ?>?v=<?= @filemtime(FCPATH . 'assets/css/tailwind.css') ?: '1' ?>">
   <script>
     // Set theme early to avoid flash
     (function() {
@@ -385,9 +385,9 @@
   <?= iconsax('arrow-down', 'w-5 h-5', 'scroll-fab-icon') ?>
 </button>
 
-<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
-<script src="<?= base_url('assets/js/icons.js') ?>"></script>
-<script src="<?= base_url('assets/js/pagination.js') ?>"></script>
+<script src="https://cdn.jsdelivr.net/npm/chart.js" defer></script>
+<script src="<?= base_url('assets/js/icons.js') ?>?v=<?= @filemtime(FCPATH . 'assets/js/icons.js') ?: '1' ?>"></script>
+<script src="<?= base_url('assets/js/pagination.js') ?>?v=<?= @filemtime(FCPATH . 'assets/js/pagination.js') ?: '1' ?>"></script>
 <script>
 const GLOBAL_BASE = (function() {
   const cfg = '<?= rtrim(base_url(), '/') ?>/';
