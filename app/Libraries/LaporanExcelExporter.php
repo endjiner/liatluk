@@ -2,6 +2,7 @@
 
 namespace App\Libraries;
 
+use PhpOffice\PhpSpreadsheet\Cell\Coordinate;
 use PhpOffice\PhpSpreadsheet\Spreadsheet;
 use PhpOffice\PhpSpreadsheet\Style\Border;
 use PhpOffice\PhpSpreadsheet\Style\Fill;
@@ -439,7 +440,9 @@ class LaporanExcelExporter
         $sheet->getColumnDimension('F')->setWidth(28);
         foreach (range('G', 'L') as $col) $sheet->getColumnDimension($col)->setWidth(16);
         foreach (range('M', 'U') as $col) $sheet->getColumnDimension($col)->setWidth(15);
-        foreach (range('V', 'AD') as $col) $sheet->getColumnDimension($col)->setWidth(16);
+        for ($colIdx = Coordinate::columnIndexFromString('V'); $colIdx <= Coordinate::columnIndexFromString('AD'); $colIdx++) {
+            $sheet->getColumnDimension(Coordinate::stringFromColumnIndex($colIdx))->setWidth(16);
+        }
         $sheet->getColumnDimension('AE')->setWidth(22);
         $sheet->getColumnDimension('AF')->setWidth(18);
         $sheet->getColumnDimension('AG')->setWidth(15);
