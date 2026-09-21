@@ -55,27 +55,27 @@ $tahunOpsi = range($tahunSekarang, 2016);
         </button>
       </div>
       <!-- Hidden checkboxes untuk kompatibilitas JS lama -->
-      <input type="checkbox" id="filter-pemasukan" checked class="hidden">
-      <input type="checkbox" id="filter-pengeluaran" checked class="hidden">
+      <input type="checkbox" id="filter-pemasukan" checked class="hidden" aria-label="Tampilkan Pemasukan" aria-hidden="true" tabindex="-1">
+      <input type="checkbox" id="filter-pengeluaran" checked class="hidden" aria-label="Tampilkan Pengeluaran" aria-hidden="true" tabindex="-1">
       <!-- Search -->
       <div class="relative flex-1 min-w-[200px]">
         <span class="absolute inset-y-0 left-3 flex items-center text-slate-400">
           <?= iconsax('search-normal-1', 'w-3.5 h-3.5') ?>
         </span>
-        <input type="text" id="filter-search" placeholder="Cari kategori, keterangan, MAK, no. ST..."
+        <input type="text" id="filter-search" aria-label="Cari transaksi" placeholder="Cari kategori, keterangan, MAK, no. ST..."
                class="form-control form-control-sm pl-8 w-full">
       </div>
     </div>
     <!-- Baris 2: Bulan, Tahun, Per page -->
     <div class="flex flex-wrap items-center justify-between gap-2.5">
       <div class="flex items-center gap-2 flex-wrap">
-        <select id="filter-bulan" class="form-control form-control-sm w-auto">
+        <select id="filter-bulan" aria-label="Filter bulan" class="form-control form-control-sm w-auto">
           <option value="">Semua Bulan</option>
           <?php foreach ($namaBulan as $n => $nm): ?>
           <option value="<?= $n ?>"><?= $nm ?></option>
           <?php endforeach; ?>
         </select>
-        <select id="filter-tahun" class="form-control form-control-sm w-auto">
+        <select id="filter-tahun" aria-label="Filter tahun" class="form-control form-control-sm w-auto">
           <option value="">Semua Tahun</option>
           <?php foreach ($tahunOpsi as $t): ?>
           <option value="<?= $t ?>"><?= $t ?></option>
@@ -84,7 +84,7 @@ $tahunOpsi = range($tahunSekarang, 2016);
       </div>
       <div class="flex items-center gap-1.5 shrink-0 text-xs text-slate-500">
         <span>Tampilkan</span>
-        <select id="filter-perpage" class="form-control form-control-sm w-auto">
+        <select id="filter-perpage" aria-label="Jumlah baris per halaman" class="form-control form-control-sm w-auto">
           <option value="10">10</option>
           <option value="15" selected>15</option>
           <option value="25">25</option>
@@ -105,7 +105,7 @@ $tahunOpsi = range($tahunSekarang, 2016);
         <tr>
           <?php if ($isSuperAdmin): ?>
           <th class="w-10">
-            <input type="checkbox" id="select-all-txn" onclick="toggleSelectAllTxn()" class="form-checkbox">
+            <input type="checkbox" id="select-all-txn" onclick="toggleSelectAllTxn()" class="form-checkbox" aria-label="Pilih semua baris">
           </th>
           <?php endif; ?>
           <th class="w-12 text-center">No</th>
@@ -146,11 +146,11 @@ $tahunOpsi = range($tahunSekarang, 2016);
           <input type="hidden" id="edit-p-id" name="id">
           <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
             <div>
-              <label class="form-label">Tanggal <span class="text-red-500">*</span></label>
+              <label class="form-label" for="edit-p-tanggal">Tanggal <span class="text-red-500">*</span></label>
               <input type="date" name="tanggal" id="edit-p-tanggal" class="form-control" required>
             </div>
             <div>
-              <label class="form-label">Kategori <span class="text-red-500">*</span></label>
+              <label class="form-label" for="edit-p-kategori">Kategori <span class="text-red-500">*</span></label>
               <select name="kategori" id="edit-p-kategori" class="form-control" required>
                 <?php foreach (\App\Config\Kategori::$pemasukan as $k): ?>
                 <option value="<?= $k ?>"><?= $k ?></option>
@@ -158,21 +158,21 @@ $tahunOpsi = range($tahunSekarang, 2016);
               </select>
             </div>
             <div>
-              <label class="form-label">Nominal <span class="text-red-500">*</span></label>
+              <label class="form-label" for="edit-p-jumlah">Nominal <span class="text-red-500">*</span></label>
               <div class="relative">
                 <span class="absolute inset-y-0 left-3 flex items-center text-slate-400 text-sm">Rp</span>
                 <input type="text" inputmode="numeric" name="jumlah" id="edit-p-jumlah" class="form-control input-rupiah pl-9" required>
               </div>
             </div>
             <div>
-              <label class="form-label">Jumlah Diterima</label>
+              <label class="form-label" for="edit-p-diterima">Jumlah Diterima</label>
               <div class="relative">
                 <span class="absolute inset-y-0 left-3 flex items-center text-slate-400 text-sm">Rp</span>
                 <input type="text" inputmode="numeric" name="jumlah_diterima" id="edit-p-diterima" class="form-control input-rupiah pl-9">
               </div>
             </div>
             <div>
-              <label class="form-label">Status Dana</label>
+              <label class="form-label" for="edit-p-status">Status Dana</label>
               <select name="status_dana" id="edit-p-status" class="form-control">
                 <option value="diterima">Sudah Diterima</option>
                 <option value="sebagian">Sebagian</option>
@@ -180,33 +180,33 @@ $tahunOpsi = range($tahunSekarang, 2016);
               </select>
             </div>
             <div>
-              <label class="form-label">Sumber</label>
+              <label class="form-label" for="edit-p-sumber">Sumber</label>
               <input type="text" name="sumber" id="edit-p-sumber" class="form-control">
             </div>
           </div>
           <div class="grid grid-cols-1 md:grid-cols-3 gap-4 mt-4">
             <div>
-              <label class="form-label">Kode MAK</label>
+              <label class="form-label" for="edit-p-mak">Kode MAK</label>
               <input type="text" name="kode_mak" id="edit-p-mak" class="form-control font-mono" placeholder="cth: 524111.001">
             </div>
             <div>
-              <label class="form-label">No. Surat Tugas</label>
+              <label class="form-label" for="edit-p-st">No. Surat Tugas</label>
               <input type="text" name="no_surat_tugas" id="edit-p-st" class="form-control" placeholder="cth: ST-001/...">
             </div>
             <div>
-              <label class="form-label">No. SPM</label>
+              <label class="form-label" for="edit-p-spm">No. SPM</label>
               <input type="text" name="no_spm" id="edit-p-spm" class="form-control" placeholder="cth: SPM-001/...">
             </div>
           </div>
           <div class="mt-4">
-            <label class="form-label">Keterangan</label>
+            <label class="form-label" for="edit-p-ket">Keterangan</label>
             <input type="text" name="keterangan" id="edit-p-ket" class="form-control">
           </div>
           <!-- Preview bukti + upload baru -->
           <div class="mt-4">
-            <label class="form-label">Bukti Transaksi</label>
+            <label class="form-label" for="edit-p-bukti">Bukti Transaksi</label>
             <div id="edit-p-bukti-preview" class="mb-2"></div>
-            <input type="file" name="bukti" accept="image/*,.pdf" class="text-sm">
+            <input type="file" id="edit-p-bukti" name="bukti" accept="image/*,.pdf" class="text-sm">
             <p class="form-hint">Kosongkan jika tidak ingin mengubah bukti.</p>
           </div>
         </div>
@@ -233,11 +233,11 @@ $tahunOpsi = range($tahunSekarang, 2016);
           <input type="hidden" id="edit-e-id" name="id">
           <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
             <div>
-              <label class="form-label">Tanggal <span class="text-red-500">*</span></label>
+              <label class="form-label" for="edit-e-tanggal">Tanggal <span class="text-red-500">*</span></label>
               <input type="date" name="tanggal" id="edit-e-tanggal" class="form-control" required>
             </div>
             <div>
-              <label class="form-label">Kategori <span class="text-red-500">*</span></label>
+              <label class="form-label" for="edit-e-kategori">Kategori <span class="text-red-500">*</span></label>
               <select name="kategori" id="edit-e-kategori" class="form-control" required>
                 <?php foreach (\App\Config\Kategori::$pengeluaran as $k): ?>
                 <option value="<?= $k ?>"><?= $k ?></option>
@@ -245,25 +245,25 @@ $tahunOpsi = range($tahunSekarang, 2016);
               </select>
             </div>
             <div>
-              <label class="form-label">Nominal <span class="text-red-500">*</span></label>
+              <label class="form-label" for="edit-e-jumlah">Nominal <span class="text-red-500">*</span></label>
               <div class="relative">
                 <span class="absolute inset-y-0 left-3 flex items-center text-slate-400 text-sm">Rp</span>
                 <input type="text" inputmode="numeric" name="jumlah" id="edit-e-jumlah" class="form-control input-rupiah pl-9" required>
               </div>
             </div>
             <div>
-              <label class="form-label">Tujuan / Penerima</label>
+              <label class="form-label" for="edit-e-tujuan">Tujuan / Penerima</label>
               <input type="text" name="tujuan" id="edit-e-tujuan" class="form-control">
             </div>
           </div>
           <div class="mt-4">
-            <label class="form-label">Keterangan</label>
+            <label class="form-label" for="edit-e-ket">Keterangan</label>
             <input type="text" name="keterangan" id="edit-e-ket" class="form-control">
           </div>
           <div class="mt-4">
-            <label class="form-label">Bukti Transaksi</label>
+            <label class="form-label" for="edit-e-bukti">Bukti Transaksi</label>
             <div id="edit-e-bukti-preview" class="mb-2"></div>
-            <input type="file" name="bukti" accept="image/*,.pdf" class="text-sm">
+            <input type="file" id="edit-e-bukti" name="bukti" accept="image/*,.pdf" class="text-sm">
             <p class="form-hint">Kosongkan jika tidak ingin mengubah bukti.</p>
           </div>
         </div>
@@ -376,8 +376,8 @@ $tahunOpsi = range($tahunSekarang, 2016);
         <input type="hidden" name="tipe" value="gabungan">
         <div class="modal-body space-y-4">
           <div>
-            <label class="form-label">File Excel / CSV</label>
-            <input type="file" name="import_file" accept=".csv,.xlsx,.xls" class="form-control" required>
+            <label class="form-label" for="import-file">File Excel / CSV</label>
+            <input type="file" id="import-file" name="import_file" accept=".csv,.xlsx,.xls" class="form-control" required>
             <p class="form-hint">
               Hanya file <strong>.xlsx</strong> atau <strong>.csv</strong> yang didukung (max 5 MB). Kolom: tanggal, kategori,
               pemasukan, pengeluaran, jumlah_diterima, status_dana, sumber_tujuan, keterangan — isi hanya salah satu kolom

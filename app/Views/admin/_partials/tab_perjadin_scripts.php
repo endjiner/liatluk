@@ -632,8 +632,8 @@ function renderBarisPegawai(tr, pg) {
 function editBarisPegawai(btn, pg) {
   const tr = btn.closest('tr');
   tr.innerHTML = `
-    <td><input type="text" class="form-control form-control-sm" value="${escapeHtml(pg.nama)}" id="edit-pegawai-nama-${pg.id}"></td>
-    <td><input type="text" class="form-control form-control-sm" value="${escapeHtml(pg.nip || '')}" id="edit-pegawai-nip-${pg.id}"></td>
+    <td><input type="text" class="form-control form-control-sm" value="${escapeHtml(pg.nama)}" id="edit-pegawai-nama-${pg.id}" aria-label="Nama pegawai"></td>
+    <td><input type="text" class="form-control form-control-sm" value="${escapeHtml(pg.nip || '')}" id="edit-pegawai-nip-${pg.id}" aria-label="NIP pegawai"></td>
     <td>${pg.aktif == 1 ? '<span class="badge badge-success">Aktif</span>' : '<span class="badge badge-muted">Nonaktif</span>'}</td>
     <td class="text-center">
       <div class="flex items-center justify-center gap-1">

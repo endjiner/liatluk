@@ -48,7 +48,7 @@ $tahunSekarangDt = (int)date('Y');
         <span class="absolute inset-y-0 left-3 flex items-center text-slate-400">
           <?= iconsax('search-normal-1', 'w-3.5 h-3.5') ?>
         </span>
-        <input type="text" id="dt-filter-search"
+        <input type="text" id="dt-filter-search" aria-label="Cari dana taktis"
           oninput="dtJadwalkanMuat(); dtAdmShowSuggestions()"
           onfocus="dtAdmShowSuggestions()" onblur="setTimeout(dtAdmHideSuggestions, 150)"
           placeholder="Cari nama, MAK, atau no. surat tugas..."
@@ -82,13 +82,13 @@ $tahunSekarangDt = (int)date('Y');
     <!-- Baris 2: Bulan, Tahun, Per page -->
     <div class="flex flex-wrap items-center justify-between gap-2.5">
       <div class="flex items-center gap-2 flex-wrap">
-        <select id="dt-filter-bulan" onchange="muatDaftarDanaTaktis(1)" class="form-control form-control-sm w-auto">
+        <select id="dt-filter-bulan" aria-label="Filter bulan" onchange="muatDaftarDanaTaktis(1)" class="form-control form-control-sm w-auto">
           <option value="">Semua Bulan</option>
           <?php for ($b = 1; $b <= 12; $b++): ?>
           <option value="<?= $b ?>"><?= $namaBulanDt[$b] ?></option>
           <?php endfor; ?>
         </select>
-        <select id="dt-filter-tahun" onchange="muatDaftarDanaTaktis(1)" class="form-control form-control-sm w-auto">
+        <select id="dt-filter-tahun" aria-label="Filter tahun" onchange="muatDaftarDanaTaktis(1)" class="form-control form-control-sm w-auto">
           <option value="">Semua Tahun</option>
           <?php foreach (range($tahunSekarangDt, 2016) as $th): ?>
           <option value="<?= $th ?>"><?= $th ?></option>
@@ -97,7 +97,7 @@ $tahunSekarangDt = (int)date('Y');
       </div>
       <div class="flex items-center gap-1.5 shrink-0 text-xs text-slate-500">
         <span>Tampilkan</span>
-        <select id="dt-filter-perpage" onchange="muatDaftarDanaTaktis(1)" class="form-control form-control-sm w-auto">
+        <select id="dt-filter-perpage" aria-label="Jumlah baris per halaman" onchange="muatDaftarDanaTaktis(1)" class="form-control form-control-sm w-auto">
           <option value="10" selected>10</option>
           <option value="25">25</option>
           <option value="50">50</option>
@@ -155,14 +155,14 @@ $tahunSekarangDt = (int)date('Y');
             <button type="button" data-status="lunas" class="segment-btn dt-lunas-status-btn active flex-1" onclick="dtPilihStatusLunas('lunas')">Lunas Penuh</button>
           </div>
           <div id="dt-lunas-jumlah-wrap" class="hidden">
-            <label class="form-label">Jumlah Disetor</label>
+            <label class="form-label" for="dt-lunas-jumlah-disetor">Jumlah Disetor</label>
             <div class="relative">
               <span class="absolute inset-y-0 left-3 flex items-center text-slate-400 text-sm">Rp</span>
               <input type="text" inputmode="numeric" id="dt-lunas-jumlah-disetor" class="form-control input-rupiah pl-9" placeholder="0">
             </div>
           </div>
           <div>
-            <label class="form-label">Tanggal Setoran</label>
+            <label class="form-label" for="dt-lunas-tanggal">Tanggal Setoran</label>
             <input type="date" id="dt-lunas-tanggal" class="form-control" value="<?= date('Y-m-d') ?>">
           </div>
         </div>

@@ -20,10 +20,10 @@
 
       <!-- Threshold -->
       <div>
-        <label class="form-label">Batas Threshold Notifikasi <span class="text-red-500">*</span></label>
+        <label class="form-label" for="threshold-notif">Batas Threshold Notifikasi <span class="text-red-500">*</span></label>
         <div class="relative">
           <span class="absolute inset-y-0 left-3 flex items-center text-slate-400 text-sm">Rp</span>
-          <input type="text" inputmode="numeric" name="threshold_notif"
+          <input type="text" inputmode="numeric" id="threshold-notif" name="threshold_notif"
                  class="form-control input-rupiah pl-9"
                  value="<?= esc($setting['threshold_notif'] ?? 5000000) ?>" required>
         </div>
@@ -125,18 +125,18 @@
         </div>
         <div class="modal-body space-y-4">
           <div>
-            <label class="form-label">Username <span class="text-red-500">*</span></label>
+            <label class="form-label" for="akun-username">Username <span class="text-red-500">*</span></label>
             <input type="text" name="username" id="akun-username" class="form-control" required minlength="3">
           </div>
           <div>
-            <label class="form-label">Role <span class="text-red-500">*</span></label>
+            <label class="form-label" for="akun-role">Role <span class="text-red-500">*</span></label>
             <select name="role" id="akun-role" class="form-control" required>
               <option value="admin">Admin (Dana Taktis &amp; Perjalanan Dinas saja)</option>
               <option value="super_admin">Super Admin (semua fitur)</option>
             </select>
           </div>
           <div>
-            <label class="form-label" id="akun-password-label">Password <span class="text-red-500">*</span></label>
+            <label class="form-label" for="akun-password" id="akun-password-label">Password <span class="text-red-500">*</span></label>
             <div class="relative">
               <input type="password" name="password" id="akun-password" class="form-control pr-10" minlength="6" autocomplete="new-password">
               <button type="button" onclick="togglePasswordVisibility('akun-password', this)" tabindex="-1"

@@ -31,28 +31,28 @@ $namaBulan = $namaBulan ?? [1=>'Januari',2=>'Februari',3=>'Maret',4=>'April',5=>
           </button>
         </div>
         <!-- hidden actual checkboxes untuk kompatibilitas JS -->
-        <input type="checkbox" id="filter-pemasukan" checked class="hidden">
-        <input type="checkbox" id="filter-pengeluaran" checked class="hidden">
+        <input type="checkbox" id="filter-pemasukan" checked class="hidden" aria-label="Tampilkan Pemasukan" aria-hidden="true" tabindex="-1">
+        <input type="checkbox" id="filter-pengeluaran" checked class="hidden" aria-label="Tampilkan Pengeluaran" aria-hidden="true" tabindex="-1">
 
         <!-- Search -->
         <div class="relative flex-1 min-w-[200px]">
           <span class="absolute inset-y-0 left-3 flex items-center text-slate-400">
             <?= iconsax('search-normal-1', 'w-3.5 h-3.5') ?>
           </span>
-          <input type="text" id="filter-search" placeholder="Cari kategori, MAK, nomor ST..."
+          <input type="text" id="filter-search" aria-label="Cari transaksi" placeholder="Cari kategori, MAK, nomor ST..."
                  class="form-control form-control-sm pl-8 w-full">
         </div>
       </div>
       <!-- Baris 2: Bulan, Tahun, Per page -->
       <div class="flex flex-wrap items-center justify-between gap-2.5">
         <div class="flex items-center gap-2 flex-wrap">
-          <select id="filter-bulan" class="form-control form-control-sm w-auto">
+          <select id="filter-bulan" aria-label="Filter bulan" class="form-control form-control-sm w-auto">
             <option value="">Semua Bulan</option>
             <?php foreach ($namaBulan as $n => $nm): ?>
             <option value="<?= $n ?>"><?= $nm ?></option>
             <?php endforeach; ?>
           </select>
-          <select id="filter-tahun" class="form-control form-control-sm w-auto">
+          <select id="filter-tahun" aria-label="Filter tahun" class="form-control form-control-sm w-auto">
             <option value="">Semua Tahun</option>
             <?php foreach ($tahunOpsi as $t): ?>
             <option value="<?= $t ?>"><?= $t ?></option>
@@ -61,7 +61,7 @@ $namaBulan = $namaBulan ?? [1=>'Januari',2=>'Februari',3=>'Maret',4=>'April',5=>
         </div>
         <div class="flex items-center gap-1.5 shrink-0 text-xs text-slate-500">
           <span>Tampilkan</span>
-          <select id="filter-perpage" class="form-control form-control-sm w-auto">
+          <select id="filter-perpage" aria-label="Jumlah baris per halaman" class="form-control form-control-sm w-auto">
             <option value="10">10</option>
             <option value="25" selected>25</option>
             <option value="50">50</option>
@@ -97,4 +97,4 @@ $namaBulan = $namaBulan ?? [1=>'Januari',2=>'Februari',3=>'Maret',4=>'April',5=>
     <!-- Pagination -->
     <div id="pagination-wrap" class="flex items-center justify-between gap-3 p-3 border-t border-slate-200 dark:border-slate-700 flex-wrap"></div>
   </div>
-  </div><!-- /panel-transaksi -->
+  </div><!-- /panel-transaksi -->

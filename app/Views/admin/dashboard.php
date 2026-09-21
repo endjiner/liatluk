@@ -109,7 +109,7 @@ $tahunOpsi = range($tahunSekarang, 2016);
   <div class="card">
     <div class="card-header">
       <h3 class="text-sm font-semibold text-slate-700 dark:text-slate-200">Arus Kas Bulanan</h3>
-      <select id="arus-kas-tahun" class="form-control form-control-sm w-24">
+      <select id="arus-kas-tahun" class="form-control form-control-sm w-24" aria-label="Pilih tahun Arus Kas Bulanan">
         <?php foreach ($tahunOpsi as $t): ?>
         <option value="<?= $t ?>" <?= $t === $tahunSekarang ? 'selected' : '' ?>><?= $t ?></option>
         <?php endforeach; ?>

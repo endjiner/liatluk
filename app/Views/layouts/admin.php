@@ -206,7 +206,7 @@
         </div>
         <div class="modal-body space-y-4">
           <div>
-            <label class="form-label">Password Saat Ini <span class="text-red-500">*</span></label>
+            <label class="form-label" for="gp-current-password">Password Saat Ini <span class="text-red-500">*</span></label>
             <div class="relative">
               <input type="password" name="current_password" id="gp-current-password" class="form-control pr-10" required autocomplete="current-password">
               <button type="button" onclick="togglePasswordVisibility('gp-current-password', this)" tabindex="-1"
@@ -216,7 +216,7 @@
             </div>
           </div>
           <div>
-            <label class="form-label">Password Baru <span class="text-red-500">*</span></label>
+            <label class="form-label" for="gp-new-password">Password Baru <span class="text-red-500">*</span></label>
             <div class="relative">
               <input type="password" name="new_password" id="gp-new-password" class="form-control pr-10" required minlength="6" autocomplete="new-password">
               <button type="button" onclick="togglePasswordVisibility('gp-new-password', this)" tabindex="-1"
@@ -298,11 +298,11 @@
           <input type="hidden" name="tipe" id="single-jenis-val" value="pemasukan">
           <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
             <div>
-              <label class="form-label">Tanggal <span class="text-red-500">*</span></label>
-              <input type="date" name="tanggal" class="form-control" value="<?= date('Y-m-d') ?>" required>
+              <label class="form-label" for="drawer-tanggal">Tanggal <span class="text-red-500">*</span></label>
+              <input type="date" id="drawer-tanggal" name="tanggal" class="form-control" value="<?= date('Y-m-d') ?>" required>
             </div>
             <div>
-              <label class="form-label">Kategori <span class="text-red-500">*</span></label>
+              <label class="form-label" for="drawer-kategori">Kategori <span class="text-red-500">*</span></label>
               <select name="kategori" id="drawer-kategori" class="form-control" required>
                 <option value="">Pilih kategori...</option>
               </select>
@@ -315,12 +315,12 @@
           </script>
 
           <div class="mt-4" id="field-sumber-wrap">
-            <label class="form-label" id="label-sumber">Sumber Dana</label>
+            <label class="form-label" for="input-sumber" id="label-sumber">Sumber Dana</label>
             <input type="text" name="sumber" id="input-sumber" class="form-control" placeholder="Nama sumber dana / penerima">
           </div>
 
           <div class="mt-4">
-            <label class="form-label">Nominal <span class="text-red-500">*</span></label>
+            <label class="form-label" for="drawer-jumlah">Nominal <span class="text-red-500">*</span></label>
             <div class="relative">
               <span class="absolute inset-y-0 left-3 flex items-center text-slate-400 text-sm">Rp</span>
               <input type="text" inputmode="numeric" name="jumlah" id="drawer-jumlah"
@@ -329,7 +329,7 @@
           </div>
 
           <div class="mt-4" id="field-status-wrap">
-            <label class="form-label">Status Dana</label>
+            <label class="form-label" for="drawer-status">Status Dana</label>
             <select name="status_dana" id="drawer-status" class="form-control" onchange="toggleDrawerDiterima(this)">
               <option value="diterima">Sudah Diterima</option>
               <option value="sebagian">Sebagian</option>
@@ -338,7 +338,7 @@
           </div>
 
           <div class="mt-4 hidden" id="field-diterima-wrap">
-            <label class="form-label">Jumlah Diterima</label>
+            <label class="form-label" for="drawer-jumlah-diterima">Jumlah Diterima</label>
             <div class="relative">
               <span class="absolute inset-y-0 left-3 flex items-center text-slate-400 text-sm">Rp</span>
               <input type="text" inputmode="numeric" name="jumlah_diterima" id="drawer-jumlah-diterima"
@@ -347,13 +347,13 @@
           </div>
 
           <div class="mt-4">
-            <label class="form-label">Keterangan</label>
-            <input type="text" name="keterangan" class="form-control" placeholder="Keterangan singkat (opsional)">
+            <label class="form-label" for="drawer-keterangan">Keterangan</label>
+            <input type="text" id="drawer-keterangan" name="keterangan" class="form-control" placeholder="Keterangan singkat (opsional)">
           </div>
 
           <div class="mt-4">
-            <label class="form-label">Catatan Internal (Admin Only)</label>
-            <input type="text" name="catatan_internal" class="form-control" placeholder="Tidak ditampilkan ke publik">
+            <label class="form-label" for="drawer-catatan-internal">Catatan Internal (Admin Only)</label>
+            <input type="text" id="drawer-catatan-internal" name="catatan_internal" class="form-control" placeholder="Tidak ditampilkan ke publik">
           </div>
 
           <div class="mt-4">

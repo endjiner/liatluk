@@ -71,7 +71,7 @@ $namaBulan = [1=>'Januari',2=>'Februari',3=>'Maret',4=>'April',5=>'Mei',6=>'Juni
     <div class="card">
       <div class="card-header">
         <h3 class="text-sm font-semibold text-slate-700 dark:text-slate-200">Tren Keuangan Bulanan</h3>
-        <select id="tren-tahun" class="form-control form-control-sm w-24">
+        <select id="tren-tahun" class="form-control form-control-sm w-24" aria-label="Pilih tahun Tren Keuangan Bulanan">
           <?php foreach ($tahunOpsi as $t): ?>
           <option value="<?= $t ?>" <?= $t === $tahunSekarang ? 'selected' : '' ?>><?= $t ?></option>
           <?php endforeach; ?>

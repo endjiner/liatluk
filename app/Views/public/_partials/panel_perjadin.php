@@ -13,7 +13,7 @@
             <span class="absolute inset-y-0 left-3 flex items-center text-slate-400">
               <?= iconsax('search-normal-1', 'w-3.5 h-3.5') ?>
             </span>
-            <input type="text" id="filter-search-perjadin" oninput="jadwalkanMuatDaftarPerjadin()" placeholder="Nama, maksud, no surat tugas..." class="form-control form-control-sm pl-8 w-full">
+            <input type="text" id="filter-search-perjadin" aria-label="Cari perjalanan dinas" oninput="jadwalkanMuatDaftarPerjadin()" placeholder="Nama, maksud, no surat tugas..." class="form-control form-control-sm pl-8 w-full">
           </div>
           <input type="hidden" id="filter-status-perjadin" value="">
           <div class="status-filter-group shrink-0" role="group" aria-label="Filter Status Perjalanan Dinas">
@@ -42,13 +42,13 @@
         <!-- Baris 2: Bulan, Tahun, Per page -->
         <div class="flex flex-wrap items-center justify-between gap-2.5">
           <div class="flex items-center gap-2 flex-wrap">
-            <select id="filter-bulan-perjadin" onchange="muatDaftarTripPerjadin(1)" class="form-control form-control-sm w-auto">
+            <select id="filter-bulan-perjadin" aria-label="Filter bulan" onchange="muatDaftarTripPerjadin(1)" class="form-control form-control-sm w-auto">
               <option value="">Semua Bulan</option>
               <?php for ($b = 1; $b <= 12; $b++): ?>
               <option value="<?= $b ?>"><?= $namaBulanPerjadin[$b] ?></option>
               <?php endfor; ?>
             </select>
-            <select id="filter-tahun-perjadin" onchange="muatDaftarTripPerjadin(1)" class="form-control form-control-sm w-auto">
+            <select id="filter-tahun-perjadin" aria-label="Filter tahun" onchange="muatDaftarTripPerjadin(1)" class="form-control form-control-sm w-auto">
               <option value="">Semua Tahun</option>
               <?php $tahunSaatIni = (int)date('Y'); $daftarTahunPerjadin = $tahunListPerjadin; if (!in_array($tahunSaatIni, $daftarTahunPerjadin)) $daftarTahunPerjadin[] = $tahunSaatIni; rsort($daftarTahunPerjadin); ?>
               <?php foreach ($daftarTahunPerjadin as $th): ?>
@@ -58,7 +58,7 @@
           </div>
           <div class="flex items-center gap-1.5 shrink-0 text-xs text-slate-500">
             <span>Tampilkan</span>
-            <select id="filter-per-page-perjadin" onchange="muatDaftarTripPerjadin(1)" class="form-control form-control-sm w-auto">
+            <select id="filter-per-page-perjadin" aria-label="Jumlah baris per halaman" onchange="muatDaftarTripPerjadin(1)" class="form-control form-control-sm w-auto">
               <option value="10" selected>10</option>
               <option value="25">25</option>
               <option value="50">50</option>
@@ -101,4 +101,4 @@
 
       <div id="pd-pagination-wrap-perjadin" class="flex items-center justify-between gap-3 p-3 border-t border-slate-200 dark:border-slate-700 flex-wrap"></div>
     </div>
-  </div><!-- /panel-perjadin -->
+  </div><!-- /panel-perjadin -->

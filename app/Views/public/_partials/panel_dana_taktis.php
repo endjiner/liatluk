@@ -33,7 +33,7 @@
             <span class="absolute inset-y-0 left-3 flex items-center text-slate-400">
               <?= iconsax('search-normal-1', 'w-3.5 h-3.5') ?>
             </span>
-            <input type="text" id="dt-filter-search-pub" oninput="dtPubJadwalkanMuat(); dtShowSuggestions()"
+            <input type="text" id="dt-filter-search-pub" aria-label="Cari dana taktis" oninput="dtPubJadwalkanMuat(); dtShowSuggestions()"
               onfocus="dtShowSuggestions()" onblur="setTimeout(dtHideSuggestions, 150)"
               placeholder="Cari nama, MAK, atau no. surat tugas..." class="form-control form-control-sm pl-8 w-full" autocomplete="off">
             <ul id="dt-suggestions" class="absolute z-50 left-0 right-0 top-full mt-1 bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-600 rounded-lg shadow-lg max-h-48 overflow-y-auto hidden text-xs"></ul>
@@ -65,13 +65,13 @@
         <!-- Baris 2: Bulan, Tahun, Per page -->
         <div class="flex flex-wrap items-center justify-between gap-2.5">
           <div class="flex items-center gap-2 flex-wrap">
-            <select id="dt-filter-bulan-pub" onchange="muatDaftarDanaTaktisPub(1)" class="form-control form-control-sm w-auto">
+            <select id="dt-filter-bulan-pub" aria-label="Filter bulan" onchange="muatDaftarDanaTaktisPub(1)" class="form-control form-control-sm w-auto">
               <option value="">Semua Bulan</option>
               <?php for ($b = 1; $b <= 12; $b++): ?>
               <option value="<?= $b ?>"><?= $namaBulanDt[$b] ?></option>
               <?php endfor; ?>
             </select>
-            <select id="dt-filter-tahun-pub" onchange="muatDaftarDanaTaktisPub(1)" class="form-control form-control-sm w-auto">
+            <select id="dt-filter-tahun-pub" aria-label="Filter tahun" onchange="muatDaftarDanaTaktisPub(1)" class="form-control form-control-sm w-auto">
               <option value="">Semua Tahun</option>
               <?php $tahunSaatIniDtPub = (int)date('Y'); $daftarTahunDtPub = $tahunListPerjadin; if (!in_array($tahunSaatIniDtPub, $daftarTahunDtPub)) $daftarTahunDtPub[] = $tahunSaatIniDtPub; rsort($daftarTahunDtPub); ?>
               <?php foreach ($daftarTahunDtPub as $th): ?>
@@ -81,7 +81,7 @@
           </div>
           <div class="flex items-center gap-1.5 shrink-0 text-xs text-slate-500">
             <span>Tampilkan</span>
-            <select id="dt-filter-perpage-pub" onchange="muatDaftarDanaTaktisPub(1)" class="form-control form-control-sm w-auto">
+            <select id="dt-filter-perpage-pub" aria-label="Jumlah baris per halaman" onchange="muatDaftarDanaTaktisPub(1)" class="form-control form-control-sm w-auto">
               <option value="10" selected>10</option>
               <option value="25">25</option>
               <option value="50">50</option>
@@ -118,4 +118,4 @@
 
       <div id="dt-pagination-wrap-pub" class="flex items-center justify-between gap-3 p-3 border-t border-slate-200 dark:border-slate-700 flex-wrap"></div>
     </div>
-  </div><!-- /panel-dana-taktis -->
+  </div><!-- /panel-dana-taktis -->

@@ -28,7 +28,7 @@
         <span class="absolute inset-y-0 left-3 flex items-center text-slate-400">
           <?= iconsax('search-normal-1', 'w-3.5 h-3.5') ?>
         </span>
-        <input type="text" id="filter-search-perjadin" oninput="jadwalkanMuatDaftar()" placeholder="Nama, maksud, no surat tugas, MAK..." class="form-control form-control-sm pl-8 w-full">
+        <input type="text" id="filter-search-perjadin" aria-label="Cari perjalanan dinas" oninput="jadwalkanMuatDaftar()" placeholder="Nama, maksud, no surat tugas, MAK..." class="form-control form-control-sm pl-8 w-full">
       </div>
       <input type="hidden" id="filter-status-perjadin" value="">
       <div class="status-filter-group shrink-0" role="group" aria-label="Filter Status Perjalanan Dinas">
@@ -57,13 +57,13 @@
     <!-- Baris 2: Bulan, Tahun, Per page -->
     <div class="flex flex-wrap items-center justify-between gap-2.5">
       <div class="flex items-center gap-2 flex-wrap">
-        <select id="filter-bulan-perjadin" onchange="muatDaftarTrip(1)" class="form-control form-control-sm w-auto">
+        <select id="filter-bulan-perjadin" aria-label="Filter bulan" onchange="muatDaftarTrip(1)" class="form-control form-control-sm w-auto">
           <option value="">Semua Bulan</option>
           <?php for ($b = 1; $b <= 12; $b++): ?>
           <option value="<?= $b ?>"><?= $namaBulan[$b] ?></option>
           <?php endfor; ?>
         </select>
-        <select id="filter-tahun-perjadin" onchange="muatDaftarTrip(1)" class="form-control form-control-sm w-auto">
+        <select id="filter-tahun-perjadin" aria-label="Filter tahun" onchange="muatDaftarTrip(1)" class="form-control form-control-sm w-auto">
           <option value="">Semua Tahun</option>
           <?php $tahunSaatIni = (int)date('Y'); $daftarTahun = $tahunListPerjadin; if (!in_array($tahunSaatIni, $daftarTahun)) $daftarTahun[] = $tahunSaatIni; rsort($daftarTahun); ?>
           <?php foreach ($daftarTahun as $th): ?>
@@ -73,7 +73,7 @@
       </div>
       <div class="flex items-center gap-1.5 shrink-0 text-xs text-slate-500">
         <span>Tampilkan</span>
-        <select id="filter-per-page-perjadin" onchange="muatDaftarTrip(1)" class="form-control form-control-sm w-auto">
+        <select id="filter-per-page-perjadin" aria-label="Jumlah baris per halaman" onchange="muatDaftarTrip(1)" class="form-control form-control-sm w-auto">
           <option value="10" selected>10</option>
           <option value="25">25</option>
           <option value="50">50</option>
@@ -130,18 +130,18 @@
       <form id="form-trip" onsubmit="submitTrip(event)">
         <input type="hidden" id="trip-id">
         <div class="modal-body space-y-4">
-          <div><label class="form-label">Maksud Perjalanan Dinas <span class="text-red-500">*</span></label>
+          <div><label class="form-label" for="trip-maksud">Maksud Perjalanan Dinas <span class="text-red-500">*</span></label>
             <textarea name="maksud" id="trip-maksud" class="form-control" rows="2" required placeholder="Contoh: Perjalanan Dinas dalam Rangka Kegiatan Koordinasi ke Badan POM di Jakarta Pusat Selama 3 (tiga) hari pada tanggal 01 s/d 03 Januari 2026"></textarea></div>
           <div class="grid grid-cols-1 sm:grid-cols-2 gap-3">
-            <div><label class="form-label">No. PD <span class="text-xs font-normal text-slate-500 dark:text-slate-400">(misal: 151 atau 52 (UP))</span></label>
+            <div><label class="form-label" for="trip-no-pd">No. PD <span class="text-xs font-normal text-slate-500 dark:text-slate-400">(misal: 151 atau 52 (UP))</span></label>
               <input type="text" name="no_pd" id="trip-no-pd" class="form-control" placeholder="Contoh: 151 atau 52 (UP)"></div>
-            <div><label class="form-label">Tgl. Surat Tugas <span class="text-red-500">*</span></label>
+            <div><label class="form-label" for="trip-tanggal">Tgl. Surat Tugas <span class="text-red-500">*</span></label>
               <input type="date" name="tanggal_surat_tugas" id="trip-tanggal" class="form-control" required></div>
-            <div><label class="form-label">No. Surat Tugas</label>
+            <div><label class="form-label" for="trip-no-surat">No. Surat Tugas</label>
               <input type="text" name="no_surat_tugas" id="trip-no-surat" class="form-control" placeholder="HM.03.01.7B.01.26.01"></div>
-            <div><label class="form-label">Kode MAK</label>
+            <div><label class="form-label" for="trip-kode-mak">Kode MAK</label>
               <input type="text" name="kode_mak" id="trip-kode-mak" class="form-control" placeholder="6384.EBA.994.002.524111.R"></div>
-            <div class="sm:col-span-2"><label class="form-label">No. SPM</label>
+            <div class="sm:col-span-2"><label class="form-label" for="trip-no-spm">No. SPM</label>
               <input type="text" name="no_spm" id="trip-no-spm" class="form-control" placeholder="No. SPM"></div>
           </div>
         </div>
@@ -169,7 +169,7 @@
         <div class="modal-body space-y-5" style="max-height:65vh;overflow-y:auto">
 
           <div>
-            <label class="form-label">Nama Pelaksana Perjalanan Dinas <span class="text-xs font-normal text-slate-500 dark:text-slate-400">(TANPA GELAR AKADEMIK)</span> <span class="text-red-500">*</span></label>
+            <label class="form-label" for="peserta-pegawai-id">Nama Pelaksana Perjalanan Dinas <span class="text-xs font-normal text-slate-500 dark:text-slate-400">(TANPA GELAR AKADEMIK)</span> <span class="text-red-500">*</span></label>
             <div class="flex gap-2">
               <select name="pegawai_id" id="peserta-pegawai-id" class="form-control pegawai-select" required oninput="hitungPreviewPeserta()">
                 <option value="">Pilih Nama Pelaksana Perjalanan Dinas...</option>
@@ -183,28 +183,28 @@
 
           <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3">
             <div>
-              <label class="form-label text-xs">Uang Harian</label>
-              <input type="text" inputmode="numeric" name="uang_harian" class="form-control input-rupiah nominal-peserta" placeholder="0" oninput="hitungPreviewPeserta()">
+              <label class="form-label text-xs" for="peserta-uang-harian">Uang Harian</label>
+              <input type="text" inputmode="numeric" id="peserta-uang-harian" name="uang_harian" class="form-control input-rupiah nominal-peserta" placeholder="0" oninput="hitungPreviewPeserta()">
             </div>
             <div>
-              <label class="form-label text-xs">Biaya Paket Meeting Fullboard</label>
-              <input type="text" inputmode="numeric" name="meeting_fullboard" class="form-control input-rupiah nominal-peserta" placeholder="0" oninput="hitungPreviewPeserta()">
+              <label class="form-label text-xs" for="peserta-meeting-fullboard">Biaya Paket Meeting Fullboard</label>
+              <input type="text" inputmode="numeric" id="peserta-meeting-fullboard" name="meeting_fullboard" class="form-control input-rupiah nominal-peserta" placeholder="0" oninput="hitungPreviewPeserta()">
             </div>
             <div>
-              <label class="form-label text-xs">Biaya Paket Meeting Fullday</label>
-              <input type="text" inputmode="numeric" name="meeting_fullday" class="form-control input-rupiah nominal-peserta" placeholder="0" oninput="hitungPreviewPeserta()">
+              <label class="form-label text-xs" for="peserta-meeting-fullday">Biaya Paket Meeting Fullday</label>
+              <input type="text" inputmode="numeric" id="peserta-meeting-fullday" name="meeting_fullday" class="form-control input-rupiah nominal-peserta" placeholder="0" oninput="hitungPreviewPeserta()">
             </div>
             <div>
-              <label class="form-label text-xs">Uang Representasi (Eselon II)</label>
-              <input type="text" inputmode="numeric" name="uang_representasi" class="form-control input-rupiah nominal-peserta" placeholder="0" oninput="hitungPreviewPeserta()">
+              <label class="form-label text-xs" for="peserta-uang-representasi">Uang Representasi (Eselon II)</label>
+              <input type="text" inputmode="numeric" id="peserta-uang-representasi" name="uang_representasi" class="form-control input-rupiah nominal-peserta" placeholder="0" oninput="hitungPreviewPeserta()">
             </div>
             <div>
-              <label class="form-label text-xs">Transportasi Lokal / Transportasi Luar Kota / Taksi</label>
-              <input type="text" inputmode="numeric" name="transport_lokal" class="form-control input-rupiah nominal-peserta" placeholder="0" oninput="hitungPreviewPeserta()">
+              <label class="form-label text-xs" for="peserta-transport-lokal">Transportasi Lokal / Transportasi Luar Kota / Taksi</label>
+              <input type="text" inputmode="numeric" id="peserta-transport-lokal" name="transport_lokal" class="form-control input-rupiah nominal-peserta" placeholder="0" oninput="hitungPreviewPeserta()">
             </div>
             <div>
-              <label class="form-label text-xs">BBM (Jika Jalan Darat)</label>
-              <input type="text" inputmode="numeric" name="bbm" class="form-control input-rupiah nominal-peserta" placeholder="0" oninput="hitungPreviewPeserta()">
+              <label class="form-label text-xs" for="peserta-bbm">BBM (Jika Jalan Darat)</label>
+              <input type="text" inputmode="numeric" id="peserta-bbm" name="bbm" class="form-control input-rupiah nominal-peserta" placeholder="0" oninput="hitungPreviewPeserta()">
             </div>
           </div>
 
@@ -220,40 +220,40 @@
             <label class="form-label font-semibold">Data Hotel (opsional)</label>
             <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-2.5 p-3 rounded-lg border border-slate-200 dark:border-slate-700 bg-slate-50/50 dark:bg-slate-900/30">
               <div>
-                <span class="form-hint text-[11px]">Nama Hotel</span>
-                <input type="text" name="hotel[nama_hotel]" id="hotel-nama" class="form-control form-control-sm" placeholder="Nama Hotel">
+                <label class="form-hint text-[11px]" for="hotel-nama">Nama Hotel</label>
+                <input type="text" name="hotel[nama_hotel]" id="hotel-nama" aria-label="Nama hotel" class="form-control form-control-sm" placeholder="Nama Hotel">
               </div>
               <div class="sm:col-span-2">
-                <span class="form-hint text-[11px]">Alamat Hotel</span>
-                <input type="text" name="hotel[alamat_hotel]" class="form-control form-control-sm" placeholder="Alamat Hotel">
+                <label class="form-hint text-[11px]" for="hotel-alamat">Alamat Hotel</label>
+                <input type="text" name="hotel[alamat_hotel]" id="hotel-alamat" class="form-control form-control-sm" placeholder="Alamat Hotel">
               </div>
               <div>
-                <span class="form-hint text-[11px]">No. Telepon Hotel</span>
-                <input type="text" name="hotel[telp_hotel]" class="form-control form-control-sm" placeholder="No. Telepon Hotel">
+                <label class="form-hint text-[11px]" for="hotel-telp">No. Telepon Hotel</label>
+                <input type="text" name="hotel[telp_hotel]" id="hotel-telp" class="form-control form-control-sm" placeholder="No. Telepon Hotel">
               </div>
               <div>
-                <span class="form-hint text-[11px]">Tanggal Check-In Hotel (Arrival Date)</span>
-                <input type="date" name="hotel[checkin]" class="form-control form-control-sm">
+                <label class="form-hint text-[11px]" for="hotel-checkin">Tanggal Check-In Hotel (Arrival Date)</label>
+                <input type="date" name="hotel[checkin]" id="hotel-checkin" class="form-control form-control-sm">
               </div>
               <div>
-                <span class="form-hint text-[11px]">Tanggal Check-Out Hotel (Departure Date)</span>
-                <input type="date" name="hotel[checkout]" class="form-control form-control-sm">
+                <label class="form-hint text-[11px]" for="hotel-checkout">Tanggal Check-Out Hotel (Departure Date)</label>
+                <input type="date" name="hotel[checkout]" id="hotel-checkout" class="form-control form-control-sm">
               </div>
               <div>
-                <span class="form-hint text-[11px]">No Kamar (Room)</span>
-                <input type="text" name="hotel[no_kamar]" class="form-control form-control-sm" placeholder="No Kamar (Room)">
+                <label class="form-hint text-[11px]" for="hotel-no-kamar">No Kamar (Room)</label>
+                <input type="text" name="hotel[no_kamar]" id="hotel-no-kamar" class="form-control form-control-sm" placeholder="No Kamar (Room)">
               </div>
               <div>
-                <span class="form-hint text-[11px]">No. Invoice Hotel</span>
-                <input type="text" name="hotel[no_invoice]" class="form-control form-control-sm" placeholder="No. Invoice Hotel">
+                <label class="form-hint text-[11px]" for="hotel-no-invoice">No. Invoice Hotel</label>
+                <input type="text" name="hotel[no_invoice]" id="hotel-no-invoice" class="form-control form-control-sm" placeholder="No. Invoice Hotel">
               </div>
               <div>
-                <span class="form-hint text-[11px]">Total Bill Hotel Yang Dibayarkan</span>
-                <input type="text" inputmode="numeric" name="hotel[total_bill]" class="form-control form-control-sm input-rupiah nominal-hotel" placeholder="0" oninput="hitungPreviewPeserta()">
+                <label class="form-hint text-[11px]" for="hotel-total-bill">Total Bill Hotel Yang Dibayarkan</label>
+                <input type="text" inputmode="numeric" name="hotel[total_bill]" id="hotel-total-bill" class="form-control form-control-sm input-rupiah nominal-hotel" placeholder="0" oninput="hitungPreviewPeserta()">
               </div>
               <div>
-                <span class="form-hint text-[11px]">Total Biaya Hotel (Jika 30%)</span>
-                <input type="text" inputmode="numeric" name="hotel[total_biaya_30persen]" class="form-control form-control-sm input-rupiah nominal-hotel" placeholder="0" oninput="hitungPreviewPeserta()">
+                <label class="form-hint text-[11px]" for="hotel-total-biaya-30persen">Total Biaya Hotel (Jika 30%)</label>
+                <input type="text" inputmode="numeric" name="hotel[total_biaya_30persen]" id="hotel-total-biaya-30persen" class="form-control form-control-sm input-rupiah nominal-hotel" placeholder="0" oninput="hitungPreviewPeserta()">
               </div>
             </div>
           </div>
@@ -279,11 +279,11 @@
             <input type="hidden" name="status_lunas_input" id="peserta-status-lunas" value="belum">
             <div id="peserta-status-detail" class="hidden grid grid-cols-2 gap-3">
               <div>
-                <label class="form-label">Tanggal Setoran</label>
+                <label class="form-label" for="peserta-tanggal-setoran">Tanggal Setoran</label>
                 <input type="date" name="tanggal_setoran" id="peserta-tanggal-setoran" class="form-control form-control-sm">
               </div>
               <div id="peserta-jumlah-disetor-wrap" class="hidden">
-                <label class="form-label">Jumlah Disetor</label>
+                <label class="form-label" for="peserta-jumlah-disetor">Jumlah Disetor</label>
                 <div class="relative">
                   <span class="absolute inset-y-0 left-3 flex items-center text-slate-400 text-sm">Rp</span>
                   <input type="text" inputmode="numeric" name="jumlah_disetor" id="peserta-jumlah-disetor" class="form-control form-control-sm input-rupiah pl-9" placeholder="0">
@@ -306,43 +306,43 @@
   <div class="tiket-row grid grid-cols-2 sm:grid-cols-4 gap-2.5 p-3 rounded-lg border border-slate-200 dark:border-slate-700 relative bg-slate-50/50 dark:bg-slate-900/30">
     <button type="button" class="absolute -top-2 -right-2 w-5 h-5 rounded-full bg-rose-100 hover:bg-rose-200 text-rose-600 border border-rose-200 flex items-center justify-center text-xs font-bold transition shrink-0" onclick="this.closest('.tiket-row').remove(); hitungPreviewPeserta()">&times;</button>
     <div>
-      <span class="form-hint text-[11px]">Maskapai</span>
-      <input type="text" name="tiket[__IDX__][maskapai]" class="form-control form-control-sm" placeholder="Maskapai">
+      <label class="form-hint text-[11px]" for="tiket-__IDX__-maskapai">Maskapai</label>
+      <input type="text" id="tiket-__IDX__-maskapai" name="tiket[__IDX__][maskapai]" class="form-control form-control-sm" placeholder="Maskapai">
     </div>
     <div>
-      <span class="form-hint text-[11px]">Pergi/Pulang</span>
-      <select name="tiket[__IDX__][arah]" class="form-control form-control-sm">
+      <label class="form-hint text-[11px]" for="tiket-__IDX__-arah">Pergi/Pulang</label>
+      <select id="tiket-__IDX__-arah" name="tiket[__IDX__][arah]" class="form-control form-control-sm">
         <option value="pergi">Pergi</option>
         <option value="pulang">Pulang</option>
       </select>
     </div>
     <div>
-      <span class="form-hint text-[11px]">No Tiket</span>
-      <input type="text" name="tiket[__IDX__][no_tiket]" class="form-control form-control-sm" placeholder="No Tiket">
+      <label class="form-hint text-[11px]" for="tiket-__IDX__-no-tiket">No Tiket</label>
+      <input type="text" id="tiket-__IDX__-no-tiket" name="tiket[__IDX__][no_tiket]" class="form-control form-control-sm" placeholder="No Tiket">
     </div>
     <div>
-      <span class="form-hint text-[11px]">Kode Booking</span>
-      <input type="text" name="tiket[__IDX__][kode_booking]" class="form-control form-control-sm" placeholder="Kode Booking">
+      <label class="form-hint text-[11px]" for="tiket-__IDX__-kode-booking">Kode Booking</label>
+      <input type="text" id="tiket-__IDX__-kode-booking" name="tiket[__IDX__][kode_booking]" class="form-control form-control-sm" placeholder="Kode Booking">
     </div>
     <div>
-      <span class="form-hint text-[11px]">No Penerbangan</span>
-      <input type="text" name="tiket[__IDX__][no_penerbangan]" class="form-control form-control-sm" placeholder="No Penerbangan">
+      <label class="form-hint text-[11px]" for="tiket-__IDX__-no-penerbangan">No Penerbangan</label>
+      <input type="text" id="tiket-__IDX__-no-penerbangan" name="tiket[__IDX__][no_penerbangan]" class="form-control form-control-sm" placeholder="No Penerbangan">
     </div>
     <div>
-      <span class="form-hint text-[11px]">Tempat Asal</span>
-      <input type="text" name="tiket[__IDX__][tempat_asal]" class="form-control form-control-sm" placeholder="Tempat Asal">
+      <label class="form-hint text-[11px]" for="tiket-__IDX__-tempat-asal">Tempat Asal</label>
+      <input type="text" id="tiket-__IDX__-tempat-asal" name="tiket[__IDX__][tempat_asal]" class="form-control form-control-sm" placeholder="Tempat Asal">
     </div>
     <div>
-      <span class="form-hint text-[11px]">Tempat Tujuan</span>
-      <input type="text" name="tiket[__IDX__][tempat_tujuan]" class="form-control form-control-sm" placeholder="Tempat Tujuan">
+      <label class="form-hint text-[11px]" for="tiket-__IDX__-tempat-tujuan">Tempat Tujuan</label>
+      <input type="text" id="tiket-__IDX__-tempat-tujuan" name="tiket[__IDX__][tempat_tujuan]" class="form-control form-control-sm" placeholder="Tempat Tujuan">
     </div>
     <div>
-      <span class="form-hint text-[11px]">Tanggal Terbang</span>
-      <input type="date" name="tiket[__IDX__][tanggal_terbang]" class="form-control form-control-sm">
+      <label class="form-hint text-[11px]" for="tiket-__IDX__-tanggal-terbang">Tanggal Terbang</label>
+      <input type="date" id="tiket-__IDX__-tanggal-terbang" name="tiket[__IDX__][tanggal_terbang]" class="form-control form-control-sm">
     </div>
     <div class="col-span-2 sm:col-span-4">
-      <span class="form-hint text-[11px]">Harga Tiket (Rp)</span>
-      <input type="text" inputmode="numeric" name="tiket[__IDX__][harga_tiket]" class="form-control form-control-sm input-rupiah nominal-tiket" placeholder="0" oninput="hitungPreviewPeserta()">
+      <label class="form-hint text-[11px]" for="tiket-__IDX__-harga-tiket">Harga Tiket (Rp)</label>
+      <input type="text" inputmode="numeric" id="tiket-__IDX__-harga-tiket" name="tiket[__IDX__][harga_tiket]" class="form-control form-control-sm input-rupiah nominal-tiket" placeholder="0" oninput="hitungPreviewPeserta()">
     </div>
   </div>
 </template>
@@ -364,13 +364,13 @@
           <button type="button" data-status="lunas" class="segment-btn lunas-status-btn active flex-1" onclick="pilihStatusModalLunas('lunas')">Lunas</button>
         </div>
         <div id="lunas-jumlah-wrap" class="hidden mb-3">
-          <label class="form-label">Jumlah Disetor</label>
+          <label class="form-label" for="lunas-jumlah-disetor">Jumlah Disetor</label>
           <div class="relative">
             <span class="absolute inset-y-0 left-3 flex items-center text-slate-400 text-sm">Rp</span>
             <input type="text" inputmode="numeric" id="lunas-jumlah-disetor" class="form-control input-rupiah pl-9" placeholder="0">
           </div>
         </div>
-        <label class="form-label">Tanggal Setoran</label>
+        <label class="form-label" for="lunas-tanggal">Tanggal Setoran</label>
         <input type="date" id="lunas-tanggal" class="form-control" value="<?= date('Y-m-d') ?>">
       </div>
       <div class="modal-footer">
@@ -394,13 +394,13 @@
         <div class="flex items-center gap-2 mb-3">
           <div class="relative flex-1">
             <span class="absolute inset-y-0 left-3 flex items-center text-slate-400"><?= iconsax('search-normal-1', 'w-3.5 h-3.5') ?></span>
-            <input type="text" id="pegawai-search" oninput="filterPegawai()" placeholder="Cari nama / NIP pegawai..." class="form-control form-control-sm pl-8">
+            <input type="text" id="pegawai-search" aria-label="Cari pegawai" oninput="filterPegawai()" placeholder="Cari nama / NIP pegawai..." class="form-control form-control-sm pl-8">
           </div>
           <button type="button" class="btn btn-outline btn-sm" onclick="toggleFormTambahPegawai()"><?= iconsax('add', '') ?> Tambah</button>
         </div>
         <form id="form-tambah-pegawai" onsubmit="tambahPegawai(event)" class="hidden flex flex-wrap gap-2 mb-3 p-2.5 rounded-lg bg-slate-50 dark:bg-slate-900/40 border border-slate-200 dark:border-slate-700">
-          <input type="text" id="pegawai-baru-nama" class="form-control form-control-sm flex-1 min-w-[140px]" placeholder="Nama pegawai" required>
-          <input type="text" id="pegawai-baru-nip" class="form-control form-control-sm flex-1 min-w-[140px]" placeholder="NIP (opsional)">
+          <input type="text" id="pegawai-baru-nama" aria-label="Nama pegawai baru" class="form-control form-control-sm flex-1 min-w-[140px]" placeholder="Nama pegawai" required>
+          <input type="text" id="pegawai-baru-nip" aria-label="NIP pegawai baru" class="form-control form-control-sm flex-1 min-w-[140px]" placeholder="NIP (opsional)">
           <button type="submit" class="btn btn-primary btn-sm"><?= iconsax('add', '') ?> Simpan</button>
         </form>
         <div class="overflow-x-auto" style="max-height:50vh;overflow-y:auto">

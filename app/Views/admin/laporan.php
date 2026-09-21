@@ -31,12 +31,12 @@
 <form id="filter-laporan-form" method="GET" action="<?= base_url('admin/laporan') ?>" class="card p-3.5 sm:p-4 mb-5">
   <div class="flex flex-wrap items-end gap-3 sm:gap-4">
     <div>
-      <label class="form-label">Bulan Dari</label>
-      <input type="month" name="bulan_dari" class="form-control form-control-sm" value="<?= $bulanDari ?>">
+      <label class="form-label" for="bulan-dari">Bulan Dari</label>
+      <input type="month" id="bulan-dari" name="bulan_dari" class="form-control form-control-sm" value="<?= $bulanDari ?>">
     </div>
     <div>
-      <label class="form-label">Bulan Sampai</label>
-      <input type="month" name="bulan_sampai" class="form-control form-control-sm" value="<?= $bulanSampai ?>">
+      <label class="form-label" for="bulan-sampai">Bulan Sampai</label>
+      <input type="month" id="bulan-sampai" name="bulan_sampai" class="form-control form-control-sm" value="<?= $bulanSampai ?>">
     </div>
     <div class="flex flex-wrap items-center gap-4 pt-1">
       <label class="flex items-center gap-2 text-sm text-slate-600 dark:text-slate-300 cursor-pointer">
@@ -53,7 +53,7 @@
     </div>
   </div>
   <div id="filter-nama-box" class="mt-3.5 pt-3.5 border-t border-slate-100 dark:border-slate-700 <?= ($sertakanDanaTaktis || $sertakanPerjadin) ? '' : 'hidden' ?>">
-    <label class="form-label font-medium text-slate-700 dark:text-slate-200">Filter Nama (Dana Taktis / Pegawai)</label>
+    <label class="form-label font-medium text-slate-700 dark:text-slate-200" for="filter-nama-input">Filter Nama (Dana Taktis / Pegawai)</label>
     <div class="flex items-center gap-2 max-w-sm">
       <input type="text" id="filter-nama-input" name="filter_nama_taktis" placeholder="Ketik nama untuk filter..." class="form-control form-control-sm flex-1" value="<?= esc($filterNamaTaktis ?? '') ?>">
       <?php if (!empty($filterNamaTaktis)): ?>
