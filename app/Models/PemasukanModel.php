@@ -13,7 +13,8 @@ class PemasukanModel extends Model
     protected $useSoftDeletes = false;
     protected $allowedFields = [
         'tanggal', 'kategori', 'jumlah', 'jumlah_diterima',
-        'status_dana', 'sumber', 'keterangan', 'file_bukti', 'catatan_internal'
+        'status_dana', 'sumber', 'keterangan', 'file_bukti', 'catatan_internal', 'dari_tandai_lunas',
+        'perjalanan_dinas_id', 'perjalanan_dinas_peserta_id', 'no_surat_tugas', 'kode_mak', 'no_spm'
     ];
     protected $useTimestamps = true;
 
@@ -96,6 +97,31 @@ class PemasukanModel extends Model
         return max(0, (float)($row->sisa ?? 0));
     }
 
+    /** Pencarian kategori/sumber/keterangan — query PENDEK (<3 huruf) sengaja DIBATASI ke
+     *  sumber saja (field paling mirip "nama/identitas"). Kalau semua field ikut dicari
+     *  untuk query sependek 2 huruf, kata umum yang muncul di banyak kategori/keterangan
+     *  (mis. "Dana", "Kas") bisa bikin hasilnya cocok ke hampir semua baris — pencarian
+     *  jadi terasa tidak menyaring apa-apa. Query 3+ huruf tetap dicari di semua field. */
+    private function applyPencarian($builder, ?string $search)
+    {
+        $search = trim((string)$search);
+        if ($search === '') return $builder;
+        if (mb_strlen($search) < 4) {
+            return $builder->groupStart()
+                ->like('sumber', $search)
+                ->orLike('kode_mak', $search)
+                ->orLike('no_surat_tugas', $search)
+                ->groupEnd();
+        }
+        return $builder->groupStart()
+            ->like('kategori', $search)
+            ->orLike('sumber', $search)
+            ->orLike('keterangan', $search)
+            ->orLike('kode_mak', $search)
+            ->orLike('no_surat_tugas', $search)
+            ->groupEnd();
+    }
+
     public function getFiltered($filters = [], $limit = 10, $offset = 0)
     {
         $builder = $this;
@@ -103,13 +129,7 @@ class PemasukanModel extends Model
             $builder = $builder->whereIn('kategori', $filters['kategori']);
         }
         $builder = $this->applyPeriode($builder, $filters['bulan'] ?? null, $filters['tahun'] ?? null);
-        if (!empty($filters['search'])) {
-            $builder = $builder->groupStart()
-                ->like('kategori', $filters['search'])
-                ->orLike('sumber', $filters['search'])
-                ->orLike('keterangan', $filters['search'])
-                ->groupEnd();
-        }
+        $builder = $this->applyPencarian($builder, $filters['search'] ?? null);
         return $builder->orderBy('tanggal', 'DESC')->orderBy('id', 'DESC')->findAll($limit, $offset);
     }
 
@@ -120,13 +140,7 @@ class PemasukanModel extends Model
             $builder->whereIn('kategori', $filters['kategori']);
         }
         $this->applyPeriode($builder, $filters['bulan'] ?? null, $filters['tahun'] ?? null);
-        if (!empty($filters['search'])) {
-            $builder->groupStart()
-                ->like('kategori', $filters['search'])
-                ->orLike('sumber', $filters['search'])
-                ->orLike('keterangan', $filters['search'])
-                ->groupEnd();
-        }
+        $this->applyPencarian($builder, $filters['search'] ?? null);
         return $builder->countAllResults();
     }
 

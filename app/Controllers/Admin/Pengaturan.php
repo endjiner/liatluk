@@ -5,6 +5,7 @@ namespace App\Controllers\Admin;
 use App\Controllers\BaseController;
 use App\Models\PengaturanModel;
 use App\Models\NotifikasiModel;
+use App\Models\AdminAkunModel;
 
 class Pengaturan extends BaseController
 {
@@ -19,23 +20,32 @@ class Pengaturan extends BaseController
 
     public function index(): string
     {
-        $notifCount = $this->notifikasiModel->countUnread();
+        $daftarAkun = array_map(function ($a) {
+            unset($a['password']);
+            return $a;
+        }, (new AdminAkunModel())->getAllAkun());
+
         return view('admin/pengaturan', [
             'setting'    => $this->pengaturanModel->getSetting(),
-            'notifCount' => $notifCount,
+            'daftarAkun' => $daftarAkun,
         ]);
     }
 
     public function update()
     {
-        // Normalisasi threshold_notif (input rupiah bisa masuk sebagai "1.000.000")
+        // Normalisasi threshold_notif (input rupiah bisa masuk sebagai "1.000.000" atau "750.000")
         $threshold = $this->request->getPost('threshold_notif');
-        if ($threshold !== null && !is_numeric($threshold)) {
-            $s = (string)$threshold;
-            if (preg_match('/^([\d.]+),(\d{1,2})$/', $s, $m)) {
+        if ($threshold !== null && $threshold !== '') {
+            $s = trim((string)$threshold);
+            if (preg_match('/^(-?[\d.]+),(\d{1,2})$/', $s, $m)) {
+                // Desimal koma format id-ID, mis "1.500.000,50"
                 $threshold = (float)(str_replace('.', '', $m[1]) . '.' . $m[2]);
+            } elseif (substr_count($s, '.') > 1 || (preg_match('/^-?\d+\.(\d+)$/', $s, $m) && strlen($m[1]) === 3)) {
+                // Titik = pemisah ribuan id-ID, mis "1.000.000" atau "750.000" (bukan desimal
+                // — is_numeric() saja salah menganggap "750.000" sebagai 750.0, ÷1000).
+                $threshold = (float)str_replace('.', '', $s);
             } else {
-                $threshold = (float)str_replace(['.', ','], ['', ''], $s);
+                $threshold = is_numeric($s) ? (float)$s : 0.0;
             }
         }
 
@@ -45,32 +55,7 @@ class Pengaturan extends BaseController
             'notif_transaksi_besar' => $this->request->getPost('notif_transaksi_besar') ? 1 : 0,
         ];
 
-        // Update username/password jika benar-benar berubah — aksi kritikal, wajib verifikasi password saat ini
-        $newUsername = $this->request->getPost('admin_username');
-        $newPassword = $this->request->getPost('admin_password');
-        $currentPassword = $this->request->getPost('current_password');
-        $existing = $this->pengaturanModel->getSetting();
-        $usernameBerubah = !empty($newUsername) && $newUsername !== ($existing['admin_username'] ?? '');
-
-        if ($usernameBerubah || !empty($newPassword)) {
-            $currentUsername = session()->get('admin_username');
-            if (empty($currentPassword) || !$this->pengaturanModel->verifyAdmin($currentUsername, $currentPassword)) {
-                return redirect()->back()->with('error', 'Password saat ini salah — perubahan username/password dibatalkan.');
-            }
-            if ($usernameBerubah) {
-                $data['admin_username'] = $newUsername;
-            }
-            if (!empty($newPassword)) {
-                $data['admin_password'] = password_hash($newPassword, PASSWORD_BCRYPT);
-            }
-        }
-
         $this->pengaturanModel->updateSetting($data);
-
-        // Update session username jika berubah
-        if ($usernameBerubah) {
-            session()->set('admin_username', $newUsername);
-        }
 
         return redirect()->back()->with('success', 'Pengaturan berhasil disimpan.');
     }

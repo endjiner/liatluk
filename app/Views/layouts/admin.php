@@ -5,11 +5,12 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title><?= $title ?? 'Admin — BBPOM di Pangkal Pinang' ?></title>
   <meta name="description" content="Panel Admin Sistem Pengelolaan Keuangan Internal BBPOM di Pangkal Pinang">
+  <meta http-equiv="Content-Security-Policy" content="upgrade-insecure-requests">
+  <?= csrf_meta() ?>
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
-  <link rel="stylesheet" href="<?= base_url('assets/css/tailwind.css') ?>">
-  <script src="https://unpkg.com/lucide@latest"></script>
+  <link rel="stylesheet" href="<?= base_url('assets/css/tailwind.css') ?>?v=<?= @filemtime(FCPATH . 'assets/css/tailwind.css') ?: '1' ?>">
   <script>
     // Set theme early to avoid flash
     (function() {
@@ -18,124 +19,66 @@
     })();
   </script>
 </head>
-<body class="min-h-screen">
+<body class="min-h-screen bg-slate-50 dark:bg-slate-900">
 
-<div class="flex min-h-screen">
+<div class="min-h-screen flex flex-col">
 
-  <!-- ═══════════ SIDEBAR ═══════════ -->
-  <aside id="sidebar" class="fixed lg:sticky top-0 left-0 z-30 h-screen w-64 bg-primary-900 text-slate-100 flex flex-col shadow-lift transition-all duration-300 -translate-x-full lg:translate-x-0 data-[collapsed=true]:lg:w-16">
-    <!-- Logo + collapse toggle -->
-    <div class="flex items-center gap-3 px-4 py-4 border-b border-primary-800">
-      <img src="<?= base_url('assets/images/logo_bpom.png') ?>" alt="BBPOM di Pangkal Pinang"
-           class="w-10 h-10 shrink-0 rounded-lg bg-white p-1 sidebar-brand-text">
-      <div class="flex-1 min-w-0 sidebar-brand-text">
-        <div class="text-sm font-semibold leading-tight">Keuangan Internal</div>
-        <div class="text-[11px] text-slate-300 leading-tight truncate">BBPOM di Pangkal Pinang</div>
-      </div>
-      <button onclick="toggleSidebar()" title="Ciutkan/Perluas"
-              class="p-1.5 rounded-md text-slate-300 hover:bg-primary-800 hover:text-white transition sidebar-toggle-btn hidden lg:flex items-center justify-center">
-        <i data-lucide="panel-left-close" id="sidebar-toggle-icon" class="w-4 h-4"></i>
-      </button>
-    </div>
+  <?php
+    $isSuperAdminLayout = session()->get('admin_role') === 'super_admin';
+    $navLinks = [
+      ['url' => 'admin',           'label' => 'Dashboard',        'icon' => 'category2', 'match' => ['admin', 'admin/dashboard']],
+      ['url' => 'admin/laporan',   'label' => 'Laporan',          'icon' => 'document-text', 'match' => ['laporan']],
+    ];
+    $navLinks = array_values(array_filter($navLinks, fn($nl) => empty($nl['superadmin']) || $isSuperAdminLayout));
+    $isNavActive = function ($nl) {
+      foreach ($nl['match'] as $m) { if (str_contains(current_url(), $m)) return true; }
+      return false;
+    };
+  ?>
 
-    <!-- Nav -->
-    <nav class="flex-1 overflow-y-auto p-3 space-y-1">
-      <p class="text-[10px] font-semibold text-slate-400 uppercase tracking-wider px-3 pt-2 pb-1 sidebar-brand-text">Menu Utama</p>
-      <?php
-        $navLinks = [
-          ['url' => 'admin',           'label' => 'Dashboard',        'icon' => 'layout-dashboard', 'match' => ['admin', 'admin/dashboard']],
-          ['url' => 'admin/keuangan',  'label' => 'Data Keuangan',    'icon' => 'circle-dollar-sign', 'match' => ['keuangan']],
-          ['url' => 'admin/rencana',   'label' => 'Rencana Keuangan', 'icon' => 'calendar-check', 'match' => ['rencana']],
-          ['url' => 'admin/laporan',   'label' => 'Laporan',          'icon' => 'file-text', 'match' => ['laporan']],
-        ];
-        foreach ($navLinks as $nl):
-          $isActive = false;
-          foreach ($nl['match'] as $m) { if (str_contains(current_url(), $m)) { $isActive = true; break; } }
-      ?>
-      <a href="<?= base_url($nl['url']) ?>"
-         class="sidebar-link <?= $isActive ? 'active' : '' ?>"
-         title="<?= $nl['label'] ?>">
-        <i data-lucide="<?= $nl['icon'] ?>"></i>
-        <span class="sidebar-brand-text"><?= $nl['label'] ?></span>
-      </a>
-      <?php endforeach; ?>
+  <!-- ═══════════ TOP NAVBAR ═══════════ -->
+  <div class="sticky top-0 z-30 px-3 pt-3 lg:px-6 lg:pt-4">
+    <header class="max-w-7xl mx-auto bg-white dark:bg-slate-800 rounded-2xl shadow-lift border border-slate-200/60 dark:border-slate-700/60">
+      <div class="flex items-center justify-between h-16 px-3 lg:px-5 gap-2">
+        <!-- Brand -->
+        <a href="<?= base_url('admin') ?>" class="flex items-center gap-2.5 shrink-0 min-w-0">
+          <img src="<?= base_url('assets/images/logo_bpom.png') ?>" alt="BBPOM di Pangkal Pinang"
+               class="w-9 h-9 shrink-0 rounded-lg bg-white p-1 ring-1 ring-slate-200 dark:ring-slate-600">
+          <div class="hidden sm:block min-w-0">
+            <div class="text-sm font-bold leading-tight text-slate-800 dark:text-slate-100 truncate">Keuangan Internal</div>
+            <div class="text-[10px] text-slate-500 dark:text-slate-400 leading-tight truncate">BBPOM Pangkal Pinang</div>
+          </div>
+        </a>
 
-      <p class="text-[10px] font-semibold text-slate-400 uppercase tracking-wider px-3 pt-4 pb-1 sidebar-brand-text">Sistem</p>
-      <a href="<?= base_url('admin/pengaturan') ?>"
-         class="sidebar-link <?= str_contains(current_url(), 'pengaturan') ? 'active' : '' ?>" title="Pengaturan">
-        <i data-lucide="settings"></i>
-        <span class="sidebar-brand-text">Pengaturan</span>
-      </a>
-      <a href="<?= base_url('/') ?>" target="_blank" class="sidebar-link" title="Lihat Publik">
-        <i data-lucide="globe"></i>
-        <span class="sidebar-brand-text">Lihat Publik</span>
-      </a>
-    </nav>
+        <!-- Center nav (desktop) -->
+        <nav class="hidden lg:flex items-center gap-1">
+          <?php foreach ($navLinks as $nl): $isActive = $isNavActive($nl); ?>
+          <a href="<?= base_url($nl['url']) ?>"
+             class="flex items-center gap-1.5 px-3.5 py-2 rounded-full text-sm font-medium whitespace-nowrap transition <?= $isActive ? 'bg-primary-600 text-white shadow-sm' : 'text-slate-600 dark:text-slate-300 hover:bg-slate-100 dark:hover:bg-slate-700' ?>">
+            <?= iconsax($nl['icon'], 'w-4 h-4 shrink-0') ?> <?= $nl['label'] ?>
+          </a>
+          <?php endforeach; ?>
+        </nav>
 
-    <div class="p-3 border-t border-primary-800">
-      <button type="button" onclick="confirmLogout(event)"
-              class="sidebar-link w-full text-left text-red-300 hover:bg-red-500/20 hover:text-red-200">
-        <i data-lucide="log-out"></i>
-        <span class="sidebar-brand-text">Keluar</span>
-      </button>
-    </div>
-  </aside>
-
-  <!-- Backdrop for mobile sidebar -->
-  <div id="sidebar-backdrop" class="hidden lg:hidden fixed inset-0 bg-slate-900/50 z-20" onclick="toggleSidebar()"></div>
-
-  <!-- ═══════════ MAIN ═══════════ -->
-  <main class="flex-1 flex flex-col min-w-0">
-
-    <!-- Topbar -->
-    <header class="sticky top-0 z-20 bg-white dark:bg-slate-800 border-b border-slate-200 dark:border-slate-700 shadow-soft">
-      <div class="flex items-center justify-between h-14 px-4 lg:px-6">
-        <div class="flex items-center gap-3 min-w-0">
-          <button onclick="toggleSidebar()"
-                  class="lg:hidden p-2 rounded-md text-slate-500 hover:bg-slate-100 dark:hover:bg-slate-700">
-            <i data-lucide="menu" class="w-5 h-5"></i>
-          </button>
-        </div>
-
-        <div class="flex items-center gap-1">
+        <!-- Right actions -->
+        <div class="flex items-center gap-1 shrink-0">
           <!-- Theme -->
           <button onclick="toggleTheme()" title="Ganti Tema"
                   class="p-2 rounded-lg text-slate-500 dark:text-slate-300 hover:bg-slate-100 dark:hover:bg-slate-700 transition">
-            <i data-lucide="sun" id="theme-icon-sun" class="w-5 h-5 hidden dark:inline"></i>
-            <i data-lucide="moon" id="theme-icon-moon" class="w-5 h-5 dark:hidden"></i>
+            <?= iconsax('sun-1', 'w-5 h-5 hidden dark:inline', 'theme-icon-sun') ?>
+            <?= iconsax('moon', 'w-5 h-5 dark:hidden', 'theme-icon-moon') ?>
           </button>
 
-          <!-- Notifications -->
-          <div class="relative">
-            <button id="notif-btn" onclick="toggleNotif()" title="Notifikasi"
-                    class="relative p-2 rounded-lg text-slate-500 dark:text-slate-300 hover:bg-slate-100 dark:hover:bg-slate-700 transition">
-              <i data-lucide="bell" class="w-5 h-5"></i>
-              <?php if (($notifCount ?? 0) > 0): ?>
-              <span class="absolute top-1.5 right-1.5 w-2 h-2 rounded-full bg-red-500 ring-2 ring-white dark:ring-slate-800"></span>
-              <?php endif; ?>
-            </button>
-            <div id="notif-dropdown" class="hidden absolute right-0 top-full mt-2 w-80 max-w-[90vw] bg-white dark:bg-slate-800 rounded-xl shadow-lift border border-slate-200 dark:border-slate-700 overflow-hidden">
-              <div class="flex items-center justify-between px-4 py-3 border-b border-slate-200 dark:border-slate-700">
-                <span class="font-semibold text-sm">Notifikasi</span>
-                <button onclick="markAllRead()" class="text-xs text-primary-600 dark:text-primary-400 hover:underline">Tandai semua</button>
-              </div>
-              <div id="notif-list" class="max-h-72 overflow-y-auto">
-                <div class="px-4 py-8 text-center text-slate-500 dark:text-slate-400 text-sm">
-                  <i data-lucide="bell-off" class="w-8 h-8 mx-auto mb-2 opacity-40"></i>
-                  Tidak ada notifikasi
-                </div>
-              </div>
-              <a href="<?= base_url('admin/notifikasi/semua') ?>" class="flex items-center justify-center gap-1 px-4 py-2.5 text-xs font-medium text-primary-600 dark:text-primary-400 border-t border-slate-200 dark:border-slate-700 hover:bg-slate-50 dark:hover:bg-slate-700/50">
-                Lihat Semua <i data-lucide="arrow-right" class="w-3 h-3"></i>
-              </a>
-            </div>
-          </div>
 
           <!-- User Menu -->
           <div class="relative" id="user-menu-wrapper">
             <button onclick="toggleUserMenu()" title="Menu Pengguna"
-                    class="p-2 rounded-lg text-slate-500 dark:text-slate-300 hover:bg-slate-100 dark:hover:bg-slate-700 transition">
-              <i data-lucide="user" class="w-5 h-5"></i>
+                    class="flex items-center gap-2 pl-1.5 pr-1.5 sm:pr-3 py-1.5 rounded-full hover:bg-slate-100 dark:hover:bg-slate-700 transition">
+              <div class="w-8 h-8 shrink-0 rounded-full bg-primary-600 text-white flex items-center justify-center text-sm font-semibold">
+                <?= strtoupper(substr(session()->get('admin_username') ?? 'A', 0, 1)) ?>
+              </div>
+              <span class="hidden sm:inline text-sm font-medium text-slate-700 dark:text-slate-200 max-w-[120px] truncate"><?= esc(session()->get('admin_username') ?? 'Administrator') ?></span>
+              <?= iconsax('arrow-down-2', 'hidden sm:inline w-3.5 h-3.5 text-slate-400') ?>
             </button>
             <div id="user-menu-dropdown" class="hidden absolute right-0 top-full mt-2 w-64 bg-white dark:bg-slate-800 rounded-xl shadow-lift border border-slate-200 dark:border-slate-700 overflow-hidden">
               <div class="flex items-center gap-3 px-4 py-3 border-b border-slate-200 dark:border-slate-700 bg-slate-50 dark:bg-slate-900/40">
@@ -144,47 +87,71 @@
                 </div>
                 <div class="min-w-0 flex-1">
                   <div class="text-sm font-semibold truncate"><?= esc(session()->get('admin_username') ?? 'Administrator') ?></div>
-                  <div class="text-[11px] text-slate-500 dark:text-slate-400">Administrator</div>
+                  <div class="text-[11px] text-slate-500 dark:text-slate-400">
+                    <?= $isSuperAdminLayout ? 'Super Admin' : 'Admin' ?>
+                  </div>
                 </div>
               </div>
+              <button type="button" onclick="openModal('modal-ganti-password')" class="w-full text-left flex items-center gap-3 px-4 py-2.5 text-sm text-slate-700 dark:text-slate-200 hover:bg-slate-100 dark:hover:bg-slate-700">
+                <?= iconsax('lock-1', 'w-4 h-4') ?> Ganti Password
+              </button>
+              <?php if ($isSuperAdminLayout): ?>
               <a href="<?= base_url('admin/pengaturan') ?>" class="flex items-center gap-3 px-4 py-2.5 text-sm text-slate-700 dark:text-slate-200 hover:bg-slate-100 dark:hover:bg-slate-700">
-                <i data-lucide="settings" class="w-4 h-4"></i> Pengaturan
+                <?= iconsax('setting-2', 'w-4 h-4') ?> Pengaturan
               </a>
+              <?php endif; ?>
               <a href="<?= base_url('/') ?>" target="_blank" class="flex items-center gap-3 px-4 py-2.5 text-sm text-slate-700 dark:text-slate-200 hover:bg-slate-100 dark:hover:bg-slate-700">
-                <i data-lucide="globe" class="w-4 h-4"></i> Lihat Publik
+                <?= iconsax('global', 'w-4 h-4') ?> Lihat Publik
               </a>
               <button type="button" onclick="confirmLogout(event)" class="w-full text-left flex items-center gap-3 px-4 py-2.5 text-sm text-red-600 dark:text-red-400 hover:bg-red-50 dark:hover:bg-red-900/30 border-t border-slate-200 dark:border-slate-700">
-                <i data-lucide="log-out" class="w-4 h-4"></i> Keluar
+                <?= iconsax('logout', 'w-4 h-4') ?> Keluar
               </button>
             </div>
           </div>
+
+          <!-- Mobile nav toggle -->
+          <button onclick="toggleMobileNav()" title="Menu"
+                  class="lg:hidden p-2 rounded-lg text-slate-500 dark:text-slate-300 hover:bg-slate-100 dark:hover:bg-slate-700 transition">
+            <?= iconsax('hamberger-menu', 'w-5 h-5', 'mobile-nav-icon') ?>
+          </button>
         </div>
       </div>
+
+      <!-- Mobile nav panel -->
+      <nav id="mobile-nav" class="hidden lg:hidden border-t border-slate-200 dark:border-slate-700 p-2 space-y-1">
+        <?php foreach ($navLinks as $nl): $isActive = $isNavActive($nl); ?>
+        <a href="<?= base_url($nl['url']) ?>"
+           class="flex items-center gap-2.5 px-3 py-2.5 rounded-lg text-sm font-medium transition <?= $isActive ? 'bg-primary-50 text-primary-700 dark:bg-primary-900/30 dark:text-primary-300' : 'text-slate-600 dark:text-slate-300 hover:bg-slate-100 dark:hover:bg-slate-700' ?>">
+          <?= iconsax($nl['icon'], 'w-4 h-4') ?> <?= $nl['label'] ?>
+        </a>
+        <?php endforeach; ?>
+      </nav>
     </header>
+  </div>
 
-    <!-- Flash Messages -->
-    <?php if (session()->getFlashdata('success')): ?>
-    <div class="px-4 lg:px-6 pt-4">
-      <div class="flex items-center gap-3 px-4 py-3 rounded-lg bg-emerald-50 border border-emerald-200 text-emerald-800 dark:bg-emerald-900/30 dark:border-emerald-800 dark:text-emerald-200">
-        <i data-lucide="check-circle" class="w-5 h-5 shrink-0"></i>
-        <span class="text-sm"><?= session()->getFlashdata('success') ?></span>
-      </div>
+  <!-- Flash Messages -->
+  <?php if (session()->getFlashdata('success')): ?>
+  <div class="max-w-7xl w-full mx-auto px-4 lg:px-6 pt-4">
+    <div class="flex items-center gap-3 px-4 py-3 rounded-lg bg-emerald-50 border border-emerald-200 text-emerald-800 dark:bg-emerald-900/30 dark:border-emerald-800 dark:text-emerald-200">
+      <?= iconsax('tick-circle', 'w-5 h-5 shrink-0') ?>
+      <span class="text-sm"><?= session()->getFlashdata('success') ?></span>
     </div>
-    <?php endif; ?>
-    <?php if (session()->getFlashdata('error')): ?>
-    <div class="px-4 lg:px-6 pt-4">
-      <div class="flex items-center gap-3 px-4 py-3 rounded-lg bg-red-50 border border-red-200 text-red-800 dark:bg-red-900/30 dark:border-red-800 dark:text-red-200">
-        <i data-lucide="alert-circle" class="w-5 h-5 shrink-0"></i>
-        <span class="text-sm"><?= session()->getFlashdata('error') ?></span>
-      </div>
+  </div>
+  <?php endif; ?>
+  <?php if (session()->getFlashdata('error')): ?>
+  <div class="max-w-7xl w-full mx-auto px-4 lg:px-6 pt-4">
+    <div class="flex items-center gap-3 px-4 py-3 rounded-lg bg-red-50 border border-red-200 text-red-800 dark:bg-red-900/30 dark:border-red-800 dark:text-red-200">
+      <?= iconsax('info-circle', 'w-5 h-5 shrink-0') ?>
+      <span class="text-sm"><?= session()->getFlashdata('error') ?></span>
     </div>
-    <?php endif; ?>
+  </div>
+  <?php endif; ?>
 
-    <!-- Page Content -->
-    <div class="flex-1 p-4 lg:p-6">
+  <!-- ═══════════ PAGE CONTENT ═══════════ -->
+  <main class="flex-1">
+    <div class="max-w-7xl mx-auto px-4 lg:px-6 py-5 lg:py-8">
       <?= $this->renderSection('content') ?>
     </div>
-
   </main>
 </div>
 
@@ -196,7 +163,7 @@
       <div class="modal-header">
         <div class="flex items-start gap-3">
           <div class="w-10 h-10 shrink-0 rounded-full bg-red-100 dark:bg-red-900/40 text-red-600 dark:text-red-400 flex items-center justify-center">
-            <i data-lucide="log-out" class="w-5 h-5"></i>
+            <?= iconsax('logout', 'w-5 h-5') ?>
           </div>
           <div>
             <h3 class="text-base font-semibold text-slate-800 dark:text-slate-100">Konfirmasi Keluar</h3>
@@ -212,8 +179,82 @@
       <div class="modal-footer">
         <button type="button" class="btn btn-ghost" onclick="closeModal('modal-logout')">Batal</button>
         <a href="<?= base_url('logout') ?>" class="btn btn-danger">
-          <i data-lucide="log-out"></i> Ya, Keluar
+          <?= iconsax('logout', '') ?> Ya, Keluar
         </a>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- ═══════════ MODAL: GANTI PASSWORD SAYA (kedua role) ═══════════ -->
+<div id="modal-ganti-password" class="hidden">
+  <div class="modal-backdrop" onclick="closeModal('modal-ganti-password')"></div>
+  <div class="modal-container">
+    <div class="modal-box modal-box-sm">
+      <form action="<?= base_url('admin/ganti-password') ?>" method="POST">
+        <?= csrf_field() ?>
+        <div class="modal-header">
+          <div class="flex items-start gap-3">
+            <div class="w-10 h-10 shrink-0 rounded-full bg-primary-100 dark:bg-primary-900/40 text-primary-600 dark:text-primary-400 flex items-center justify-center">
+              <?= iconsax('lock-1', 'w-5 h-5') ?>
+            </div>
+            <div>
+              <h3 class="text-base font-semibold text-slate-800 dark:text-slate-100">Ganti Password</h3>
+              <p class="text-sm text-slate-500 dark:text-slate-400 mt-0.5">Untuk akun Anda sendiri</p>
+            </div>
+          </div>
+        </div>
+        <div class="modal-body space-y-4">
+          <div>
+            <label class="form-label" for="gp-current-password">Password Saat Ini <span class="text-red-500">*</span></label>
+            <div class="relative">
+              <input type="password" name="current_password" id="gp-current-password" class="form-control pr-10" required autocomplete="current-password">
+              <button type="button" onclick="togglePasswordVisibility('gp-current-password', this)" tabindex="-1"
+                      class="absolute inset-y-0 right-2 flex items-center px-2 text-slate-400 hover:text-slate-600 dark:hover:text-slate-200">
+                <?= iconsax('eye', 'w-4 h-4') ?>
+              </button>
+            </div>
+          </div>
+          <div>
+            <label class="form-label" for="gp-new-password">Password Baru <span class="text-red-500">*</span></label>
+            <div class="relative">
+              <input type="password" name="new_password" id="gp-new-password" class="form-control pr-10" required minlength="6" autocomplete="new-password">
+              <button type="button" onclick="togglePasswordVisibility('gp-new-password', this)" tabindex="-1"
+                      class="absolute inset-y-0 right-2 flex items-center px-2 text-slate-400 hover:text-slate-600 dark:hover:text-slate-200">
+                <?= iconsax('eye', 'w-4 h-4') ?>
+              </button>
+            </div>
+            <p class="form-hint">Minimal 6 karakter.</p>
+          </div>
+        </div>
+        <div class="modal-footer">
+          <button type="button" class="btn btn-ghost" onclick="closeModal('modal-ganti-password')">Batal</button>
+          <button type="submit" class="btn btn-primary">
+            <?= iconsax('save-2', '') ?> Simpan
+          </button>
+        </div>
+      </form>
+    </div>
+  </div>
+</div>
+
+<!-- ═══════════ MODAL: KONFIRMASI UMUM (dipakai lintas halaman via tampilkanKonfirmasi()) ═══════════ -->
+<div id="modal-konfirmasi" class="hidden">
+  <div class="modal-backdrop" onclick="closeModal('modal-konfirmasi')"></div>
+  <div class="modal-container">
+    <div class="modal-box modal-box-sm">
+      <div class="modal-header">
+        <div class="flex items-start gap-3">
+          <div class="w-10 h-10 shrink-0 rounded-full bg-amber-100 dark:bg-amber-900/40 text-amber-600 dark:text-amber-400 flex items-center justify-center">
+            <?= iconsax('warning-2', 'w-5 h-5') ?>
+          </div>
+          <div><h3 class="text-base font-semibold text-slate-800 dark:text-slate-100">Konfirmasi</h3></div>
+        </div>
+      </div>
+      <div class="modal-body"><p class="text-sm text-slate-600 dark:text-slate-300" id="konfirmasi-text">Yakin ingin melanjutkan?</p></div>
+      <div class="modal-footer">
+        <button type="button" class="btn btn-ghost" onclick="closeModal('modal-konfirmasi')">Batal</button>
+        <button type="button" class="btn btn-primary" id="btn-konfirmasi-ya">Ya, Lanjutkan</button>
       </div>
     </div>
   </div>
@@ -227,33 +268,28 @@
       <div class="modal-header">
         <div>
           <h3 class="text-base font-semibold text-slate-800 dark:text-slate-100">Input Data Baru</h3>
-          <p class="text-sm text-slate-500 dark:text-slate-400 mt-0.5">Tambahkan transaksi atau rencana keuangan</p>
+          <p class="text-sm text-slate-500 dark:text-slate-400 mt-0.5">Tambahkan transaksi keuangan</p>
         </div>
-        <button class="btn btn-ghost btn-icon" onclick="closeMainDrawer()"><i data-lucide="x"></i></button>
+        <button class="btn btn-ghost btn-icon" onclick="closeMainDrawer()"><?= iconsax('close-circle', '') ?></button>
       </div>
       <div class="modal-body">
         <div class="mb-4">
           <label class="form-label">Jenis Data</label>
-          <div class="grid grid-cols-2 md:grid-cols-4 gap-2">
+          <div class="grid grid-cols-3 gap-2">
             <button type="button" onclick="selectJenisData('pemasukan')" id="jcard-pemasukan"
                     class="jenis-card p-3 rounded-lg border-2 text-xs font-medium flex flex-col items-center gap-1.5 transition">
-              <i data-lucide="arrow-up-right" class="w-5 h-5 text-emerald-600"></i>
+              <?= iconsax('trend-up', 'w-5 h-5 text-emerald-600') ?>
               Pemasukan
             </button>
             <button type="button" onclick="selectJenisData('pengeluaran')" id="jcard-pengeluaran"
                     class="jenis-card p-3 rounded-lg border-2 text-xs font-medium flex flex-col items-center gap-1.5 transition">
-              <i data-lucide="arrow-down-right" class="w-5 h-5 text-red-600"></i>
+              <?= iconsax('trend-down', 'w-5 h-5 text-red-600') ?>
               Pengeluaran
             </button>
-            <button type="button" onclick="selectJenisData('rpemasukan')" id="jcard-rpemasukan"
-                    class="jenis-card p-3 rounded-lg border-2 text-xs font-medium flex flex-col items-center gap-1.5 transition">
-              <i data-lucide="calendar" class="w-5 h-5 text-primary-600"></i>
-              Rencana Pemasukan
-            </button>
-            <button type="button" onclick="selectJenisData('rpengeluaran')" id="jcard-rpengeluaran"
-                    class="jenis-card p-3 rounded-lg border-2 text-xs font-medium flex flex-col items-center gap-1.5 transition">
-              <i data-lucide="calendar" class="w-5 h-5 text-amber-600"></i>
-              Rencana Pengeluaran
+            <button type="button" onclick="handlePilihPerjadin()" id="jcard-perjadin"
+                    class="jenis-card p-3 rounded-lg border-2 text-xs font-medium flex flex-col items-center gap-1.5 transition border-slate-200 dark:border-slate-600 text-slate-700 dark:text-slate-300 hover:border-primary-400">
+              <?= iconsax('airplane', 'w-5 h-5 text-primary-600') ?>
+              Perjalanan Dinas
             </button>
           </div>
         </div>
@@ -262,11 +298,11 @@
           <input type="hidden" name="tipe" id="single-jenis-val" value="pemasukan">
           <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
             <div>
-              <label class="form-label">Tanggal <span class="text-red-500">*</span></label>
-              <input type="date" name="tanggal" class="form-control" value="<?= date('Y-m-d') ?>" required>
+              <label class="form-label" for="drawer-tanggal">Tanggal <span class="text-red-500">*</span></label>
+              <input type="date" id="drawer-tanggal" name="tanggal" class="form-control" value="<?= date('Y-m-d') ?>" required>
             </div>
             <div>
-              <label class="form-label">Kategori <span class="text-red-500">*</span></label>
+              <label class="form-label" for="drawer-kategori">Kategori <span class="text-red-500">*</span></label>
               <select name="kategori" id="drawer-kategori" class="form-control" required>
                 <option value="">Pilih kategori...</option>
               </select>
@@ -279,12 +315,12 @@
           </script>
 
           <div class="mt-4" id="field-sumber-wrap">
-            <label class="form-label" id="label-sumber">Sumber Dana</label>
+            <label class="form-label" for="input-sumber" id="label-sumber">Sumber Dana</label>
             <input type="text" name="sumber" id="input-sumber" class="form-control" placeholder="Nama sumber dana / penerima">
           </div>
 
           <div class="mt-4">
-            <label class="form-label">Nominal <span class="text-red-500">*</span></label>
+            <label class="form-label" for="drawer-jumlah">Nominal <span class="text-red-500">*</span></label>
             <div class="relative">
               <span class="absolute inset-y-0 left-3 flex items-center text-slate-400 text-sm">Rp</span>
               <input type="text" inputmode="numeric" name="jumlah" id="drawer-jumlah"
@@ -293,7 +329,7 @@
           </div>
 
           <div class="mt-4" id="field-status-wrap">
-            <label class="form-label">Status Dana</label>
+            <label class="form-label" for="drawer-status">Status Dana</label>
             <select name="status_dana" id="drawer-status" class="form-control" onchange="toggleDrawerDiterima(this)">
               <option value="diterima">Sudah Diterima</option>
               <option value="sebagian">Sebagian</option>
@@ -302,7 +338,7 @@
           </div>
 
           <div class="mt-4 hidden" id="field-diterima-wrap">
-            <label class="form-label">Jumlah Diterima</label>
+            <label class="form-label" for="drawer-jumlah-diterima">Jumlah Diterima</label>
             <div class="relative">
               <span class="absolute inset-y-0 left-3 flex items-center text-slate-400 text-sm">Rp</span>
               <input type="text" inputmode="numeric" name="jumlah_diterima" id="drawer-jumlah-diterima"
@@ -311,20 +347,20 @@
           </div>
 
           <div class="mt-4">
-            <label class="form-label">Keterangan</label>
-            <input type="text" name="keterangan" class="form-control" placeholder="Keterangan singkat (opsional)">
+            <label class="form-label" for="drawer-keterangan">Keterangan</label>
+            <input type="text" id="drawer-keterangan" name="keterangan" class="form-control" placeholder="Keterangan singkat (opsional)">
           </div>
 
           <div class="mt-4">
-            <label class="form-label">Catatan Internal (Admin Only)</label>
-            <input type="text" name="catatan_internal" class="form-control" placeholder="Tidak ditampilkan ke publik">
+            <label class="form-label" for="drawer-catatan-internal">Catatan Internal (Admin Only)</label>
+            <input type="text" id="drawer-catatan-internal" name="catatan_internal" class="form-control" placeholder="Tidak ditampilkan ke publik">
           </div>
 
           <div class="mt-4">
             <label class="form-label">Bukti Transaksi (Opsional)</label>
             <label class="block border-2 border-dashed border-slate-300 dark:border-slate-600 rounded-lg p-4 text-center cursor-pointer hover:border-primary-500 hover:bg-primary-50/50 dark:hover:bg-primary-900/20 transition">
               <input type="file" name="bukti" accept="image/*,.pdf" class="hidden">
-              <i data-lucide="upload-cloud" class="w-6 h-6 mx-auto text-slate-400"></i>
+              <?= iconsax('cloud-add', 'w-6 h-6 mx-auto text-slate-400') ?>
               <div class="text-sm text-slate-600 dark:text-slate-300 mt-1">Klik atau seret file</div>
               <div class="text-xs text-slate-500 mt-0.5">JPG, PNG, PDF · Max 3MB</div>
             </label>
@@ -334,7 +370,7 @@
       <div class="modal-footer">
         <button type="button" class="btn btn-ghost" onclick="closeMainDrawer()">Batal</button>
         <button type="button" class="btn btn-primary" id="drawer-submit-btn" onclick="submitMainDrawer()">
-          <i data-lucide="check"></i> <span id="drawer-submit-text">Simpan Transaksi</span>
+          <?= iconsax('check', '') ?> <span id="drawer-submit-text">Simpan Transaksi</span>
         </button>
       </div>
     </div>
@@ -346,13 +382,67 @@
 
 <!-- Scroll to top/bottom -->
 <button id="scroll-fab" onclick="scrollFabClick()" title="Scroll" class="scroll-fab bg-primary-600 text-white hover:bg-primary-700 hidden">
-  <i data-lucide="arrow-down" id="scroll-fab-icon" class="w-5 h-5"></i>
+  <?= iconsax('arrow-down', 'w-5 h-5', 'scroll-fab-icon') ?>
 </button>
 
-<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/chart.js" defer></script>
+<script src="<?= base_url('assets/js/icons.js') ?>?v=<?= @filemtime(FCPATH . 'assets/js/icons.js') ?: '1' ?>"></script>
+<script src="<?= base_url('assets/js/pagination.js') ?>?v=<?= @filemtime(FCPATH . 'assets/js/pagination.js') ?: '1' ?>"></script>
 <script>
-const GLOBAL_BASE = '<?= base_url() ?>';
+const GLOBAL_BASE = (function() {
+  const cfg = '<?= rtrim(base_url(), '/') ?>/';
+  return (location.hostname !== 'localhost' && location.hostname !== '127.0.0.1' && cfg.includes('localhost'))
+    ? (window.location.origin + '/')
+    : cfg;
+})();
 let currentJenisData = 'pemasukan';
+
+/* ── CSRF ──────────────────────────────────────────────────────────────
+   Semua form di halaman ini kirim datanya lewat fetch(), bukan submit form
+   biasa, jadi token CSRF (yang cuma hidden-input di form) tidak pernah ikut
+   terkirim. Daripada mengubah puluhan pemanggilan fetch() satu per satu,
+   window.fetch di-patch SEKALI di sini supaya tiap request POST/PUT/DELETE/
+   PATCH otomatis dilampiri tokennya.
+   Token dibaca dari <meta> (lihat csrf_meta() di <head>), BUKAN dari
+   document.cookie — cookie CSRF CI4 di-set HttpOnly (mengikuti default
+   Config\Cookie), jadi memang tidak bisa dibaca lewat JS sama sekali.
+   Ini juga sebabnya Security::$regenerate sengaja di-set false: nilai di
+   <meta> itu statis untuk seumur hidup halaman, jadi token tidak boleh
+   berubah di tengah jalan atau fetch kedua dst akan ditolak.
+
+   PENTING: kalau body-nya FormData, token WAJIB ikut sebagai field FormData
+   (bukan cuma header). CI4 selalu mencoba "membersihkan" token dari body
+   setelah verifikasi (Security::removeTokenInRequest) — kalau tidak
+   ketemu sebagai field di $_POST, CI4 mem-parse ULANG raw body pakai
+   parse_str() seolah-olah itu application/x-www-form-urlencoded, yang
+   MERUSAK body multipart asli (termasuk field lain & file upload apa pun
+   yang ikut di form itu). Body kosong (aksi tanpa form, mis. hapus/toggle)
+   aman pakai header saja karena CI4 langsung berhenti kalau body-nya "". */
+const CSRF_FIELD_NAME  = '<?= esc(csrf_token(), 'js') ?>';
+const CSRF_HEADER_NAME = '<?= esc(csrf_header(), 'js') ?>';
+
+function getCsrfToken() {
+  return document.querySelector('meta[name="' + CSS.escape(CSRF_HEADER_NAME) + '"]')?.content || '';
+}
+
+(function() {
+  const originalFetch = window.fetch.bind(window);
+  window.fetch = function(input, init) {
+    init = init || {};
+    const method = (init.method || 'GET').toUpperCase();
+    if (['POST', 'PUT', 'DELETE', 'PATCH'].includes(method)) {
+      const token = getCsrfToken();
+      if (init.body instanceof FormData) {
+        if (!init.body.has(CSRF_FIELD_NAME)) init.body.append(CSRF_FIELD_NAME, token);
+      } else {
+        const headers = new Headers(init.headers || {});
+        if (!headers.has(CSRF_HEADER_NAME)) headers.set(CSRF_HEADER_NAME, token);
+        init.headers = headers;
+      }
+    }
+    return originalFetch(input, init);
+  };
+})();
 
 /* ── Theme ── */
 function toggleTheme() {
@@ -361,61 +451,27 @@ function toggleTheme() {
   if (typeof updateChartColors === 'function') updateChartColors(dark ? 'dark' : 'light');
 }
 
-/* ── Sidebar ── */
-function toggleSidebar() {
-  const sidebar = document.getElementById('sidebar');
-  const backdrop = document.getElementById('sidebar-backdrop');
-  if (window.innerWidth >= 1024) {
-    const collapsed = sidebar.dataset.collapsed === 'true';
-    sidebar.dataset.collapsed = !collapsed;
-    document.querySelectorAll('.sidebar-brand-text').forEach(el => el.classList.toggle('hidden', !collapsed ? true : false));
-    const icon = document.getElementById('sidebar-toggle-icon');
-    if (icon) {
-      icon.setAttribute('data-lucide', !collapsed ? 'panel-left-open' : 'panel-left-close');
-      lucide.createIcons({ props: { search: icon.parentElement } });
-    }
-    localStorage.setItem('sidebarCollapsed', !collapsed ? '1' : '0');
+/* ── Mobile nav ── */
+function toggleMobileNav() {
+  const nav = document.getElementById('mobile-nav');
+  const icon = document.getElementById('mobile-nav-icon');
+  const isOpen = !nav.classList.contains('hidden');
+  nav.classList.toggle('hidden');
+  icon.outerHTML = iconsax(isOpen ? 'hamberger-menu' : 'close-circle', icon.getAttribute('class'), 'mobile-nav-icon');
+}
+
+function handlePilihPerjadin() {
+  closeMainDrawer();
+  if (typeof aktifkanTab === 'function') {
+    aktifkanTab('perjadin', true);
+  }
+  if (typeof bukaModalTrip === 'function') {
+    bukaModalTrip();
   } else {
-    sidebar.classList.toggle('-translate-x-full');
-    backdrop.classList.toggle('hidden');
+    window.location.href = '<?= base_url('admin?tab=perjadin&action=new') ?>';
   }
 }
-
-/* ── Notif ── */
-function toggleNotif() {
-  const dd = document.getElementById('notif-dropdown');
-  dd.classList.toggle('hidden');
-  if (!dd.classList.contains('hidden')) loadNotif();
-}
-
-async function loadNotif() {
-  try {
-    const res = await fetch('<?= base_url('admin/notifikasi') ?>');
-    const data = await res.json();
-    const list = document.getElementById('notif-list');
-    if (!data.data || data.data.length === 0) {
-      list.innerHTML = '<div class="px-4 py-8 text-center text-slate-500 dark:text-slate-400 text-sm"><i data-lucide="bell-off" class="w-8 h-8 mx-auto mb-2 opacity-40"></i>Tidak ada notifikasi</div>';
-      lucide.createIcons({ props: { search: list } });
-      return;
-    }
-    list.innerHTML = data.data.map(n => `
-      <div class="px-4 py-3 border-b border-slate-100 dark:border-slate-700 cursor-pointer hover:bg-slate-50 dark:hover:bg-slate-700/50 ${n.is_read == 0 ? 'bg-primary-50/40 dark:bg-primary-900/20' : ''}" onclick="markRead(${n.id}, this)">
-        <div class="text-sm text-slate-700 dark:text-slate-200">${n.pesan}</div>
-        <div class="text-xs text-slate-500 dark:text-slate-400 mt-1">${n.created_at}</div>
-      </div>
-    `).join('');
-  } catch(e) {}
-}
-
-async function markRead(id, el) {
-  await fetch('<?= base_url('admin/notifikasi/read/') ?>' + id, { method: 'POST' });
-  el.classList.remove('bg-primary-50/40', 'dark:bg-primary-900/20');
-}
-
-async function markAllRead() {
-  await fetch('<?= base_url('admin/notifikasi/read-all') ?>', { method: 'POST' });
-  document.querySelectorAll('#notif-list > div').forEach(el => el.classList.remove('bg-primary-50/40', 'dark:bg-primary-900/20'));
-}
+window.handlePilihPerjadin = handlePilihPerjadin;
 
 /* ── User menu ── */
 function toggleUserMenu() {
@@ -423,11 +479,6 @@ function toggleUserMenu() {
 }
 
 document.addEventListener('click', function(e) {
-  const notifDd = document.getElementById('notif-dropdown');
-  const notifBtn = document.getElementById('notif-btn');
-  if (notifDd && !notifDd.classList.contains('hidden') && !notifDd.contains(e.target) && !notifBtn?.contains(e.target)) {
-    notifDd.classList.add('hidden');
-  }
   const userDd = document.getElementById('user-menu-dropdown');
   const userWrap = document.getElementById('user-menu-wrapper');
   if (userDd && !userDd.classList.contains('hidden') && userWrap && !userWrap.contains(e.target)) {
@@ -451,6 +502,15 @@ window.openModal = openModal;
 window.closeModal = closeModal;
 window.openPopup = openPopup;
 window.closePopup = closePopup;
+
+/* ── Konfirmasi umum (reusable, ganti native confirm() browser) ── */
+function tampilkanKonfirmasi(pesan, aksi) {
+  document.getElementById('konfirmasi-text').textContent = pesan;
+  const btn = document.getElementById('btn-konfirmasi-ya');
+  btn.onclick = async function() { closeModal('modal-konfirmasi'); await aksi(); };
+  openModal('modal-konfirmasi');
+}
+window.tampilkanKonfirmasi = tampilkanKonfirmasi;
 
 function openMainDrawer() {
   document.getElementById('main-input-drawer')?.classList.remove('hidden');
@@ -482,7 +542,7 @@ function selectJenisData(jenis) {
   const diterimaWrap = document.getElementById('field-diterima-wrap');
   const kategoriSel = document.getElementById('drawer-kategori');
 
-  const daftarKategori = (jenis === 'pengeluaran' || jenis === 'rpengeluaran') ? KATEGORI_PENGELUARAN : KATEGORI_PEMASUKAN;
+  const daftarKategori = (jenis === 'pengeluaran') ? KATEGORI_PENGELUARAN : KATEGORI_PEMASUKAN;
   kategoriSel.innerHTML = '<option value="">Pilih kategori...</option>' +
     daftarKategori.map(k => `<option value="${k}">${k}</option>`).join('');
 
@@ -534,9 +594,7 @@ async function handleSingleSubmit(e) {
   const fd = buildFormData(form);
   const jenis = currentJenisData;
   let url = GLOBAL_BASE + 'admin/keuangan/pemasukan';
-  if (jenis === 'pengeluaran')       url = GLOBAL_BASE + 'admin/keuangan/pengeluaran';
-  else if (jenis === 'rpemasukan')   url = GLOBAL_BASE + 'admin/rencana/pemasukan';
-  else if (jenis === 'rpengeluaran') url = GLOBAL_BASE + 'admin/rencana/pengeluaran';
+  if (jenis === 'pengeluaran') url = GLOBAL_BASE + 'admin/keuangan/pengeluaran';
 
   const btn = document.getElementById('drawer-submit-btn');
   btn.disabled = true;
@@ -566,12 +624,11 @@ function showToast(msg, type = 'info') {
     warning: 'bg-amber-50 border-amber-200 text-amber-800 dark:bg-amber-900/40 dark:border-amber-700 dark:text-amber-200',
     info:    'bg-primary-50 border-primary-200 text-primary-800 dark:bg-primary-900/40 dark:border-primary-700 dark:text-primary-200',
   };
-  const icons = { success: 'check-circle', error: 'alert-circle', info: 'info', warning: 'alert-triangle' };
+  const icons = { success: 'tick-circle', error: 'info-circle', info: 'info-circle', warning: 'warning-2' };
   const t = document.createElement('div');
-  t.className = `pointer-events-auto flex items-center gap-3 px-4 py-3 rounded-lg border shadow-lift text-sm animate-slide-up ${styles[type] || styles.info}`;
-  t.innerHTML = `<i data-lucide="${icons[type] || 'info'}" class="w-5 h-5 shrink-0"></i><span class="flex-1">${msg}</span>`;
+  t.className = `pointer-events-auto flex items-center gap-3 px-4 py-3 rounded-lg border shadow-lift text-sm animate-bounce-in ${styles[type] || styles.info}`;
+  t.innerHTML = `${iconsax(icons[type] || 'info-circle', 'w-5 h-5 shrink-0')}<span class="flex-1">${msg}</span>`;
   c.appendChild(t);
-  lucide.createIcons({ props: { search: t } });
   setTimeout(() => {
     t.style.opacity = '0';
     t.style.transition = 'opacity 300ms';
@@ -579,6 +636,31 @@ function showToast(msg, type = 'info') {
   }, 4000);
 }
 window.showToast = showToast;
+
+/* ── Animasi angka KPI "count up" saat dimuat — bikin dashboard kerasa lebih hidup ── */
+function animateCountUp(el, duration = 900) {
+  const raw = el.textContent;
+  const match = raw.match(/[\d.,]+/);
+  if (!match) return;
+  const target = parseFloat(match[0].replace(/\./g, '').replace(',', '.'));
+  if (!isFinite(target)) return;
+  const prefix = raw.slice(0, match.index);
+  const suffix = raw.slice(match.index + match[0].length);
+  const start = performance.now();
+  const ease = t => 1 - Math.pow(1 - t, 3);
+  function tick(now) {
+    const p = Math.min((now - start) / duration, 1);
+    const val = Math.round(target * ease(p));
+    el.textContent = prefix + val.toLocaleString('id-ID') + suffix;
+    if (p < 1) requestAnimationFrame(tick);
+    else el.textContent = raw;
+  }
+  requestAnimationFrame(tick);
+}
+window.animateCountUp = animateCountUp;
+document.addEventListener('DOMContentLoaded', () => {
+  document.querySelectorAll('.kpi-value').forEach(el => animateCountUp(el));
+});
 
 /* ── FORMAT RIBUAN (BUG FIXED) ─────────────────────────────────
    BUG SEBELUMNYA: `.value.replace(/\D/g, '')` juga membuang titik decimal
@@ -627,10 +709,9 @@ window.togglePasswordVisibility = function(inputId, btn) {
   if (!input) return;
   const isPw = input.type === 'password';
   input.type = isPw ? 'text' : 'password';
-  const icon = btn.querySelector('i');
+  const icon = btn.querySelector('svg');
   if (icon) {
-    icon.setAttribute('data-lucide', isPw ? 'eye-off' : 'eye');
-    lucide.createIcons({ props: { search: btn } });
+    icon.outerHTML = iconsax(isPw ? 'eye-off' : 'eye', icon.getAttribute('class'));
   }
 };
 
@@ -649,8 +730,7 @@ window.togglePasswordVisibility = function(inputId, btn) {
     const atTop = window.scrollY < 150;
     if (atTop !== lastAtTop) {
       lastAtTop = atTop;
-      icon.setAttribute('data-lucide', atTop ? 'arrow-down' : 'arrow-up');
-      lucide.createIcons({ props: { search: fab } });
+      icon.innerHTML = ICONSAX_PATHS[atTop ? 'arrow-down' : 'arrow-up'];
     }
     ticking = false;
   }
@@ -671,16 +751,6 @@ window.togglePasswordVisibility = function(inputId, btn) {
 
 /* ── Init ── */
 document.addEventListener('DOMContentLoaded', () => {
-  if (window.innerWidth >= 1024 && localStorage.getItem('sidebarCollapsed') === '1') {
-    const sidebar = document.getElementById('sidebar');
-    if (sidebar) {
-      sidebar.dataset.collapsed = 'true';
-      document.querySelectorAll('.sidebar-brand-text').forEach(el => el.classList.add('hidden'));
-      const icon = document.getElementById('sidebar-toggle-icon');
-      if (icon) icon.setAttribute('data-lucide', 'panel-left-open');
-    }
-  }
-  lucide.createIcons();
   selectJenisData('pemasukan');
 });
 </script>

@@ -7,6 +7,7 @@ use App\Models\PemasukanModel;
 use App\Models\PengeluaranModel;
 use App\Models\NotifikasiModel;
 use App\Models\PengaturanModel;
+use App\Models\PerjalananDinasPesertaModel;
 
 class DataKeuangan extends BaseController
 {
@@ -34,27 +35,38 @@ class DataKeuangan extends BaseController
     private function sanitizeNominal($raw): float
     {
         if ($raw === null || $raw === '') return 0.0;
-        if (is_numeric($raw)) return (float)$raw;
-        $s = (string)$raw;
-        // Buang decimal trailing yang formatnya id-ID pakai "," (mis "1000000,50")
-        if (preg_match('/^([\d.]+),(\d{1,2})$/', $s, $m)) {
+        $s = trim((string)$raw);
+        if ($s === '') return 0.0;
+
+        // Format id-ID dengan desimal koma, mis "1.500.000,50"
+        if (preg_match('/^(-?[\d.]+),(\d{1,2})$/', $s, $m)) {
             return (float)(str_replace('.', '', $m[1]) . '.' . $m[2]);
         }
-        // Format id-ID "1.000.000" — titik = thousand separator (buang semua)
-        return (float)str_replace(['.', ','], ['', ''], $s);
+
+        // Lebih dari satu titik hanya mungkin pemisah ribuan id-ID, mis "1.000.000"
+        if (substr_count($s, '.') > 1) {
+            return (float)str_replace('.', '', $s);
+        }
+
+        // Tepat satu titik: id-ID selalu mengelompokkan ribuan PERSIS 3 digit
+        // ("750.000" = 750 ribu), sedangkan desimal asli (mis. dari kolom DECIMAL,
+        // "1000000.50") tidak pernah tepat 3 digit di belakang titik — jumlah digit
+        // itulah yang membedakan keduanya, bukan is_numeric() semata (yang salah
+        // menganggap "750.000" sebagai angka desimal 750.0, ÷1000 dari nilai asli).
+        if (preg_match('/^-?\d+\.(\d+)$/', $s, $m) && strlen($m[1]) === 3) {
+            return (float)str_replace('.', '', $s);
+        }
+
+        return is_numeric($s) ? (float)$s : 0.0;
     }
 
     /**
-     * Halaman Data Keuangan: tabelnya sendiri sepenuhnya dimuat lewat AJAX (ajaxList()),
-     * jadi di sini cukup render shell halaman + notifCount.
+     * Data Keuangan sekarang jadi tab "Transaksi" di admin/dashboard, bukan halaman
+     * tersendiri — redirect supaya tautan/bookmark lama tetap jalan.
      */
-    public function index(): string
+    public function index()
     {
-        $notifCount = $this->notifikasiModel->countUnread();
-
-        return view('admin/data_keuangan', [
-            'notifCount' => $notifCount,
-        ]);
+        return redirect()->to(base_url('admin/dashboard'));
     }
 
     /**
@@ -84,54 +96,17 @@ class DataKeuangan extends BaseController
         $pageParam = $this->request->getGet('page');
         $page = ($pageParam !== null && $pageParam !== '') ? max(1, (int)$pageParam) : null;
         $perPage = (int)($this->request->getGet('per_page') ?? 15);
-        if (!in_array($perPage, [10, 15, 25, 50, 100])) $perPage = 15;
 
-        $total = ($showPemasukan ? $this->pemasukanModel->countFiltered($filters) : 0)
-               + ($showPengeluaran ? $this->pengeluaranModel->countFiltered($filters) : 0);
+        $result = \App\Services\TransaksiService::getTransaksiGabungan(
+            $filters,
+            $showPemasukan,
+            $showPengeluaran,
+            $perPage,
+            $page,
+            false
+        );
 
-        $totalPages = max(1, (int)ceil($total / $perPage));
-        $page = $page ?? $totalPages;
-        $page = max(1, min($page, $totalPages));
-
-        $startNum = ($page - 1) * $perPage + 1;
-        $endNum   = min($total, $page * $perPage);
-        $take     = max(0, $endNum - $startNum + 1);
-
-        $descOffset = max(0, $total - $endNum);
-        $fetchLimit = $descOffset + $take;
-
-        $data = [];
-        if ($showPemasukan) {
-            foreach ($this->pemasukanModel->getFiltered($filters, $fetchLimit, 0) as $r) {
-                $data[] = array_merge($r, ['tipe' => 'pemasukan']);
-            }
-        }
-        if ($showPengeluaran) {
-            foreach ($this->pengeluaranModel->getFiltered($filters, $fetchLimit, 0) as $r) {
-                $data[] = array_merge($r, ['tipe' => 'pengeluaran']);
-            }
-        }
-
-        // Urutkan berdasarkan tanggal terbaru, secondary id terbaru (DESC)
-        usort($data, function ($a, $b) {
-            $t = strtotime($b['tanggal']) - strtotime($a['tanggal']);
-            if ($t !== 0) return $t;
-            return ((int)($b['id'] ?? 0)) - ((int)($a['id'] ?? 0));
-        });
-
-        $slice = array_reverse(array_slice($data, $descOffset, $take));
-        foreach ($slice as $i => &$row) {
-            $row['nomor'] = $startNum + $i;
-        }
-        unset($row);
-
-        return $this->response->setJSON([
-            'data'        => $slice,
-            'total'       => $total,
-            'page'        => $page,
-            'per_page'    => $perPage,
-            'total_pages' => $totalPages,
-        ]);
+        return $this->response->setJSON($result);
     }
 
     // ── Pemasukan CRUD ──────────────────────────────────────────────────────────
@@ -143,8 +118,6 @@ class DataKeuangan extends BaseController
         $diterimaBersih = $this->request->getPost('jumlah_diterima')
             ? $this->sanitizeNominal($this->request->getPost('jumlah_diterima'))
             : $jumlahBersih;
-        $_POST['jumlah'] = $jumlahBersih;
-        $_POST['jumlah_diterima'] = $diterimaBersih;
 
         $rules = [
             'tanggal'  => 'required|valid_date',
@@ -152,7 +125,13 @@ class DataKeuangan extends BaseController
             'jumlah'   => 'required|numeric|greater_than[0]',
             'bukti'    => 'max_size[bukti,3072]|ext_in[bukti,jpg,jpeg,png,pdf]|mime_in[bukti,image/jpg,image/jpeg,image/png,application/pdf]',
         ];
-        if (!$this->validate($rules)) {
+        // validateData() dipakai (bukan validate()) supaya nilai jumlah yang sudah
+        // dinormalisasi benar-benar dibaca validator — request->getPost() di-cache oleh
+        // CI4 saat pertama diakses, jadi menimpa $_POST manual tidak pernah terbaca ulang.
+        $validationData = $this->request->getPost() ?? [];
+        $validationData['jumlah']          = $jumlahBersih;
+        $validationData['jumlah_diterima'] = $diterimaBersih;
+        if (!$this->validateData($validationData, $rules)) {
             return $this->response->setJSON(['success' => false, 'errors' => $this->validator->getErrors()]);
         }
 
@@ -169,6 +148,7 @@ class DataKeuangan extends BaseController
         ];
 
         $id = $this->pemasukanModel->insert($data);
+        $this->clearLaporanCache();
 
         // Notif transaksi besar
         $this->cekNotifTransaksiBesar($jumlahBersih, 'pemasukan');
@@ -181,9 +161,22 @@ class DataKeuangan extends BaseController
         $data = $this->request->getPost();
         unset($data['_method']);
 
-        // Normalisasi nominal (guard terhadap format id-ID atau decimal string dari DB)
+        // Normalisasi nominal SEBELUM validasi (sama seperti storePemasukan) supaya rule
+        // 'numeric' membaca nilai yang sudah bersih, bukan format id-ID mentah "1.000.000".
         if (isset($data['jumlah'])) $data['jumlah'] = $this->sanitizeNominal($data['jumlah']);
         if (isset($data['jumlah_diterima'])) $data['jumlah_diterima'] = $this->sanitizeNominal($data['jumlah_diterima']);
+
+        $rules = [
+            'tanggal'  => 'required|valid_date',
+            'kategori' => 'required|min_length[2]',
+            'jumlah'   => 'required|numeric|greater_than[0]',
+            'bukti'    => 'max_size[bukti,3072]|ext_in[bukti,jpg,jpeg,png,pdf]|mime_in[bukti,image/jpg,image/jpeg,image/png,application/pdf]',
+        ];
+        // validateData() dipakai supaya $data yang sudah dinormalisasi di atas benar-benar
+        // divalidasi, bukan request->getPost() mentah yang sudah di-cache oleh CI4.
+        if (!$this->validateData($data, $rules)) {
+            return $this->response->setJSON(['success' => false, 'errors' => $this->validator->getErrors()]);
+        }
 
         $bukti = $this->simpanBukti();
         if ($bukti) {
@@ -193,14 +186,38 @@ class DataKeuangan extends BaseController
         }
 
         $this->pemasukanModel->update($id, $data);
+        $this->clearLaporanCache();
+
+        // Jika pemasukan ini bertaut dengan setoran taktis peserta, sinkronkan kembali tanggal & nominalnya
+        $existing = $this->pemasukanModel->find($id);
+        if ($existing && !empty($existing['dari_tandai_lunas'])) {
+            $pesertaModel = new PerjalananDinasPesertaModel();
+            $peserta = $pesertaModel->where('pemasukan_id', $id)->first();
+            if ($peserta) {
+                $jmlDiterima = (float)($existing['jumlah_diterima'] ?? $existing['jumlah']);
+                $danaTaktis  = (float)$peserta['dana_taktis'];
+                $statusBaru  = ($jmlDiterima >= $danaTaktis && $danaTaktis > 0) ? 'lunas' : (($jmlDiterima > 0) ? 'sebagian' : 'belum');
+                $pesertaModel->update($peserta['id'], [
+                    'tanggal_lunas'  => $statusBaru === 'lunas' ? $existing['tanggal'] : null,
+                    'jumlah_disetor' => $jmlDiterima,
+                    'status_lunas'   => $statusBaru,
+                ]);
+            }
+        }
+
         return $this->response->setJSON(['success' => true, 'message' => 'Pemasukan berhasil diupdate']);
     }
 
     public function deletePemasukan($id)
     {
         $row = $this->pemasukanModel->find($id);
-        $this->hapusFileBukti($row['file_bukti'] ?? null);
-        $this->pemasukanModel->delete($id);
+        if ($row) {
+            $this->hapusFileBukti($row['file_bukti'] ?? null);
+            // Reset status peserta perjadin jika pemasukan ini bertaut dengan setoran taktis
+            (new PerjalananDinasPesertaModel())->resetStatusDariPemasukan([(int)$id]);
+            $this->pemasukanModel->delete($id);
+            $this->clearLaporanCache();
+        }
         return $this->response->setJSON(['success' => true, 'message' => 'Pemasukan berhasil dihapus']);
     }
 
@@ -212,6 +229,7 @@ class DataKeuangan extends BaseController
             'status_dana'     => $status,
             'jumlah_diterima' => $jumlahDiterima,
         ]);
+        $this->clearLaporanCache();
         return $this->response->setJSON(['success' => true, 'message' => 'Status dana berhasil diupdate']);
     }
 
@@ -221,7 +239,6 @@ class DataKeuangan extends BaseController
     {
         // Normalisasi nominal terlebih dulu
         $jumlah = $this->sanitizeNominal($this->request->getPost('jumlah'));
-        $_POST['jumlah'] = $jumlah;
 
         $totalP = $this->pemasukanModel->getTotalDiterima();
         $totalE = $this->pengeluaranModel->getTotalPengeluaran();
@@ -240,7 +257,11 @@ class DataKeuangan extends BaseController
             'jumlah'   => 'required|numeric|greater_than[0]',
             'bukti'    => 'max_size[bukti,3072]|ext_in[bukti,jpg,jpeg,png,pdf]|mime_in[bukti,image/jpg,image/jpeg,image/png,application/pdf]',
         ];
-        if (!$this->validate($rules)) {
+        // validateData() dipakai supaya $jumlah yang sudah dinormalisasi benar-benar
+        // divalidasi, bukan request->getPost() mentah yang sudah di-cache oleh CI4.
+        $validationData = $this->request->getPost() ?? [];
+        $validationData['jumlah'] = $jumlah;
+        if (!$this->validateData($validationData, $rules)) {
             return $this->response->setJSON(['success' => false, 'errors' => $this->validator->getErrors()]);
         }
 
@@ -255,6 +276,7 @@ class DataKeuangan extends BaseController
         ];
 
         $id = $this->pengeluaranModel->insert($data);
+        $this->clearLaporanCache();
 
         // Notif transaksi besar
         $this->cekNotifTransaksiBesar($jumlah, 'pengeluaran');
@@ -267,8 +289,20 @@ class DataKeuangan extends BaseController
         $data = $this->request->getPost();
         unset($data['_method']);
 
-        // Normalisasi nominal (guard defense-in-depth)
+        // Normalisasi nominal SEBELUM validasi (sama seperti storePengeluaran)
         if (isset($data['jumlah'])) $data['jumlah'] = $this->sanitizeNominal($data['jumlah']);
+
+        $rules = [
+            'tanggal'  => 'required|valid_date',
+            'kategori' => 'required|min_length[2]',
+            'jumlah'   => 'required|numeric|greater_than[0]',
+            'bukti'    => 'max_size[bukti,3072]|ext_in[bukti,jpg,jpeg,png,pdf]|mime_in[bukti,image/jpg,image/jpeg,image/png,application/pdf]',
+        ];
+        // validateData() dipakai supaya $data yang sudah dinormalisasi di atas benar-benar
+        // divalidasi, bukan request->getPost() mentah yang sudah di-cache oleh CI4.
+        if (!$this->validateData($data, $rules)) {
+            return $this->response->setJSON(['success' => false, 'errors' => $this->validator->getErrors()]);
+        }
 
         $bukti = $this->simpanBukti();
         if ($bukti) {
@@ -278,6 +312,7 @@ class DataKeuangan extends BaseController
         }
 
         $this->pengeluaranModel->update($id, $data);
+        $this->clearLaporanCache();
         return $this->response->setJSON(['success' => true, 'message' => 'Pengeluaran berhasil diupdate']);
     }
 
@@ -286,6 +321,7 @@ class DataKeuangan extends BaseController
         $row = $this->pengeluaranModel->find($id);
         $this->hapusFileBukti($row['file_bukti'] ?? null);
         $this->pengeluaranModel->delete($id);
+        $this->clearLaporanCache();
         return $this->response->setJSON(['success' => true, 'message' => 'Pengeluaran berhasil dihapus']);
     }
 
@@ -312,12 +348,14 @@ class DataKeuangan extends BaseController
         $deletedP = 0;
         $deletedE = 0;
 
-        // Hapus pemasukan (termasuk file bukti)
+        // Hapus pemasukan (termasuk file bukti & reset relasi status perjadin)
         if (!empty($pemasukanIds)) {
             $rows = $this->pemasukanModel->whereIn('id', $pemasukanIds)->findAll();
             foreach ($rows as $row) {
                 $this->hapusFileBukti($row['file_bukti'] ?? null);
             }
+            // Reset status peserta perjadin untuk seluruh pemasukan yang dihapus
+            (new PerjalananDinasPesertaModel())->resetStatusDariPemasukan($pemasukanIds);
             $this->pemasukanModel->whereIn('id', $pemasukanIds)->delete();
             $deletedP = count($pemasukanIds);
         }
@@ -331,6 +369,7 @@ class DataKeuangan extends BaseController
             $this->pengeluaranModel->whereIn('id', $pengeluaranIds)->delete();
             $deletedE = count($pengeluaranIds);
         }
+        $this->clearLaporanCache();
 
         $total = $deletedP + $deletedE;
         $detail = [];
@@ -527,8 +566,8 @@ class DataKeuangan extends BaseController
 
             if ($modeDualKolom) {
                 // Format 2-kolom: isi salah satu kolom "pemasukan" ATAU "pengeluaran" saja
-                $nilaiMasuk  = is_numeric($data['pemasukan'] ?? null) ? (float)$data['pemasukan'] : 0;
-                $nilaiKeluar = is_numeric($data['pengeluaran'] ?? null) ? (float)$data['pengeluaran'] : 0;
+                $nilaiMasuk  = $this->sanitizeNominal($data['pemasukan'] ?? null);
+                $nilaiKeluar = $this->sanitizeNominal($data['pengeluaran'] ?? null);
 
                 if ($nilaiMasuk > 0 && $nilaiKeluar > 0) {
                     $rowErrors[] = 'isi hanya salah satu kolom, pemasukan ATAU pengeluaran (tidak boleh dua-duanya)';
@@ -554,9 +593,7 @@ class DataKeuangan extends BaseController
                     }
                 }
                 $jumlahStr = (string)($data['jumlah'] ?? '');
-                $jumlah    = is_numeric($data['jumlah'] ?? null)
-                    ? (float)$data['jumlah']
-                    : (float) str_replace(['.', ','], ['', '.'], $jumlahStr);
+                $jumlah    = $this->sanitizeNominal($data['jumlah'] ?? null);
                 if ($jumlah <= 0) {
                     $rowErrors[] = "jumlah tidak valid: '{$jumlahStr}'";
                 }

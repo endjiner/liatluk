@@ -1,0 +1,271 @@
+[
+    {
+        "no_surat_tugas": "PP.04.01.20B.09.26.749",
+        "tanggal_surat_tugas": "2026-09-02",
+        "maksud": "Perjalanan Dinas dalam Rangka Kalibrasi Peralatan Laboratorium pada Balai Besar POM di Pangkal Pinang Selama 5 (lima) hari pada tanggal 08-12 September 2026",
+        "kode_mak": "3165.PDD.001.054.524111.A",
+        "no_spm": null,
+        "peserta": [
+            {
+                "nama_peserta": "Parno, S.Si",
+                "uang_harian": 0,
+                "meeting_fullboard": 0,
+                "meeting_fullday": 0,
+                "uang_representasi": 0,
+                "transport_lokal": 0,
+                "bbm": 0,
+                "dana_taktis": 0,
+                "status_lunas": "belum",
+                "tiket": [
+                    {
+                        "maskapai": "Garuda Indonesia",
+                        "arah": "pergi",
+                        "no_tiket": "126 2147580757",
+                        "kode_booking": "FF536I",
+                        "no_penerbangan": "GA 136",
+                        "tempat_asal": "Jakarta",
+                        "tempat_tujuan": "Pangkal Pinang",
+                        "tanggal_terbang": "2026-09-08",
+                        "harga_tiket": 1165027
+                    },
+                    {
+                        "maskapai": "Garuda Indonesia",
+                        "arah": "pulang",
+                        "no_tiket": "126 2148292957",
+                        "kode_booking": "FF46XZ",
+                        "no_penerbangan": "GA 137",
+                        "tempat_asal": "Pangkal Pinang",
+                        "tempat_tujuan": "Jakarta",
+                        "tanggal_terbang": "2026-09-12",
+                        "harga_tiket": 1165027
+                    }
+                ],
+                "hotel": null
+            },
+            {
+                "nama_peserta": "Wanda Alfoli, A.Md",
+                "uang_harian": 0,
+                "meeting_fullboard": 0,
+                "meeting_fullday": 0,
+                "uang_representasi": 0,
+                "transport_lokal": 0,
+                "bbm": 0,
+                "dana_taktis": 0,
+                "status_lunas": "belum",
+                "tiket": [
+                    {
+                        "maskapai": "Garuda Indonesia",
+                        "arah": "pergi",
+                        "no_tiket": "126 2147580756",
+                        "kode_booking": "FF536I",
+                        "no_penerbangan": "GA 136",
+                        "tempat_asal": "Jakarta",
+                        "tempat_tujuan": "Pangkal Pinang",
+                        "tanggal_terbang": "2026-09-08",
+                        "harga_tiket": 1165027
+                    },
+                    {
+                        "maskapai": "Garuda Indonesia",
+                        "arah": "pulang",
+                        "no_tiket": "126 2148292956",
+                        "kode_booking": "FF46XZ",
+                        "no_penerbangan": "GA 137",
+                        "tempat_asal": "Pangkal Pinang",
+                        "tempat_tujuan": "Jakarta",
+                        "tanggal_terbang": "2026-09-12",
+                        "harga_tiket": 1165027
+                    }
+                ],
+                "hotel": null
+            },
+            {
+                "nama_peserta": "Vika Septa Widara, S.Si",
+                "uang_harian": 0,
+                "meeting_fullboard": 0,
+                "meeting_fullday": 0,
+                "uang_representasi": 0,
+                "transport_lokal": 0,
+                "bbm": 0,
+                "dana_taktis": 0,
+                "status_lunas": "belum",
+                "tiket": [
+                    {
+                        "maskapai": "Garuda Indonesia",
+                        "arah": "pergi",
+                        "no_tiket": "126 2147580758",
+                        "kode_booking": "FF536I",
+                        "no_penerbangan": "GA 136",
+                        "tempat_asal": "Jakarta",
+                        "tempat_tujuan": "Pangkal Pinang",
+                        "tanggal_terbang": "2026-09-08",
+                        "harga_tiket": 1165027
+                    },
+                    {
+                        "maskapai": "Garuda Indonesia",
+                        "arah": "pulang",
+                        "no_tiket": "126 2148292958",
+                        "kode_booking": "FF46XZ",
+                        "no_penerbangan": "GA 137",
+                        "tempat_asal": "Pangkal Pinang",
+                        "tempat_tujuan": "Jakarta",
+                        "tanggal_terbang": "2026-09-12",
+                        "harga_tiket": 1165027
+                    }
+                ],
+                "hotel": null
+            }
+        ],
+        "no_pd": "220"
+    },
+    {
+        "no_surat_tugas": "PW.01.10.20B.09.26.766",
+        "tanggal_surat_tugas": "2026-09-11",
+        "maksud": "Transport Lokal Kegiatan Pemeriksaan Sarana Distribusi Produk OMKA, Saryanfar, Sampling dan Iklan di Kota Pangkal Pinang selama 1 (satu) hari pada Tanggal 15 September 2026",
+        "kode_mak": "3165.QIC.004.053.524113.A",
+        "no_spm": null,
+        "peserta": [
+            {
+                "nama_peserta": "Muhammad Herpi Akbar",
+                "uang_harian": 0,
+                "meeting_fullboard": 0,
+                "meeting_fullday": 0,
+                "uang_representasi": 0,
+                "transport_lokal": 170000,
+                "bbm": 0,
+                "dana_taktis": 0,
+                "status_lunas": "belum",
+                "tiket": [],
+                "hotel": null
+            },
+            {
+                "nama_peserta": "Septo Dwi Yan Purnomo",
+                "uang_harian": 0,
+                "meeting_fullboard": 0,
+                "meeting_fullday": 0,
+                "uang_representasi": 0,
+                "transport_lokal": 170000,
+                "bbm": 0,
+                "dana_taktis": 0,
+                "status_lunas": "belum",
+                "tiket": [],
+                "hotel": null
+            },
+            {
+                "nama_peserta": "Rizky Wirani",
+                "uang_harian": 0,
+                "meeting_fullboard": 0,
+                "meeting_fullday": 0,
+                "uang_representasi": 0,
+                "transport_lokal": 170000,
+                "bbm": 0,
+                "dana_taktis": 0,
+                "status_lunas": "belum",
+                "tiket": [],
+                "hotel": null
+            }
+        ],
+        "no_pd": "221"
+    },
+    {
+        "no_surat_tugas": "PB.02.01.20B.09.26.770",
+        "tanggal_surat_tugas": "2026-09-14",
+        "maksud": "Perjalanan Dinas dalam rangka menjadi Narasumber/Instruktur Bimbingan Teknis Internal Pengujian Kimia Pangan Olahan dan Air Balai Besar POM di Pangkal Pinang selama 7 (Tujuh) hari pada tanggal 20 September - 26 September 2026",
+        "kode_mak": "3165.PDD.001.051.524111.B",
+        "no_spm": null,
+        "peserta": [
+            {
+                "nama_peserta": "Cita Tri Aryuni",
+                "uang_harian": 2870000,
+                "meeting_fullboard": 0,
+                "meeting_fullday": 0,
+                "uang_representasi": 0,
+                "transport_lokal": 355000,
+                "bbm": 0,
+                "dana_taktis": 287000,
+                "status_lunas": "belum",
+                "tiket": [],
+                "hotel": {
+                    "nama_hotel": null,
+                    "alamat_hotel": null,
+                    "telp_hotel": null,
+                    "checkin": null,
+                    "checkout": null,
+                    "total_bill": 0,
+                    "no_kamar": null,
+                    "no_invoice": null,
+                    "total_biaya_30persen": 3522600
+                }
+            }
+        ],
+        "no_pd": "217"
+    },
+    {
+        "no_surat_tugas": "PB.02.01.20B.09.26.771",
+        "tanggal_surat_tugas": "2026-09-14",
+        "maksud": "Perjalanan Dinas dalam rangka menjadi Narasumber/Instruktur Bimbingan Teknis Internal Pengujian Kimia Kosmetik Balai Besar POM di Pangkal Pinang selama 7 (Tujuh) hari pada tanggal 20 September - 26 September 2026",
+        "kode_mak": "3165.PDD.001.051.524111.B",
+        "no_spm": null,
+        "peserta": [
+            {
+                "nama_peserta": "Nenden Solihatul Zannah",
+                "uang_harian": 2870000,
+                "meeting_fullboard": 0,
+                "meeting_fullday": 0,
+                "uang_representasi": 0,
+                "transport_lokal": 510000,
+                "bbm": 0,
+                "dana_taktis": 287000,
+                "status_lunas": "belum",
+                "tiket": [],
+                "hotel": {
+                    "nama_hotel": null,
+                    "alamat_hotel": null,
+                    "telp_hotel": null,
+                    "checkin": null,
+                    "checkout": null,
+                    "total_bill": 4344000,
+                    "no_kamar": null,
+                    "no_invoice": null,
+                    "total_biaya_30persen": 0
+                }
+            }
+        ],
+        "no_pd": "218"
+    },
+    {
+        "no_surat_tugas": "PM.02.03.20B.09.26.761",
+        "tanggal_surat_tugas": "2026-09-09",
+        "maksud": "Transport Lokal Kegiatan Pendampingan dalam Rangka Sertifikasi Izin Penerapan Cara Produksi Pangan Olahan yang Baik (IP CPPOB) di Pangkal Pinang selama 1 (satu) hari pada Tanggal 11 September 2026",
+        "kode_mak": "3165.QDG.001.051.524113.B",
+        "no_spm": null,
+        "peserta": [
+            {
+                "nama_peserta": "Sony Lawrensia",
+                "uang_harian": 0,
+                "meeting_fullboard": 0,
+                "meeting_fullday": 0,
+                "uang_representasi": 0,
+                "transport_lokal": 170000,
+                "bbm": 0,
+                "dana_taktis": 0,
+                "status_lunas": "belum",
+                "tiket": [],
+                "hotel": null
+            },
+            {
+                "nama_peserta": "Ahmad Burhan Rifa'i",
+                "uang_harian": 0,
+                "meeting_fullboard": 0,
+                "meeting_fullday": 0,
+                "uang_representasi": 0,
+                "transport_lokal": 170000,
+                "bbm": 0,
+                "dana_taktis": 0,
+                "status_lunas": "belum",
+                "tiket": [],
+                "hotel": null
+            }
+        ],
+        "no_pd": "219"
+    }
+]

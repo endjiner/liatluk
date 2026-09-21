@@ -1,19 +1,5 @@
-# SAFETY NET ONLY — this is not a substitute for correct deployment.
-#
-# This CodeIgniter app's document root MUST be the `public/` subfolder, never this
-# directory (see public/.htaccess and public/index.php — that's the real front
-# controller). If a hosting panel is ever pointed at THIS folder by mistake instead
-# of `public/`, everything below it — database.sql (full data dump), .env (DB
-# credentials), composer.json/lock, vendor/, app/ source — becomes directly
-# downloadable over HTTP with no further exploit needed.
-#
-# Deliberately scoped to specific files/folders rather than a blanket "deny all",
-# because Apache directives here would otherwise inherit into public/ too and take
-# the whole site down in exactly the misconfigured-docroot scenario this exists to
-# guard against. This does not make a misconfigured document root "work" as intended
-# — the real fix is pointing the vhost/docroot at public/.
-
-<FilesMatch "(\.env.*|\.sql|\.lock|composer\.(json|lock)|package(-lock)?\.json|phpunit\.dist\.xml|\.htaccess|README.*|LICENSE|debug\.php|preload\.php|builds)$">
+# Deny direct access to sensitive folders and files
+<FilesMatch "(\.env.*|\.sql|\.lock|composer\.(json|lock)|package(-lock)?\.json|phpunit\.dist\.xml|\.htaccess|README.*|LICENSE|preload\.php|spark|builds)$">
     <IfModule mod_authz_core.c>
         Require all denied
     </IfModule>
@@ -23,16 +9,18 @@
     </IfModule>
 </FilesMatch>
 
-<IfModule mod_authz_core.c>
-    <Directory ~ "(app|vendor|tests|writable)/">
-        Require all denied
-    </Directory>
-</IfModule>
-<IfModule !mod_authz_core.c>
-    <Directory ~ "(app|vendor|tests|writable)/">
-        Order allow,deny
-        Deny from all
-    </Directory>
-</IfModule>
-
 Options -Indexes -MultiViews
+
+# Rewrite ke folder public/ untuk shared hosting (InfinityFree / cPanel)
+<IfModule mod_rewrite.c>
+    RewriteEngine On
+
+    # Blokir akses ke folder sistem internal
+    RewriteRule ^(app|writable|vendor|tests|\.git) - [F,L]
+
+    # Jangan rewrite jika request sudah mengarah ke /public/
+    RewriteCond %{REQUEST_URI} !^/public/
+
+    # Rewrite seluruh request ke public/
+    RewriteRule ^(.*)$ public/$1 [L,QSA]
+</IfModule>

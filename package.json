@@ -1,0 +1,10 @@
+{
+  "name": "keu-internal-bbpompkp",
+  "private": true,
+  "scripts": {
+    "build:css": "tailwindcss -i ./resources/css/app.css -o ./public/assets/css/tailwind.css && node scripts/format-css.js"
+  },
+  "devDependencies": {
+    "tailwindcss": "^3.4.19"
+  }
+}

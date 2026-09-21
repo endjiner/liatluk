@@ -70,8 +70,17 @@ class Security extends BaseConfig
      * --------------------------------------------------------------------------
      *
      * Regenerate CSRF Token on every submission.
+     *
+     * Kept FALSE deliberately: the admin panel talks to the server almost
+     * entirely via fetch()/AJAX, not full-page form posts, and the CSRF
+     * cookie CI4 issues is HttpOnly (JS can't read it back to learn a
+     * rotated value). The token is read once per page load from the
+     * <meta> tag (see csrf_meta() in layouts/admin.php) and reused for
+     * every fetch() on that page — with regenerate=true each request
+     * would invalidate that cached value and start rejecting the very
+     * next AJAX call after the first successful one.
      */
-    public bool $regenerate = true;
+    public bool $regenerate = false;
 
     /**
      * --------------------------------------------------------------------------

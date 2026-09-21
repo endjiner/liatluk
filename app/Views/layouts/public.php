@@ -5,11 +5,11 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title><?= $title ?? 'Keuangan Internal — BBPOM di Pangkal Pinang' ?></title>
   <meta name="description" content="Transparansi Pengelolaan Keuangan Internal Balai Besar POM di Pangkal Pinang">
+  <meta http-equiv="Content-Security-Policy" content="upgrade-insecure-requests">
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
-  <link rel="stylesheet" href="<?= base_url('assets/css/tailwind.css') ?>">
-  <script src="https://unpkg.com/lucide@latest"></script>
+  <link rel="stylesheet" href="<?= base_url('assets/css/tailwind.css') ?>?v=<?= @filemtime(FCPATH . 'assets/css/tailwind.css') ?: '1' ?>">
   <script>
     (function() {
       const saved = localStorage.getItem('theme') || 'light';
@@ -17,7 +17,7 @@
     })();
   </script>
 </head>
-<body class="min-h-screen flex flex-col">
+<body class="min-h-screen flex flex-col bg-slate-50 dark:bg-slate-900">
 
 <!-- Navbar -->
 <header class="sticky top-0 z-30 bg-white/95 dark:bg-slate-900/95 backdrop-blur border-b border-slate-200 dark:border-slate-800 shadow-soft">
@@ -36,12 +36,16 @@
         </div>
       </a>
 
-      <div class="flex items-center gap-1">
+      <div class="flex items-center gap-2">
         <button onclick="toggleTheme()" title="Ganti Tema"
                 class="p-2 rounded-lg text-slate-500 dark:text-slate-300 hover:bg-slate-100 dark:hover:bg-slate-800 transition">
-          <i data-lucide="sun" class="w-5 h-5 hidden dark:inline"></i>
-          <i data-lucide="moon" class="w-5 h-5 dark:hidden"></i>
+          <?= iconsax('sun-1', 'w-5 h-5 hidden dark:inline') ?>
+          <?= iconsax('moon', 'w-5 h-5 dark:hidden') ?>
         </button>
+        <a href="<?= base_url('login') ?>"
+           class="flex items-center gap-1.5 pl-2.5 pr-3 sm:pl-3 sm:pr-3.5 py-2 rounded-lg text-sm font-medium text-primary-700 dark:text-primary-300 bg-primary-50 dark:bg-primary-900/40 hover:bg-primary-100 dark:hover:bg-primary-900/70 border border-primary-100 dark:border-primary-800 transition">
+          <?= iconsax('login', 'w-4 h-4') ?> Masuk
+        </a>
       </div>
     </div>
   </div>
@@ -55,28 +59,24 @@
 <!-- Footer -->
 <footer class="bg-primary-900 text-slate-300 mt-8">
   <div class="max-w-7xl mx-auto px-4 lg:px-6 py-6">
-    <div class="flex items-center justify-between gap-4 text-xs">
-      <div class="flex items-center gap-3">
-        <img src="<?= base_url('assets/images/logo_bpom.png') ?>" alt="BBPOM di Pangkal Pinang" class="w-10 h-10 rounded-lg bg-white p-1 shrink-0">
-        <div>
-          <div class="text-sm font-semibold text-white">BBPOM di Pangkal Pinang</div>
-          <div>&copy; <?= date('Y') ?> Semua hak dilindungi.</div>
-        </div>
+    <div class="flex items-center gap-3 text-xs">
+      <img src="<?= base_url('assets/images/logo_bpom.png') ?>" alt="BBPOM di Pangkal Pinang" class="w-10 h-10 rounded-lg bg-white p-1 shrink-0">
+      <div>
+        <div class="text-sm font-semibold text-white">BBPOM di Pangkal Pinang</div>
+        <div>&copy; <?= date('Y') ?> Semua hak dilindungi.</div>
       </div>
-      <!-- Subtle admin login link (present but discreet) -->
-      <a href="<?= base_url('login') ?>" class="text-slate-500 hover:text-slate-300 transition inline-flex items-center gap-1" title="Login Admin">
-        <i data-lucide="lock" class="w-3 h-3"></i> Admin
-      </a>
     </div>
   </div>
 </footer>
 
 <!-- Scroll to top/bottom -->
 <button id="scroll-fab" onclick="scrollFabClick()" title="Scroll" class="scroll-fab bg-primary-600 text-white hover:bg-primary-700 hidden">
-  <i data-lucide="arrow-down" id="scroll-fab-icon" class="w-5 h-5"></i>
+  <?= iconsax('arrow-down', 'w-5 h-5', 'scroll-fab-icon') ?>
 </button>
 
-<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/chart.js" defer></script>
+<script src="<?= base_url('assets/js/icons.js') ?>?v=<?= @filemtime(FCPATH . 'assets/js/icons.js') ?: '1' ?>"></script>
+<script src="<?= base_url('assets/js/pagination.js') ?>?v=<?= @filemtime(FCPATH . 'assets/js/pagination.js') ?: '1' ?>"></script>
 <script>
 function toggleTheme() {
   const dark = document.documentElement.classList.toggle('dark');
@@ -99,8 +99,7 @@ function toggleTheme() {
     const atTop = window.scrollY < 150;
     if (atTop !== lastAtTop) {
       lastAtTop = atTop;
-      icon.setAttribute('data-lucide', atTop ? 'arrow-down' : 'arrow-up');
-      lucide.createIcons({ props: { search: fab } });
+      icon.innerHTML = ICONSAX_PATHS[atTop ? 'arrow-down' : 'arrow-up'];
     }
     ticking = false;
   }
@@ -118,8 +117,6 @@ function toggleTheme() {
   window.addEventListener('resize', onScroll);
   document.addEventListener('DOMContentLoaded', updateFab);
 })();
-
-document.addEventListener('DOMContentLoaded', () => { lucide.createIcons(); });
 </script>
 <?= $this->renderSection('scripts') ?>
 </body>

@@ -1,6 +1,8 @@
-/* Stylesheet khusus halaman cetak Laporan Keuangan (admin/laporan_pdf.php).
-   Terpisah dari tailwind.css karena halaman ini berdiri sendiri (dibuka lewat
-   window.print(), tidak memakai layout admin) dan tidak memakai kelas Tailwind. */
+*, *::before, *::after {
+  -webkit-print-color-adjust: exact !important;
+  color-adjust: exact !important;
+  print-color-adjust: exact !important;
+}
 
 body {
   font-family: Arial, Helvetica, sans-serif;
@@ -29,7 +31,7 @@ body {
 .kpi-table td {
   border: 1px solid #cbd5e1;
   padding: 10px;
-  background: #f8fafc;
+  background-color: #f8fafc !important;
   text-align: center;
   width: 25%;
 }
@@ -57,13 +59,15 @@ table.data-table th, table.data-table td {
   padding: 6px 8px;
   text-align: left;
 }
-table.data-table th { background: #e2e8f0; font-weight: bold; }
+table.data-table th { background-color: #e2e8f0 !important; color: #0f172a !important; font-weight: bold; }
 table.data-table-gabungan { font-size: 10px; }
+table.data-table-perjadin { font-size: 8px; table-layout: fixed; }
+table.data-table-perjadin th, table.data-table-perjadin td { padding: 3px 4px; word-break: break-word; overflow-wrap: break-word; }
 
 .text-right   { text-align: right; }
 .text-center  { text-align: center; }
-.text-success { color: #059669; }
-.text-danger  { color: #dc2626; }
+.text-success { color: #047857 !important; }
+.text-danger  { color: #b91c1c !important; }
 .font-bold    { font-weight: bold; }
 
 .col-w5  { width: 5%; }
@@ -75,9 +79,10 @@ table.data-table-gabungan { font-size: 10px; }
 
 table.data-table-split { font-size: 9.5px; }
 table.data-table-split th, table.data-table-split td { padding: 4px 6px; }
-.col-header-success { background: #059669 !important; color: #fff; text-align: center; }
-.col-header-danger  { background: #dc2626 !important; color: #fff; text-align: center; }
-.col-spacer { border: none !important; width: 2%; background: transparent !important; }
+table.data-table-split th.col-header-success { background-color: #047857 !important; color: #ffffff !important; text-align: center; }
+table.data-table-split th.col-header-danger  { background-color: #b91c1c !important; color: #ffffff !important; text-align: center; }
+table.data-table-split th.col-spacer,
+table.data-table-split td.col-spacer { border: none; width: 2%; background: transparent; }
 
 .footer-sign {
   margin-top: 40px;
