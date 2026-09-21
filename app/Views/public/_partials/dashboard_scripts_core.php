@@ -191,7 +191,8 @@ function refreshTxn() {
       document.getElementById('txn-total').textContent = new Intl.NumberFormat('id-ID').format(data.total || 0);
       renderPagination(data.total || 0, parseInt(perPage), currentPage);
     })
-    .catch(() => {
+    .catch((e) => {
+      console.error('Gagal memuat Daftar Transaksi:', e);
       if (seq !== txnRequestSeq) return;
       tbody.classList.remove('opacity-40', 'pointer-events-none');
       tbody.innerHTML = '<tr><td colspan="7" class="text-center py-8 text-red-500">Gagal memuat data.</td></tr>';

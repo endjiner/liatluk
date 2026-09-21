@@ -125,6 +125,7 @@ async function muatDaftarTripPerjadin(page) {
     });
     document.getElementById('pd-total-perjadin').textContent = new Intl.NumberFormat('id-ID').format(json.total);
   } catch (e) {
+    console.error('Gagal memuat Daftar Perjalanan Dinas:', e);
     if (seq !== tripPerjadinRequestSeq) return;
     tbody.classList.remove('opacity-40', 'pointer-events-none');
     tbody.innerHTML = '<tr><td colspan="14" class="text-center py-8 text-red-500">Gagal memuat data.</td></tr>';
@@ -276,6 +277,7 @@ async function muatDaftarDanaTaktisPub(page) {
     });
     document.getElementById('dt-total-pub').textContent = new Intl.NumberFormat('id-ID').format(json.total);
   } catch (e) {
+    console.error('Gagal memuat Dana Taktis:', e);
     if (seq !== dtPubRequestSeq) return;
     tbody.classList.remove('opacity-40', 'pointer-events-none');
     tbody.innerHTML = '<tr><td colspan="9" class="text-center py-8 text-red-500">Gagal memuat data.</td></tr>';

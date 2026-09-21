@@ -335,6 +335,7 @@ async function muatDaftarDanaTaktis(page) {
     });
     document.getElementById('dt-total').textContent = new Intl.NumberFormat('id-ID').format(json.total);
   } catch (e) {
+    console.error('Gagal memuat Dana Taktis:', e);
     if (seq !== dtRequestSeq) return;
     tbody.classList.remove('opacity-40', 'pointer-events-none');
     tbody.innerHTML = '<tr><td colspan="9" class="text-center py-8 text-red-500">Gagal memuat data.</td></tr>';

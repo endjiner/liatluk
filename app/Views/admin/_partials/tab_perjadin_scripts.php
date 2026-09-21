@@ -92,6 +92,7 @@ async function muatDaftarTrip(page) {
     });
     document.getElementById('pd-total-perjadin').textContent = new Intl.NumberFormat('id-ID').format(json.total);
   } catch (e) {
+    console.error('Gagal memuat Daftar Perjalanan Dinas:', e);
     if (seq !== tripRequestSeq) return;
     tbody.classList.remove('opacity-40', 'pointer-events-none');
     tbody.innerHTML = '<tr><td colspan="15" class="text-center py-8 text-red-500">Gagal memuat data.</td></tr>';
