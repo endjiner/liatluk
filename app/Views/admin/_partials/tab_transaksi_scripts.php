@@ -400,11 +400,13 @@ function getSelectedIds() {
 }
 
 function updateBulkBar() {
+  const bar = document.getElementById('bulk-action-bar');
+  if (!bar) return; // tidak ada bulk action untuk admin biasa (bukan super admin)
   const { pemasukan, pengeluaran } = getSelectedIds();
   const count = pemasukan.length + pengeluaran.length;
   document.getElementById('bulk-count').textContent = count;
   document.getElementById('bulk-count-modal').textContent = count;
-  document.getElementById('bulk-action-bar').classList.toggle('hidden', count === 0);
+  bar.classList.toggle('hidden', count === 0);
 }
 
 function clearAllSelection() {
