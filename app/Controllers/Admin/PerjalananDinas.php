@@ -105,6 +105,7 @@ class PerjalananDinas extends BaseController
             'kode_mak'            => $this->request->getPost('kode_mak'),
             'no_spm'              => $this->request->getPost('no_spm'),
         ]);
+        $this->clearLaporanCache();
 
         return $this->response->setJSON(['success' => true, 'id' => $id, 'message' => 'Perjalanan dinas berhasil ditambahkan. Sekarang tambahkan peserta.']);
     }
@@ -136,6 +137,7 @@ class PerjalananDinas extends BaseController
                 $this->pesertaModel->sinkronPemasukan((int)$p['id']);
             }
         }
+        $this->clearLaporanCache();
 
         return $this->response->setJSON(['success' => true, 'message' => 'Perjalanan dinas berhasil diupdate']);
     }
@@ -146,6 +148,7 @@ class PerjalananDinas extends BaseController
             $this->hapusPesertaBersih((int)$p['id']);
         }
         $this->tripModel->delete($id);
+        $this->clearLaporanCache();
         return $this->response->setJSON(['success' => true, 'message' => 'Perjalanan dinas & seluruh datanya berhasil dihapus']);
     }
 
@@ -175,6 +178,7 @@ class PerjalananDinas extends BaseController
         if ($db->transStatus() === false) {
             return $this->response->setJSON(['success' => false, 'message' => 'Gagal menyimpan peserta (kesalahan database)']);
         }
+        $this->clearLaporanCache();
 
         return $this->response->setJSON(['success' => true, 'id' => $pesertaId, 'message' => 'Peserta berhasil ditambahkan']);
     }
@@ -203,6 +207,7 @@ class PerjalananDinas extends BaseController
         if ($db->transStatus() === false) {
             return $this->response->setJSON(['success' => false, 'message' => 'Gagal menyimpan peserta (kesalahan database)']);
         }
+        $this->clearLaporanCache();
 
         return $this->response->setJSON(['success' => true, 'message' => 'Peserta berhasil diupdate']);
     }
@@ -210,6 +215,7 @@ class PerjalananDinas extends BaseController
     public function deletePeserta($id)
     {
         $this->hapusPesertaBersih((int)$id);
+        $this->clearLaporanCache();
         return $this->response->setJSON(['success' => true, 'message' => 'Peserta berhasil dihapus']);
     }
 
@@ -333,6 +339,7 @@ class PerjalananDinas extends BaseController
         if (!$ok) {
             return $this->response->setJSON(['success' => false, 'message' => 'Status sudah sesuai, tidak ada perubahan']);
         }
+        $this->clearLaporanCache();
         return $this->response->setJSON(['success' => true, 'message' => $pesan]);
     }
 

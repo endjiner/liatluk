@@ -471,7 +471,7 @@ class PerjalananDinasPesertaModel extends Model
         return $this->applyFilterPesertaTrip($filters, false)->countAllResults();
     }
 
-    public function getForLaporan(string $tglMulai, string $tglAkhir): array
+    public function getForLaporan(string $tglMulai, string $tglAkhir, bool $withDetails = false): array
     {
         $rows = $this->select('perjalanan_dinas_peserta.*, perjalanan_dinas.no_pd, perjalanan_dinas.maksud, perjalanan_dinas.no_surat_tugas, perjalanan_dinas.tanggal_surat_tugas, perjalanan_dinas.kode_mak, perjalanan_dinas.no_spm')
             ->join('perjalanan_dinas', 'perjalanan_dinas.id = perjalanan_dinas_peserta.perjalanan_dinas_id')
@@ -482,13 +482,37 @@ class PerjalananDinasPesertaModel extends Model
             ->orderBy('perjalanan_dinas_peserta.id', 'ASC')
             ->findAll();
 
-        $tiketModel = new PerjalananDinasTiketModel();
-        $hotelModel = new PerjalananDinasHotelModel();
-        foreach ($rows as &$r) {
-            $r['tiket'] = $tiketModel->getByPeserta($r['id']);
-            $r['hotel'] = $hotelModel->getByPeserta($r['id']);
+        if (empty($rows)) {
+            return [];
         }
-        unset($r);
+
+        if ($withDetails) {
+            $pesertaIds = array_column($rows, 'id');
+            $db = \Config\Database::connect();
+            $tiketRows = $db->table('perjalanan_dinas_tiket')->whereIn('perjalanan_dinas_peserta_id', $pesertaIds)->get()->getResultArray();
+            $hotelRows = $db->table('perjalanan_dinas_hotel')->whereIn('perjalanan_dinas_peserta_id', $pesertaIds)->get()->getResultArray();
+
+            $tiketsByPeserta = [];
+            foreach ($tiketRows as $t) {
+                $tiketsByPeserta[$t['perjalanan_dinas_peserta_id']][] = $t;
+            }
+            $hotelsByPeserta = [];
+            foreach ($hotelRows as $h) {
+                $hotelsByPeserta[$h['perjalanan_dinas_peserta_id']][] = $h;
+            }
+
+            foreach ($rows as &$r) {
+                $r['tiket'] = $tiketsByPeserta[$r['id']] ?? [];
+                $r['hotel'] = $hotelsByPeserta[$r['id']] ?? [];
+            }
+            unset($r);
+        } else {
+            foreach ($rows as &$r) {
+                $r['tiket'] = [];
+                $r['hotel'] = [];
+            }
+            unset($r);
+        }
 
         return $rows;
     }

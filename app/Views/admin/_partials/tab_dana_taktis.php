@@ -192,7 +192,12 @@ $tahunSekarangDt = (int)date('Y');
 
 <script>
 (function() {
-const BASE = '<?= base_url() ?>';
+const BASE = (function() {
+  const cfg = '<?= rtrim(base_url(), '/') ?>/';
+  return (location.hostname !== 'localhost' && location.hostname !== '127.0.0.1' && cfg.includes('localhost'))
+    ? (window.location.origin + '/')
+    : cfg;
+})();
 const API_DT = BASE + 'admin/perjalanan-dinas';
 const rupiah = (n) => 'Rp ' + new Intl.NumberFormat('id-ID').format(Math.round(parseFloat(n) || 0));
 const esc = (s) => String(s ?? '').replace(/[&<>"']/g, m => ({ '&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;' })[m]);
@@ -383,7 +388,7 @@ function renderDanaTaktisTable(rows, page, perPage) {
       <td class="text-right text-currency">${rupiah(r.uang_harian)}</td>
       <td class="text-right text-currency">${rupiah(r.total_spj)}</td>
       <td class="text-right text-currency font-semibold text-emerald-600">${rupiah(r.dana_taktis)}</td>
-      <td>${statusBadge}</td>
+      <td class="text-center whitespace-nowrap">${statusBadge}</td>
     </tr>`;
   }).join('');
 }

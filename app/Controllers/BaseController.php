@@ -51,6 +51,12 @@ abstract class BaseController extends Controller
             return null;
         }
 
+        $ext = strtolower($file->getExtension());
+        $allowedExtensions = ['jpg', 'jpeg', 'png', 'pdf', 'webp'];
+        if (!in_array($ext, $allowedExtensions, true)) {
+            return null;
+        }
+
         $uploadPath = FCPATH . 'uploads/bukti';
         if (!is_dir($uploadPath)) {
             mkdir($uploadPath, 0755, true);
@@ -66,9 +72,20 @@ abstract class BaseController extends Controller
     protected function hapusFileBukti(?string $filename): void
     {
         if (!$filename) return;
-        $path = FCPATH . 'uploads/bukti/' . $filename;
+        $cleanName = basename($filename);
+        $path = FCPATH . 'uploads/bukti/' . $cleanName;
         if (is_file($path)) {
             @unlink($path);
+        }
+    }
+
+    /** Bersihkan cache laporan agar data terbaru langsung tampil seketika setelah perubahan. */
+    protected function clearLaporanCache(): void
+    {
+        try {
+            service('cache')->clean();
+        } catch (\Throwable $e) {
+            // Abaikan jika cache driver sedang tidak aktif
         }
     }
 }

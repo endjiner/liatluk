@@ -148,6 +148,7 @@ class DataKeuangan extends BaseController
         ];
 
         $id = $this->pemasukanModel->insert($data);
+        $this->clearLaporanCache();
 
         // Notif transaksi besar
         $this->cekNotifTransaksiBesar($jumlahBersih, 'pemasukan');
@@ -185,6 +186,7 @@ class DataKeuangan extends BaseController
         }
 
         $this->pemasukanModel->update($id, $data);
+        $this->clearLaporanCache();
 
         // Jika pemasukan ini bertaut dengan setoran taktis peserta, sinkronkan kembali tanggal & nominalnya
         $existing = $this->pemasukanModel->find($id);
@@ -214,6 +216,7 @@ class DataKeuangan extends BaseController
             // Reset status peserta perjadin jika pemasukan ini bertaut dengan setoran taktis
             (new PerjalananDinasPesertaModel())->resetStatusDariPemasukan([(int)$id]);
             $this->pemasukanModel->delete($id);
+            $this->clearLaporanCache();
         }
         return $this->response->setJSON(['success' => true, 'message' => 'Pemasukan berhasil dihapus']);
     }
@@ -226,6 +229,7 @@ class DataKeuangan extends BaseController
             'status_dana'     => $status,
             'jumlah_diterima' => $jumlahDiterima,
         ]);
+        $this->clearLaporanCache();
         return $this->response->setJSON(['success' => true, 'message' => 'Status dana berhasil diupdate']);
     }
 
@@ -272,6 +276,7 @@ class DataKeuangan extends BaseController
         ];
 
         $id = $this->pengeluaranModel->insert($data);
+        $this->clearLaporanCache();
 
         // Notif transaksi besar
         $this->cekNotifTransaksiBesar($jumlah, 'pengeluaran');
@@ -307,6 +312,7 @@ class DataKeuangan extends BaseController
         }
 
         $this->pengeluaranModel->update($id, $data);
+        $this->clearLaporanCache();
         return $this->response->setJSON(['success' => true, 'message' => 'Pengeluaran berhasil diupdate']);
     }
 
@@ -315,6 +321,7 @@ class DataKeuangan extends BaseController
         $row = $this->pengeluaranModel->find($id);
         $this->hapusFileBukti($row['file_bukti'] ?? null);
         $this->pengeluaranModel->delete($id);
+        $this->clearLaporanCache();
         return $this->response->setJSON(['success' => true, 'message' => 'Pengeluaran berhasil dihapus']);
     }
 
@@ -362,6 +369,7 @@ class DataKeuangan extends BaseController
             $this->pengeluaranModel->whereIn('id', $pengeluaranIds)->delete();
             $deletedE = count($pengeluaranIds);
         }
+        $this->clearLaporanCache();
 
         $total = $deletedP + $deletedE;
         $detail = [];

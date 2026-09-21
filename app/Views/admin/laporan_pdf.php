@@ -5,15 +5,108 @@
   <title><?= !empty($hanyaPerjadin) ? 'Laporan Perjalanan Dinas' : (!empty($hanyaDanaTaktis) ? 'Laporan Dana Taktis' : (empty($isSuperAdmin) ? 'Laporan Perjalanan Dinas & Dana Taktis' : 'Laporan Keuangan')) ?> BBPOM di Pangkal Pinang (<?= $bulanDari ?> s/d <?= $bulanSampai ?>)</title>
   <link rel="stylesheet" href="<?= base_url('assets/css/laporan-pdf.css') ?>">
   <style>
+    *, *::before, *::after {
+      -webkit-print-color-adjust: exact !important;
+      color-adjust: exact !important;
+      print-color-adjust: exact !important;
+    }
     <?php if (!empty($sertakanPerjadin) || !empty($hanyaPerjadin)): ?>
-    @page { size: A4 landscape; margin: 10mm; }
-    body { padding: 10px; }
+    @page { size: A4 landscape; margin: 10mm 12mm; }
     <?php else: ?>
-    @page { size: A4 portrait; margin: 15mm; }
+    @page { size: A4 portrait; margin: 12mm 15mm; }
     <?php endif; ?>
+    body {
+      padding: 0 15px 15px 15px;
+      margin: 0;
+    }
+    @media print {
+      .no-print { display: none !important; }
+      body {
+        padding: 0 !important;
+        margin: 0 !important;
+      }
+    }
+    /* Toolbar Panduan Cetak (hanya di layar, tidak ikut tercetak) */
+    .print-toolbar {
+      position: sticky;
+      top: 0;
+      z-index: 9999;
+      background: #0f172a;
+      color: #f8fafc;
+      padding: 10px 18px;
+      margin: 0 -15px 20px -15px;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 16px;
+      box-shadow: 0 4px 12px rgba(0,0,0,0.2);
+      font-family: Arial, sans-serif;
+    }
+    .print-toolbar-info {
+      font-size: 11.5px;
+      line-height: 1.5;
+    }
+    .print-toolbar-info strong {
+      color: #38bdf8;
+    }
+    .print-toolbar-info .tips {
+      margin-top: 3px;
+      color: #cbd5e1;
+      font-size: 11px;
+    }
+    .print-toolbar-actions {
+      display: flex;
+      gap: 8px;
+      flex-shrink: 0;
+    }
+    .btn-print-action {
+      background: #0284c7;
+      color: #fff;
+      border: none;
+      padding: 7px 14px;
+      border-radius: 6px;
+      font-weight: bold;
+      font-size: 12px;
+      cursor: pointer;
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+    }
+    .btn-print-action:hover {
+      background: #0369a1;
+    }
+    .btn-close-action {
+      background: #475569;
+      color: #fff;
+      border: none;
+      padding: 7px 12px;
+      border-radius: 6px;
+      font-size: 12px;
+      cursor: pointer;
+    }
+    .btn-close-action:hover {
+      background: #334155;
+    }
   </style>
 </head>
-<body onload="window.print()">
+<body>
+
+<div class="no-print print-toolbar">
+  <div class="print-toolbar-info">
+    <div><strong>💡 Petunjuk Hasil Cetak &amp; Simpan PDF Rapi &amp; Berwarna:</strong></div>
+    <div class="tips">
+      1. Pada dialog cetak browser, klik <strong>Setelan lainnya (More settings)</strong> &rarr; <strong>Hapus centang "Header dan footer"</strong> agar tulisan URL website di bawah tidak muncul.<br>
+      2. Pastikan opsi <strong>Warna: Berwarna (Color)</strong> dan <strong>Centang "Grafik latar belakang" (Background graphics)</strong> agar warna tabel &amp; badge tetap muncul sempurna.
+    </div>
+  </div>
+  <div class="print-toolbar-actions">
+    <button type="button" onclick="window.print()" class="btn-print-action">
+      <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="6 9 6 2 18 2 18 9"></polyline><path d="M6 18H4a2 2 0 0 1-2-2v-5a2 2 0 0 1 2-2h16a2 2 0 0 1 2 2v5a2 2 0 0 1-2 2h-2"></path><rect x="6" y="14" width="12" height="8"></rect></svg>
+      Cetak / Simpan PDF
+    </button>
+    <button type="button" onclick="window.close()" class="btn-close-action">✕ Tutup</button>
+  </div>
+</div>
 
 <div class="header">
   <h2>Balai Besar Pengawas Obat dan Makanan di Pangkal Pinang</h2>
@@ -342,8 +435,8 @@
       <td class="text-right"><?= number_format((float)($r['total_hotel'] ?? 0), 0, ',', '.') ?></td>
       <td class="text-right font-bold"><?= number_format((float)($r['total_spj'] ?? 0), 0, ',', '.') ?></td>
       <td class="text-right"><?= number_format((float)($r['dana_taktis'] ?? 0), 0, ',', '.') ?></td>
-      <td class="text-center">
-        <?= ($r['status_lunas'] ?? '') === 'lunas' ? ('Lunas' . (!empty($r['tanggal_lunas']) ? '<br><span style="font-size:8px;color:#64748b;">' . date('d/m/Y', strtotime($r['tanggal_lunas'])) . '</span>' : '')) : 'Belum' ?>
+      <td class="text-center" style="white-space:nowrap;">
+        <?= ($r['status_lunas'] ?? '') === 'lunas' ? ('Lunas' . (!empty($r['tanggal_lunas']) ? '<br><span style="font-size:8px;color:#64748b;">' . date('d/m/Y', strtotime($r['tanggal_lunas'])) . '</span>' : '')) : 'Belum Lunas' ?>
       </td>
     </tr>
     <?php endforeach; endif; ?>
@@ -395,7 +488,7 @@
       <th class="col-w20">Nama Peserta</th>
       <th>Maksud Perjalanan</th>
       <th class="col-w15">Dana Taktis</th>
-      <th class="col-w15">Status</th>
+      <th class="col-w15 text-center">Status</th>
     </tr>
   </thead>
   <tbody>
@@ -407,7 +500,7 @@
       <td><?= esc($row['nama_peserta']) ?></td>
       <td><?= esc($row['maksud']) ?></td>
       <td class="text-right"><?= number_format($row['dana_taktis'], 0, ',', '.') ?></td>
-      <td class="<?= $row['status_lunas'] === 'lunas' ? 'text-success' : 'text-danger' ?>">
+      <td class="text-center <?= $row['status_lunas'] === 'lunas' ? 'text-success' : 'text-danger' ?>" style="white-space:nowrap;">
         <?= $row['status_lunas'] === 'lunas' ? ('Lunas' . (!empty($row['tanggal_lunas']) ? '<br><span style="font-size:8px;color:#64748b;">' . date('d/m/Y', strtotime($row['tanggal_lunas'])) . '</span>' : '')) : 'Belum Lunas' ?>
       </td>
     </tr>
@@ -416,5 +509,21 @@
 </table>
 <?php endif; ?>
 
+<div class="print-doc-footer" style="margin-top: 28px; border-top: 1px solid #cbd5e1; padding-top: 6px; display: table; width: 100%;">
+  <div style="display: table-cell; text-align: left; font-size: 9px; color: #64748b;">
+    Balai Besar Pengawas Obat dan Makanan di Pangkal Pinang &middot; Sistem Pengelolaan Keuangan Internal
+  </div>
+  <div style="display: table-cell; text-align: right; font-size: 9px; color: #64748b;">
+    Dicetak: <?= date('d/m/Y H:i') ?> WIB
+  </div>
+</div>
+
+<script>
+  window.addEventListener('load', function() {
+    setTimeout(function() {
+      window.print();
+    }, 350);
+  });
+</script>
 </body>
 </html>

@@ -1,7 +1,5 @@
 # Deny direct access to sensitive folders and files
-# <Directory> is not allowed in .htaccess - using FilesMatch instead
-
-<FilesMatch "(\.env.*|\.sql|\.lock|composer\.(json|lock)|package(-lock)?\.json|phpunit\.dist\.xml|\.htaccess|README.*|LICENSE|debug\.php|preload\.php|builds)$">
+<FilesMatch "(\.env.*|\.sql|\.lock|composer\.(json|lock)|package(-lock)?\.json|phpunit\.dist\.xml|\.htaccess|README.*|LICENSE|preload\.php|spark|builds)$">
     <IfModule mod_authz_core.c>
         Require all denied
     </IfModule>
@@ -12,3 +10,17 @@
 </FilesMatch>
 
 Options -Indexes -MultiViews
+
+# Rewrite ke folder public/ untuk shared hosting (InfinityFree / cPanel)
+<IfModule mod_rewrite.c>
+    RewriteEngine On
+
+    # Blokir akses ke folder sistem internal
+    RewriteRule ^(app|writable|vendor|tests|\.git) - [F,L]
+
+    # Jangan rewrite jika request sudah mengarah ke /public/
+    RewriteCond %{REQUEST_URI} !^/public/
+
+    # Rewrite seluruh request ke public/
+    RewriteRule ^(.*)$ public/$1 [L,QSA]
+</IfModule>

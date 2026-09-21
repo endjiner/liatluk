@@ -18,18 +18,18 @@
     ]);
   ?>
   <div class="flex flex-wrap items-center gap-2">
-    <a href="<?= base_url('admin/laporan/export-pdf?' . $qsExport) ?>" target="_blank" class="btn btn-outline btn-sm">
+    <a id="btn-export-pdf" href="<?= base_url('admin/laporan/export-pdf?' . $qsExport) ?>" target="_blank" class="btn btn-outline btn-sm">
       <?= iconsax('document-text', 'text-red-600') ?> Export PDF
     </a>
-    <a href="<?= base_url('admin/laporan/export-excel?' . $qsExport) ?>" class="btn btn-outline btn-sm">
+    <a id="btn-export-excel" href="<?= base_url('admin/laporan/export-excel?' . $qsExport) ?>" class="btn btn-outline btn-sm">
       <?= iconsax('export-square', 'text-emerald-600') ?> Export Excel
     </a>
   </div>
 </div>
 
 <!-- Filter -->
-<form method="GET" action="<?= base_url('admin/laporan') ?>" class="card p-3 mb-4">
-  <div class="flex flex-wrap items-end gap-3">
+<form id="filter-laporan-form" method="GET" action="<?= base_url('admin/laporan') ?>" class="card p-3.5 sm:p-4 mb-5">
+  <div class="flex flex-wrap items-end gap-3 sm:gap-4">
     <div>
       <label class="form-label">Bulan Dari</label>
       <input type="month" name="bulan_dari" class="form-control form-control-sm" value="<?= $bulanDari ?>">
@@ -52,12 +52,15 @@
       <button type="submit" class="btn btn-primary btn-sm"><?= iconsax('filter', '') ?> Tampilkan</button>
     </div>
   </div>
-  <?php if ($sertakanDanaTaktis): ?>
-  <div class="mt-3 pt-3 border-t border-slate-100 dark:border-slate-700">
-    <label class="form-label">Filter Nama (Dana Taktis / Pegawai)</label>
-    <input type="text" name="filter_nama_taktis" placeholder="Kosongkan untuk semua pegawai..." class="form-control form-control-sm max-w-xs" value="<?= esc($filterNamaTaktis ?? '') ?>">
+  <div id="filter-nama-box" class="mt-3.5 pt-3.5 border-t border-slate-100 dark:border-slate-700 <?= ($sertakanDanaTaktis || $sertakanPerjadin) ? '' : 'hidden' ?>">
+    <label class="form-label font-medium text-slate-700 dark:text-slate-200">Filter Nama (Dana Taktis / Pegawai)</label>
+    <div class="flex items-center gap-2 max-w-sm">
+      <input type="text" id="filter-nama-input" name="filter_nama_taktis" placeholder="Ketik nama untuk filter..." class="form-control form-control-sm flex-1" value="<?= esc($filterNamaTaktis ?? '') ?>">
+      <?php if (!empty($filterNamaTaktis)): ?>
+        <a href="<?= base_url('admin/laporan?bulan_dari=' . $bulanDari . '&bulan_sampai=' . $bulanSampai . '&sertakan_perjadin=' . ($sertakanPerjadin ? 1 : 0) . '&sertakan_dana_taktis=' . ($sertakanDanaTaktis ? 1 : 0)) ?>" class="btn btn-ghost btn-sm text-xs text-slate-500 hover:text-red-600" title="Reset filter nama">Reset</a>
+      <?php endif; ?>
+    </div>
   </div>
-  <?php endif; ?>
 </form>
 
 <?php if (!empty($periodeDipangkas)): ?>
@@ -69,20 +72,20 @@
 
 <?php if ($isSuperAdmin): ?>
 <!-- KPI Summary (Super Admin) -->
-<div class="grid grid-cols-2 md:grid-cols-2 lg:grid-cols-4 gap-3 mb-6">
-  <div class="kpi">
+<div class="grid grid-cols-2 lg:grid-cols-4 gap-3.5 sm:gap-4.5 lg:gap-5 mb-6">
+  <div class="kpi p-3.5 sm:p-5">
     <div class="kpi-label"><?= iconsax('wallet', 'w-4 h-4') ?> Saldo Awal Periode</div>
     <div class="kpi-value text-primary-700 dark:text-primary-300 text-currency">Rp <?= number_format($saldoAwal, 0, ',', '.') ?></div>
   </div>
-  <div class="kpi">
+  <div class="kpi p-3.5 sm:p-5">
     <div class="kpi-label"><?= iconsax('trend-up', 'w-4 h-4 text-emerald-600') ?> Total Pemasukan</div>
     <div class="kpi-value text-emerald-700 dark:text-emerald-400 text-currency">Rp <?= number_format($totalPemasukan, 0, ',', '.') ?></div>
   </div>
-  <div class="kpi">
+  <div class="kpi p-3.5 sm:p-5">
     <div class="kpi-label"><?= iconsax('trend-down', 'w-4 h-4 text-red-600') ?> Total Pengeluaran</div>
     <div class="kpi-value text-red-700 dark:text-red-400 text-currency">Rp <?= number_format($totalPengeluaran, 0, ',', '.') ?></div>
   </div>
-  <div class="kpi">
+  <div class="kpi p-3.5 sm:p-5">
     <div class="kpi-label"><?= iconsax('wallet', 'w-4 h-4') ?> Saldo Akhir Periode</div>
     <div class="kpi-value <?= $saldoAkhir >= 0 ? 'text-emerald-700 dark:text-emerald-400' : 'text-red-700 dark:text-red-400' ?> text-currency">
       Rp <?= number_format($saldoAkhir, 0, ',', '.') ?>
@@ -91,7 +94,7 @@
 </div>
 
 <!-- Rekap per Kategori -->
-<div class="grid grid-cols-1 xl:grid-cols-2 gap-4">
+<div class="grid grid-cols-1 xl:grid-cols-2 gap-5">
   <div class="card">
     <div class="card-header">
       <h3 class="text-sm font-semibold text-slate-700 dark:text-slate-200 flex items-center gap-2">
@@ -160,24 +163,24 @@
   </h3>
 </div>
 
-<div class="grid grid-cols-2 lg:grid-cols-5 gap-2.5 sm:gap-3 mb-3">
-  <div class="kpi p-3 sm:p-4">
+<div class="grid grid-cols-2 lg:grid-cols-5 gap-3.5 sm:gap-4 mb-4">
+  <div class="kpi p-3.5 sm:p-4">
     <div class="kpi-label text-[11px]"><?= iconsax('routing', 'w-4 h-4 text-primary-600') ?> Total ST / Trip</div>
     <div class="kpi-value text-base sm:text-lg text-slate-700 dark:text-slate-200"><?= number_format($perjadinTripCount, 0, ',', '.') ?></div>
   </div>
-  <div class="kpi p-3 sm:p-4">
+  <div class="kpi p-3.5 sm:p-4">
     <div class="kpi-label text-[11px]"><?= iconsax('profile-2user', 'w-4 h-4 text-indigo-600') ?> Total Pelaksana</div>
     <div class="kpi-value text-base sm:text-lg text-slate-700 dark:text-slate-200"><?= number_format($perjadinPesertaCount, 0, ',', '.') ?></div>
   </div>
-  <div class="kpi p-3 sm:p-4">
+  <div class="kpi p-3.5 sm:p-4">
     <div class="kpi-label text-[11px]"><?= iconsax('receipt-2', 'w-4 h-4 text-blue-600') ?> Total SPJ</div>
     <div class="kpi-value text-base sm:text-lg text-primary-700 dark:text-primary-300 text-currency">Rp <?= number_format($perjadinTotalSpj, 0, ',', '.') ?></div>
   </div>
-  <div class="kpi p-3 sm:p-4">
+  <div class="kpi p-3.5 sm:p-4">
     <div class="kpi-label text-[11px]"><?= iconsax('moneys', 'w-4 h-4 text-emerald-600') ?> Total Dana Taktis</div>
     <div class="kpi-value text-base sm:text-lg text-emerald-700 dark:text-emerald-400 text-currency">Rp <?= number_format($perjadinTotalTaktis, 0, ',', '.') ?></div>
   </div>
-  <div class="kpi p-3 sm:p-4 bg-amber-50/70 dark:bg-amber-900/20 col-span-2 lg:col-span-1">
+  <div class="kpi p-3.5 sm:p-4 bg-amber-50/70 dark:bg-amber-900/20 col-span-2 lg:col-span-1">
     <div class="kpi-label text-[11px]"><?= iconsax('warning-2', 'w-4 h-4 text-amber-600') ?> Belum Lunas</div>
     <div class="kpi-value text-base sm:text-lg text-amber-700 dark:text-amber-400 text-currency">Rp <?= number_format($perjadinBelumLunas, 0, ',', '.') ?></div>
   </div>
@@ -248,14 +251,14 @@
           <td class="text-right text-currency font-medium <?= (float)($r['dana_taktis'] ?? 0) > 0 ? 'text-taktis' : 'text-slate-400' ?>">
             Rp <?= number_format((float)($r['dana_taktis'] ?? 0), 0, ',', '.') ?>
           </td>
-          <td class="text-center">
+          <td class="text-center whitespace-nowrap">
             <?php if (($r['status_lunas'] ?? '') === 'lunas'): ?>
               <span class="badge badge-success text-[11px]">Lunas</span>
               <?php if (!empty($r['tanggal_lunas'])): ?>
                 <div class="text-[10px] text-slate-500 mt-0.5 whitespace-nowrap"><?= date('d/m/Y', strtotime($r['tanggal_lunas'])) ?></div>
               <?php endif; ?>
             <?php else: ?>
-              <span class="badge badge-warning text-[11px]">Belum</span>
+              <span class="badge badge-warning text-[11px]">Belum Lunas</span>
             <?php endif; ?>
           </td>
         </tr>
@@ -285,20 +288,20 @@
     <?php endif; ?>
   </h3>
 
-  <div class="grid grid-cols-2 lg:grid-cols-4 gap-2.5 sm:gap-3 mb-3">
-    <div class="kpi p-3 sm:p-4">
+  <div class="grid grid-cols-2 lg:grid-cols-4 gap-3.5 sm:gap-4 mb-4">
+    <div class="kpi p-3.5 sm:p-4">
       <div class="kpi-label text-[11px]"><?= iconsax('money', 'w-4 h-4') ?> Total Uang Harian</div>
       <div class="kpi-value text-base sm:text-lg text-slate-700 dark:text-slate-200 text-currency">Rp <?= number_format($danaTaktisTotalUangHarian, 0, ',', '.') ?></div>
     </div>
-    <div class="kpi p-3 sm:p-4">
+    <div class="kpi p-3.5 sm:p-4">
       <div class="kpi-label text-[11px]"><?= iconsax('receipt-2', 'w-4 h-4') ?> Total SPJ</div>
       <div class="kpi-value text-base sm:text-lg text-slate-700 dark:text-slate-200 text-currency">Rp <?= number_format($danaTaktisTotalSpj, 0, ',', '.') ?></div>
     </div>
-    <div class="kpi p-3 sm:p-4">
+    <div class="kpi p-3.5 sm:p-4">
       <div class="kpi-label text-[11px]"><?= iconsax('moneys', 'w-4 h-4 text-emerald-600') ?> Dana Taktis</div>
       <div class="kpi-value text-base sm:text-lg text-emerald-700 dark:text-emerald-400 text-currency">Rp <?= number_format($danaTaktisTotalTaktis, 0, ',', '.') ?></div>
     </div>
-    <div class="kpi p-3 sm:p-4 bg-amber-50/70 dark:bg-amber-900/20">
+    <div class="kpi p-3.5 sm:p-4 bg-amber-50/70 dark:bg-amber-900/20">
       <div class="kpi-label text-[11px]"><?= iconsax('warning-2', 'w-4 h-4 text-amber-600') ?> Belum Dibayar</div>
       <div class="kpi-value text-base sm:text-lg text-amber-700 dark:text-amber-400 text-currency">Rp <?= number_format($danaTaktisTotalBelumSetor, 0, ',', '.') ?></div>
     </div>
@@ -307,17 +310,17 @@
   <div class="card">
     <div class="overflow-x-auto">
       <table class="table">
-        <thead><tr><th>Tanggal</th><th>Nama Peserta</th><th>Maksud Perjalanan</th><th class="text-right">Dana Taktis</th><th>Status</th></tr></thead>
+        <thead><tr><th>Tanggal</th><th>Nama Peserta</th><th>Maksud Perjalanan</th><th class="text-right">Dana Taktis</th><th class="text-center">Status</th></tr></thead>
         <tbody>
         <?php if (empty($danaTaktisRows)): ?>
           <tr><td colspan="5" class="text-center py-8 text-slate-500"><img src="<?= icons8('empty-box', '3d-fluency', 64) ?>" alt="" class="w-10 h-10 mx-auto mb-2 opacity-80"><br>Tidak ada data pada periode<?= ($filterNamaTaktis ?? '') !== '' ? ' / filter nama' : '' ?> ini</td></tr>
         <?php else: foreach ($danaTaktisRows as $row): ?>
           <tr>
             <td class="whitespace-nowrap"><?= date('d/m/Y', strtotime($row['tanggal_surat_tugas'])) ?></td>
-            <td><?= esc($row['nama_peserta']) ?></td>
+            <td class="font-medium text-slate-800 dark:text-slate-200"><?= esc($row['nama_peserta']) ?></td>
             <td class="truncate max-w-[240px]"><?= esc($row['maksud']) ?></td>
             <td class="text-right font-medium text-currency">Rp <?= number_format($row['dana_taktis'], 0, ',', '.') ?></td>
-            <td>
+            <td class="text-center whitespace-nowrap">
               <?= $row['status_lunas'] === 'lunas' ? '<span class="badge badge-success">Lunas</span>' : '<span class="badge badge-warning">Belum Lunas</span>' ?>
               <?php if ($row['status_lunas'] === 'lunas' && !empty($row['tanggal_lunas'])): ?>
                 <div class="text-[11px] text-slate-500 mt-0.5 whitespace-nowrap"><i class="ti ti-calendar-check text-emerald-500"></i> <?= date('d/m/Y', strtotime($row['tanggal_lunas'])) ?></div>
@@ -331,5 +334,43 @@
   </div>
 </div>
 <?php endif; ?>
+
+<script>
+(function() {
+  const form = document.getElementById('filter-laporan-form');
+  if (!form) return;
+
+  function syncExportLinks() {
+    const fd = new FormData(form);
+    const sp = new URLSearchParams();
+    for (const [k, v] of fd.entries()) {
+      if (v !== '') sp.set(k, v);
+    }
+    if (!form.querySelector('input[name="sertakan_perjadin"]:checked')) sp.set('sertakan_perjadin', '0');
+    if (!form.querySelector('input[name="sertakan_dana_taktis"]:checked')) sp.set('sertakan_dana_taktis', '0');
+
+    const qs = sp.toString();
+    const pdfBtn = document.getElementById('btn-export-pdf');
+    const excelBtn = document.getElementById('btn-export-excel');
+    if (pdfBtn) pdfBtn.href = '<?= base_url('admin/laporan/export-pdf') ?>?' + qs;
+    if (excelBtn) excelBtn.href = '<?= base_url('admin/laporan/export-excel') ?>?' + qs;
+  }
+
+  form.querySelectorAll('input').forEach(inp => {
+    inp.addEventListener('input', syncExportLinks);
+    inp.addEventListener('change', () => {
+      const box = document.getElementById('filter-nama-box');
+      const pj = form.querySelector('input[name="sertakan_perjadin"]');
+      const dt = form.querySelector('input[name="sertakan_dana_taktis"]');
+      if (box && pj && dt) {
+        box.classList.toggle('hidden', !pj.checked && !dt.checked);
+      }
+      syncExportLinks();
+    });
+  });
+
+  syncExportLinks();
+})();
+</script>
 
 <?= $this->endSection() ?>

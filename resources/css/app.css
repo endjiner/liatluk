@@ -237,7 +237,7 @@ svg {
 .table td button { flex-shrink: 0; }
 .table td button svg { flex-shrink: 0; display: block; }
 
-.badge { display: inline-flex; align-items: center; gap: .25rem; border-radius: 9999px; padding: .1875rem .625rem; font-size: .75rem; line-height: 1rem; font-weight: 500; }
+.badge { display: inline-flex; align-items: center; justify-content: center; text-align: center; white-space: nowrap; gap: .25rem; border-radius: 9999px; padding: .1875rem .625rem; font-size: .75rem; line-height: 1rem; font-weight: 500; }
 .badge-success { background-color: #f0faf5; color: #276749; border: 1px solid #c6ead8; }
 .badge-success:is(.dark *) { background-color: rgba(6,78,59,.2); color: #86d4b0; border-color: rgba(5,150,105,.25); }
 .badge-danger { background-color: #fdf2f2; color: #8b3535; border: 1px solid #f4c7c7; }
